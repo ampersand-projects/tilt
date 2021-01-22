@@ -37,7 +37,7 @@ namespace till {
             linker(es, []() { return std::make_unique<SectionMemoryManager>(); }),
             compiler(es, linker, std::make_unique<ConcurrentIRCompiler>(std::move(jtmb))),
             dl(std::move(dl)), mangle(es, this->dl), ctx(std::make_unique<LLVMContext>()),
-            jd(es.createBareJITDylib("__til_lib"))
+            jd(es.createBareJITDylib("__till_lib"))
         {
             jd.addGenerator(cantFail(
                 DynamicLibrarySearchGenerator::GetForCurrentProcess(dl.getGlobalPrefix())));
