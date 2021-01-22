@@ -43,29 +43,25 @@ namespace till {
                 DynamicLibrarySearchGenerator::GetForCurrentProcess(dl.getGlobalPrefix())));
         }
 
-        static Expected<std::unique_ptr<JIT>> Create()
+        static std::unique_ptr<JIT> Create()
         {
-            auto jtmb = JITTargetMachineBuilder::detectHost();
-            if (!jtmb) return jtmb.takeError();
-
-            auto dl = jtmb->getDefaultDataLayoutForTarget();
-            if (!dl) return dl.takeError();
-
-            return std::make_unique<JIT>(std::move(*jtmb), std::move(*dl));
+            auto jtmb = std::move(cantFail(JITTargetMachineBuilder::detectHost()));
+            auto dl = std::move(cantFail(jtmb.getDefaultDataLayoutForTarget()));
+            return std::make_unique<JIT>(std::move(jtmb), std::move(dl));
         }
 
         const DataLayout& getDataLayout() const { return dl; }
 
         LLVMContext& getContext() { return *(ctx.getContext()); }
 
-        Error addModule(std::unique_ptr<Module> M)
+        void addModule(std::unique_ptr<Module> M)
         {
-            return compiler.add(jd, ThreadSafeModule(std::move(M), ctx));
+            cantFail(compiler.add(jd, ThreadSafeModule(std::move(M), ctx)));
         }
 
-        Expected<JITEvaluatedSymbol> lookup(StringRef name)
+        JITEvaluatedSymbol lookup(StringRef name)
         {
-            return es.lookup({ &jd }, mangle(name.str()));
+            return cantFail(es.lookup({ &jd }, mangle(name.str())));
         }
     }; // class JIT
 } // namespace till

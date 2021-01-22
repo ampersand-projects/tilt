@@ -71,16 +71,16 @@ int main()
     InitializeNativeTarget();
     InitializeNativeTargetAsmPrinter();
 
-    auto jit = cantFail(till::JIT::Create());
+    auto jit = till::JIT::Create();
     auto& ctx = jit->getContext();
 
     auto llmod = buildprog(ctx);
     //auto llmod = std::move(buildsrc(ctx));
     if (!llmod) return -1;
 
-    cantFail(jit->addModule(std::move(llmod)));
+    jit->addModule(std::move(llmod));
 
-    JITEvaluatedSymbol sym = cantFail(jit->lookup("add1"));
+    auto sym = std::move(jit->lookup("add1"));
 
     auto* add1 = (int (*)(int))(intptr_t)sym.getAddress();
     std::cout << "Result: " << add1(10) << std::endl;
