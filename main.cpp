@@ -9,7 +9,7 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/SourceMgr.h"
 
-#include "till/jit.h"
+#include "till/codegen/jit.h"
 
 #include <iostream>
 #include <memory>

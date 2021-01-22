@@ -1,6 +1,8 @@
 set(SRC_FILES
-    op.cpp
-    graph.cpp
+    core/op.cpp
+    core/graph.cpp
     )
 
 add_library(tillib STATIC ${SRC_FILES})
+
+target_compile_options(tillib PRIVATE -Wall -Wextra -pedantic -Werror)
