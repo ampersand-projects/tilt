@@ -10,9 +10,11 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 # E.g. if using the C++ header files
 # you will need to enable C++11 support
 # for your compiler.
+add_subdirectory(src)
 
 include_directories(${LLVM_INCLUDE_DIRS} include)
 add_definitions(${LLVM_DEFINITIONS})
+
 
 # Now build our tools
 add_executable(till main.cpp)
@@ -22,6 +24,6 @@ add_executable(till main.cpp)
 llvm_map_components_to_libnames(llvm_libs core executionengine support native orcjit object)
 
 # Link against LLVM libraries
-target_link_libraries(till ${llvm_libs})
+target_link_libraries(till ${llvm_libs} tillib)
 
 #target_include_directories(till PUBLIC "${PROJECT_SOURCE_DIR}/include")
