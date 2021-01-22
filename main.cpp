@@ -9,7 +9,7 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/SourceMgr.h"
 
-#include "TilJIT.h"
+#include "till/jit.h"
 
 #include <iostream>
 #include <memory>
@@ -71,7 +71,7 @@ int main()
     InitializeNativeTarget();
     InitializeNativeTargetAsmPrinter();
 
-    auto jit = cantFail(TilJIT::Create());
+    auto jit = cantFail(till::JIT::Create());
     auto& ctx = jit->getContext();
 
     auto llmod = buildprog(ctx);

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13.4)
-project(kaleidoscope)
+project(till)
 
 find_package(LLVM REQUIRED CONFIG)
 
@@ -15,13 +15,13 @@ include_directories(${LLVM_INCLUDE_DIRS} include)
 add_definitions(${LLVM_DEFINITIONS})
 
 # Now build our tools
-add_executable(kaleidoscope main.cpp)
+add_executable(till main.cpp)
 
 # Find the libraries that correspond to the LLVM components
 # that we wish to use
 llvm_map_components_to_libnames(llvm_libs core executionengine support native orcjit object)
 
 # Link against LLVM libraries
-target_link_libraries(kaleidoscope ${llvm_libs})
+target_link_libraries(till ${llvm_libs})
 
-#target_include_directories(kaleidoscope PUBLIC "${PROJECT_SOURCE_DIR}/include")
+#target_include_directories(till PUBLIC "${PROJECT_SOURCE_DIR}/include")
