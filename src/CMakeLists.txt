@@ -1,6 +1,5 @@
 set(SRC_FILES
     core/op.cpp
-    core/graph.cpp
     )
 
 add_library(tillib STATIC ${SRC_FILES})

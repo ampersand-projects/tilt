@@ -10,10 +10,14 @@
 #include "llvm/Support/SourceMgr.h"
 
 #include "till/codegen/jit.h"
+#include "till/core/op.h"
+#include "till/core/lstream.h"
 
 #include <iostream>
 #include <memory>
 #include <string>
+#include <any>
+
 
 using namespace llvm;
 using namespace llvm::orc;
@@ -68,6 +72,13 @@ std::unique_ptr<Module> buildsrc(LLVMContext& Context)
 
 int main()
 {
+    /*
+    auto cond = std::make_unique<till::Condition>();
+    auto body = std::make_unique<int>(1);
+    auto ptr = std::make_unique<int>(1);
+    auto op = std::make_unique<till::UnaryOp<int, int>>("op1", std::move(body), std::move(cond), std::move(ptr));
+    auto iter = std::make_unique<till::Iter>();
+    auto lstream = std::make_unique<till::LStream<int>>("test", std::move(iter), std::move(op));
     InitializeNativeTarget();
     InitializeNativeTargetAsmPrinter();
 
@@ -84,6 +95,6 @@ int main()
 
     auto* add1 = (int (*)(int))(intptr_t)sym.getAddress();
     std::cout << "Result: " << add1(10) << std::endl;
-
+    */
     return 0;
 }

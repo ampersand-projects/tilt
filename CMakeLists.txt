@@ -19,6 +19,8 @@ add_definitions(${LLVM_DEFINITIONS})
 # Now build our tools
 add_executable(till main.cpp)
 
+set_property(TARGET till PROPERTY CXX_STANDARD 20)
+
 # Find the libraries that correspond to the LLVM components
 # that we wish to use
 llvm_map_components_to_libnames(llvm_libs core executionengine support native orcjit object)
