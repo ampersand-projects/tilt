@@ -1,3 +1,4 @@
+#if 0
 #ifndef TILL_JIT
 #define TILL_JIT
 
@@ -67,3 +68,4 @@ namespace till {
 } // namespace till
 
 #endif // TILL_JIT
+#endif

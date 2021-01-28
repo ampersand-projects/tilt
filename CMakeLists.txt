@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.13.4)
 project(till)
 
-find_package(LLVM REQUIRED CONFIG)
+#find_package(LLVM REQUIRED CONFIG)
 
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+#message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+#message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 # Set your project compile flags.
 # E.g. if using the C++ header files
@@ -12,8 +12,9 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 # for your compiler.
 add_subdirectory(src)
 
-include_directories(${LLVM_INCLUDE_DIRS} include)
-add_definitions(${LLVM_DEFINITIONS})
+#include_directories(${LLVM_INCLUDE_DIRS} include)
+include_directories(include)
+#add_definitions(${LLVM_DEFINITIONS})
 
 
 # Now build our tools
@@ -23,9 +24,10 @@ set_property(TARGET till PROPERTY CXX_STANDARD 20)
 
 # Find the libraries that correspond to the LLVM components
 # that we wish to use
-llvm_map_components_to_libnames(llvm_libs core executionengine support native orcjit object)
+#llvm_map_components_to_libnames(llvm_libs core executionengine support native orcjit object)
 
 # Link against LLVM libraries
-target_link_libraries(till ${llvm_libs} tillib)
+#target_link_libraries(till ${llvm_libs} tillib)
+target_link_libraries(till tillib)
 
 #target_include_directories(till PUBLIC "${PROJECT_SOURCE_DIR}/include")
