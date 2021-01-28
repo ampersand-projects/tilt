@@ -2,68 +2,73 @@
 #define TILL_LSTREAM
 
 #include <string>
+#include <memory>
+
+using namespace std;
 
 namespace till {
 
     struct TimeLine {
+        const string name;
+        TimeLine(const string name) :
+            name(name)
+        {}
     }; // struct TimeLine
+    using TLPtr = shared_ptr<TimeLine>;
 
-    struct FreeLine : public TimeLine {
-    }; // struct FreeLine
+    struct BoundedTimeLine : public TimeLine {
+        BoundedTimeLine(const string name) :
+            TimeLine{ name }
+        {}
+    }; // struct BoundedTimeLine
+    using BTLPtr = shared_ptr<BoundedTimeLine>;
 
-    template<long _offset, ulong _period>
-    struct PeriodLine : public TimeLine {
-        constexpr long offset() const noexcept { return _offset; }
-        constexpr ulong period() const noexcept { return _period; }
-    }; // struct PeriodLine
+    struct WinTimeLine : public BoundedTimeLine {
+        WinTimeLine(const string name) :
+            BoundedTimeLine{ name }
+        {}
+    }; // struct WinTimeLine
+    using WinPtr = shared_ptr<WinTimeLine>;
 
-    template<typename DataType>
+    struct PtTimeLine : public BoundedTimeLine {
+        PtTimeLine(const string name) :
+            BoundedTimeLine{ name }
+        {}
+    }; // struct WinTimeLine
+    using PtPtr = shared_ptr<PtTimeLine>;
+
+    template<typename O>
     class LStream {
-    private:
-        std::string name;
-        TimeLine timeline;
+    public:
+        TLPtr timeline;
+
+        LStream(TLPtr timeline) : timeline(timeline)
+        {}
     }; // class LStream
+    template<typename O>
+    using LSPtr = shared_ptr<LStream<O>>;
 
-    template<typename DataType>
-    class DataLStream : public LStream<DataType> {
-    }; // class DataLStream
+    template<typename O>
+    class SubLStream : public LStream<O> {
+    public:
+        LSPtr<O> lstream;
 
-    struct Idx {
-    }; // struct Idx
-
-    struct PtIdx : public Idx {
-    }; // struct PointIdx
-
-    struct WinIdx : public Idx {
-    }; // struct WinIdx
-
-    template<long _offset>
-    struct ShiftIdx : public PtIdx {
-        constexpr long offset() const noexcept { return _offset; }
-    }; // struct ShiftIdx
-
-    struct CurIdx : public ShiftIdx<0> {
-    }; // struct CurIdx
-
-    template<long _begin, long _end>
-    struct FixWinIdx : public WinIdx {
-        constexpr long begin() const noexcept { return _begin; }
-        constexpr long end() const noexcept { return _end; }
-    }; // struct FixWinIdx
-
-    template<typename DataType>
-    class SubLStream : public LStream<DataType> {
-    private:
-        LStream<DataType> lstream;
-        WinIdx idx;
+        SubLStream(WinPtr win, LSPtr<O> lstream) :
+            LStream<O>{ win }, lstream(lstream)
+        {}
     }; // class SubLStream
 
-    template<typename DataType>
-    class Element {
-    private:
-        LStream<DataType> lstream;
-        PtIdx idx;
+    template<typename O>
+    class Element : LStream<O> {
+    public:
+        LSPtr<O> lstream;
+
+        Element(PtPtr pt, LSPtr<O> lstream) :
+            LStream<O>{ pt }, lstream(lstream)
+        {}
     }; // class Element
+    template<typename O>
+    using ElemPtr = shared_ptr<Element<O>>;
 
 } // namespace till
 
