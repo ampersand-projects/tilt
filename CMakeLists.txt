@@ -10,17 +10,15 @@ project(till)
 # E.g. if using the C++ header files
 # you will need to enable C++11 support
 # for your compiler.
-add_subdirectory(src)
 
 #include_directories(${LLVM_INCLUDE_DIRS} include)
 include_directories(include)
 #add_definitions(${LLVM_DEFINITIONS})
 
+add_subdirectory(src)
 
 # Now build our tools
 add_executable(till main.cpp)
-
-set_property(TARGET till PROPERTY CXX_STANDARD 20)
 
 # Find the libraries that correspond to the LLVM components
 # that we wish to use

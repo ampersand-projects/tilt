@@ -1,6 +1,9 @@
 set(SRC_FILES
-    core/op.cpp
-    )
+    ir/op.cpp
+    ir/expr.cpp
+    ir/lstream.cpp
+    codegen/printer.cpp
+)
 
 add_library(tillib STATIC ${SRC_FILES})
 
