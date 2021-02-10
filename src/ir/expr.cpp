@@ -1,7 +1,7 @@
-#include "till/ir/expr.h"
-#include "till/codegen/visitor.h"
+#include "tilt/ir/expr.h"
+#include "tilt/codegen/visitor.h"
 
-using namespace till;
+using namespace tilt;
 
 void Symbol::Accept(Visitor& v) const { v.Visit(*this); }
 void Lambda::Accept(Visitor& v) const { v.Visit(*this); }

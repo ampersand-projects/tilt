@@ -1,8 +1,8 @@
-#ifndef TILL_EXPR
-#define TILL_EXPR
+#ifndef TILT_EXPR
+#define TILT_EXPR
 
-#include "till/base/type.h"
-#include "till/codegen/node.h"
+#include "tilt/base/type.h"
+#include "tilt/codegen/node.h"
 
 #include <string>
 #include <memory>
@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace till {
+namespace tilt {
 
     struct Expr : public ASTNode {
         const Type type;
@@ -165,6 +165,6 @@ namespace till {
         void Accept(Visitor&) const final;
     };
 
-} // namespace till
+} // namespace tilt
 
-#endif // TILL_EXPR
+#endif // TILT_EXPR

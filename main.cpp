@@ -1,14 +1,14 @@
-#include "till/base/type.h"
-#include "till/ir/expr.h"
-#include "till/ir/lstream.h"
-#include "till/ir/op.h"
-#include "till/codegen/printer.h"
+#include "tilt/base/type.h"
+#include "tilt/ir/expr.h"
+#include "tilt/ir/lstream.h"
+#include "tilt/ir/op.h"
+#include "tilt/codegen/printer.h"
 
 #include <iostream>
 #include <memory>
 
 using namespace std;
-using namespace till;
+using namespace tilt;
 
 int main()
 {

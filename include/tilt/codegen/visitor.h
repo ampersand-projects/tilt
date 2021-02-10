@@ -1,11 +1,11 @@
-#ifndef TILL_VISITOR
-#define TILL_VISITOR
+#ifndef TILT_VISITOR
+#define TILT_VISITOR
 
-#include "till/ir/expr.h"
-#include "till/ir/lstream.h"
-#include "till/ir/op.h"
+#include "tilt/ir/expr.h"
+#include "tilt/ir/lstream.h"
+#include "tilt/ir/op.h"
 
-namespace till
+namespace tilt
 {
 
     class Visitor {
@@ -26,6 +26,6 @@ namespace till
         virtual void Visit(const Sum&) = 0;
     };
 
-} // namespace till
+} // namespace tilt
 
-#endif // TILL_VISITOR
+#endif // TILT_VISITOR

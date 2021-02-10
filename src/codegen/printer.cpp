@@ -1,6 +1,6 @@
-#include "till/codegen/printer.h"
+#include "tilt/codegen/printer.h"
 
-using namespace till;
+using namespace tilt;
 using namespace std;
 
 string idx_str(long idx)

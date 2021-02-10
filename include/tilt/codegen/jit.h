@@ -1,6 +1,6 @@
 #if 0
-#ifndef TILL_JIT
-#define TILL_JIT
+#ifndef TILT_JIT
+#define TILT_JIT
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ExecutionEngine/Orc/CompileUtils.h"
@@ -18,7 +18,7 @@
 using namespace llvm;
 using namespace llvm::orc;
 
-namespace till {
+namespace tilt {
 
     class JIT
     {
@@ -38,7 +38,7 @@ namespace till {
             linker(es, []() { return std::make_unique<SectionMemoryManager>(); }),
             compiler(es, linker, std::make_unique<ConcurrentIRCompiler>(std::move(jtmb))),
             dl(std::move(dl)), mangle(es, this->dl), ctx(std::make_unique<LLVMContext>()),
-            jd(es.createBareJITDylib("__till_lib"))
+            jd(es.createBareJITDylib("__tilt_lib"))
         {
             jd.addGenerator(cantFail(
                 DynamicLibrarySearchGenerator::GetForCurrentProcess(dl.getGlobalPrefix())));
@@ -65,7 +65,7 @@ namespace till {
             return cantFail(es.lookup({ &jd }, mangle(name.str())));
         }
     }; // class JIT
-} // namespace till
+} // namespace tilt
 
-#endif // TILL_JIT
+#endif // TILT_JIT
 #endif

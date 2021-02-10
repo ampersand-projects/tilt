@@ -1,11 +1,11 @@
-#ifndef TILL_LSTREAM
-#define TILL_LSTREAM
+#ifndef TILT_LSTREAM
+#define TILT_LSTREAM
 
-#include "till/ir/expr.h"
+#include "tilt/ir/expr.h"
 
 using namespace std;
 
-namespace till {
+namespace tilt {
 
     struct LStream : public Expr {
         LStream(Type type) : Expr(move(type))
@@ -50,6 +50,6 @@ namespace till {
     };
     typedef shared_ptr<Element> ElemPtr;
 
-} // namespace till
+} // namespace tilt
 
-#endif // TILL_LSTREAM
+#endif // TILT_LSTREAM

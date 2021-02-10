@@ -1,7 +1,7 @@
-#ifndef TILL_NODE
-#define TILL_NODE
+#ifndef TILT_NODE
+#define TILT_NODE
 
-namespace till {
+namespace tilt {
 
     class Visitor;
 
@@ -9,6 +9,6 @@ namespace till {
         virtual void Accept(Visitor&) const = 0;
     };
 
-} // namespace till
+} // namespace tilt
 
-#endif // TILL_NODE
+#endif // TILT_NODE

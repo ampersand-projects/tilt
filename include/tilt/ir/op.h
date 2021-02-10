@@ -1,12 +1,12 @@
-#ifndef TILL_OP
-#define TILL_OP
+#ifndef TILT_OP
+#define TILT_OP
 
-#include "till/ir/expr.h"
-#include "till/ir/lstream.h"
+#include "tilt/ir/expr.h"
+#include "tilt/ir/lstream.h"
 
 using namespace std;
 
-namespace till
+namespace tilt
 {
 
     struct Op : public LStream {
@@ -44,7 +44,7 @@ namespace till
         void Accept(Visitor&) const final;
     };
 
-} // namespace till
+} // namespace tilt
 
 
-#endif // TILL_OP
+#endif // TILT_OP

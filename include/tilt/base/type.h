@@ -1,5 +1,5 @@
-#ifndef TILL_TYPE
-#define TILL_TYPE
+#ifndef TILT_TYPE
+#define TILT_TYPE
 
 #include <utility>
 #include <vector>
@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace till {
+namespace tilt {
 
     enum class BaseType {
         BOOL,
@@ -116,6 +116,6 @@ namespace till {
         }
     } // namespace types
 
-} // namespace till
+} // namespace tilt
 
-#endif // TILL_TYPE
+#endif // TILT_TYPE

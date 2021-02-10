@@ -1,14 +1,14 @@
-#ifndef TILL_IRPRINTER
-#define TILL_IRPRINTER
+#ifndef TILT_IRPRINTER
+#define TILT_IRPRINTER
 
-#include "till/codegen/visitor.h"
+#include "tilt/codegen/visitor.h"
 
 #include <sstream>
 #include <string>
 
 using namespace std;
 
-namespace till
+namespace tilt
 {
 
     class IRPrinter : public Visitor {
@@ -48,6 +48,6 @@ namespace till
         ostringstream ostr;
     };
 
-} // namespace till
+} // namespace tilt
 
-#endif // TILL_IRPRINTER
+#endif // TILT_IRPRINTER

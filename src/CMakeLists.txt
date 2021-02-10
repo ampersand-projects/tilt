@@ -5,6 +5,6 @@ set(SRC_FILES
     codegen/printer.cpp
 )
 
-add_library(tillib STATIC ${SRC_FILES})
+add_library(tiltlib STATIC ${SRC_FILES})
 
-target_compile_options(tillib PRIVATE -Wall -Wextra -pedantic -Werror)
+target_compile_options(tiltlib PRIVATE -Wall -Wextra -pedantic -Werror)
