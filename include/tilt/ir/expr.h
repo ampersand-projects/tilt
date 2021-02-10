@@ -8,16 +8,23 @@
 #include <memory>
 #include <cassert>
 #include <vector>
-#include <unordered_map>
+#include <map>
 
 using namespace std;
 
 namespace tilt {
 
+    struct Symbol;
+    
     struct Expr : public ASTNode {
         const Type type;
 
         Expr(Type type) : type(type) {}
+
+        shared_ptr<Symbol> GetSym(string name)
+        {
+            return make_shared<Symbol>(name, type);
+        }
     };
     typedef shared_ptr<Expr> ExprPtr;
 
@@ -32,21 +39,81 @@ namespace tilt {
     };
     typedef shared_ptr<Symbol> SymPtr;
 
-    typedef vector<SymPtr> Params;
-    typedef unordered_map<SymPtr, ExprPtr> SymTable;
+    typedef vector<SymPtr> Params; // Input parameters to the Op
+    typedef map<SymPtr, ExprPtr> SymTable;
 
     struct ValExpr : public Expr {
-        ValExpr(DataType dtype) :
-            Expr(move(Type(dtype, OnceIter())))
-        {}
+        ValExpr(DataType dtype) : Expr(move(Type(dtype))) {}
     };
 
-    struct Lambda : public Expr {
+    struct Now : public ValExpr {
+        Now() : ValExpr(types::TIMESTAMP) {}
+
+        void Accept(Visitor&) const final;
+    };
+    typedef shared_ptr<Now> NowPtr;
+
+    struct Predicate : public ValExpr {
+        Predicate() : ValExpr(types::BOOL) {}
+    };
+    typedef shared_ptr<Predicate> PredPtr;
+
+    struct Exists : public Predicate {
+        ExprPtr expr;
+
+        Exists(ExprPtr expr) : expr(expr) {}
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct Equals : public Predicate {
+        ExprPtr a;
+        ExprPtr b;
+
+        Equals(ExprPtr a, ExprPtr b) : a(a), b(b) {}
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct UnaryPred : public Predicate {
+        PredPtr a;
+
+        UnaryPred(PredPtr a) : a(a) {}
+    };
+
+    struct Not : public UnaryPred {
+        Not(PredPtr a) : UnaryPred(a) {}
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct BinaryPred : public Predicate {
+        PredPtr a;
+        PredPtr b;
+
+        BinaryPred(PredPtr a, PredPtr b) : a(a), b(b) {}
+    };
+
+    struct And : public BinaryPred {
+        And(PredPtr a, PredPtr b) : BinaryPred(a, b) {}
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct Or : public BinaryPred {
+        Or(PredPtr a, PredPtr b) : BinaryPred(a, b) {}
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct Lambda : public ValExpr {
         Params inputs;
+        PredPtr pred;
         ExprPtr output;
 
-        Lambda(Params inputs, ExprPtr output) :
-            Expr(output->type), inputs(move(inputs)), output(output)
+        Lambda(Params inputs, PredPtr pred, ExprPtr output) :
+            ValExpr(output->type.dtype), inputs(move(inputs)),
+            pred(pred), output(output)
         {}
 
         void Accept(Visitor&) const final;

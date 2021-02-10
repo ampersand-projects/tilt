@@ -12,12 +12,18 @@ namespace tilt
     public:
         virtual void Visit(const Symbol&) = 0;
         virtual void Visit(const Lambda&) = 0;
+        virtual void Visit(const Exists&) = 0;
+        virtual void Visit(const Equals&) = 0;
+        virtual void Visit(const Not&) = 0;
+        virtual void Visit(const And&) = 0;
+        virtual void Visit(const Or&) = 0;
         virtual void Visit(const IConst&) = 0;
         virtual void Visit(const UConst&) = 0;
         virtual void Visit(const FConst&) = 0;
         virtual void Visit(const BConst&) = 0;
         virtual void Visit(const CConst&) = 0;
         virtual void Visit(const Add&) = 0;
+        virtual void Visit(const Now&) = 0;
 
         virtual void Visit(const SubLStream&) = 0;
         virtual void Visit(const Element&) = 0;

@@ -4,6 +4,7 @@
 #include <utility>
 #include <vector>
 #include <cstdint>
+#include <memory>
 
 using namespace std;
 
@@ -22,6 +23,7 @@ namespace tilt {
         UINT64,
         FLOAT32,
         FLOAT64,
+        TIMESTAMP,
         UNKNOWN
     };
 
@@ -39,32 +41,60 @@ namespace tilt {
         }
     };
 
-    struct Iter {
+    struct Iterator {
         long offset;
-        unsigned long period;
+        long period;
 
-        Iter(long offset, unsigned long period) :
+        Iterator(long offset, long period) :
             offset(offset), period(period)
         {}
 
-        bool operator==(const Iter& o) const
+        bool operator==(const Iterator& o) const
         {
             return (this->offset == o.offset)
                 && (this->period == o.period);
         }
     };
+    typedef shared_ptr<Iterator> Iter;
 
-    struct OnceIter : public Iter {
-        OnceIter() : Iter(0, 0) {}
+    struct OnceIter : public Iterator {
+        OnceIter() : Iterator(0, 0) {}
+    };
+
+    struct FreeIter : public Iterator {
+        FreeIter() : Iterator(0, -1) {}
+    };
+
+    struct Timeline {
+        vector<Iter> iters;
+
+        Timeline(vector<Iter> iters) : iters(move(iters)) {}
+        Timeline(Iter iter) : Timeline({iter}) {}
+        Timeline(std::initializer_list<Iter> iters) : Timeline(move(vector<Iter>(iters))) {}
+        Timeline(Iterator iter) :
+            Timeline(make_shared<Iterator>(iter.offset, iter.period))
+        {}
+        Timeline() {}
     };
 
     struct Type {
         const DataType dtype;
-        const Iter iter;
+        const Timeline tl;
 
-        Type(DataType dtype, Iter iter) :
-            dtype(move(dtype)), iter(move(iter))
+        Type(DataType dtype, Timeline tl) :
+            dtype(move(dtype)), tl(move(tl))
         {}
+
+        Type(DataType dtype) : Type(move(dtype), Timeline()) {}
+
+        Type(DataType dtype, Iterator iter) :
+            Type(move(dtype), Timeline(iter))
+        {}
+    };
+
+    enum BufType {
+        RING,
+        ARRAY
     };
 
     namespace types {
@@ -81,6 +111,7 @@ namespace tilt {
         static const DataType UINT64 = { BaseType::UINT64 };
         static const DataType FLOAT32 = { BaseType::FLOAT32 };
         static const DataType FLOAT64 = { BaseType::FLOAT64 };
+        static const DataType TIMESTAMP = { BaseType::TIMESTAMP };
 
 
         template<typename H> struct Converter { static const BaseType btype = BaseType::UNKNOWN; };

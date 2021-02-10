@@ -3,28 +3,51 @@
 
 #include "tilt/ir/expr.h"
 
+#include <cassert>
+
 using namespace std;
 
 namespace tilt {
 
+    struct Buf {
+        Type type;
+        BufType btype;
+        long size;
+
+        Buf(Type type, BufType btype, long size) :
+            type(move(type)), btype(btype), size(size)
+        {}
+    };
+    typedef shared_ptr<Buf> Buffer;
+
     struct LStream : public Expr {
         LStream(Type type) : Expr(move(type))
         {}
+
+        Buffer buf;
     };
     typedef shared_ptr<LStream> LSPtr;
 
-    struct Window {
-        const long shift;
-        const unsigned long len;
+    struct Point {
+        const long offset;
 
-        Window(long shift, unsigned long len) :
-            shift(shift), len(len)
-        {}
-    };
-
-    struct Point : public Window {
-        Point(long offset) : Window(offset, 0) {}
+        Point(long offset) : offset(offset)
+        {
+            assert(offset <= 0);
+        }
         Point() : Point(0) {}
+    };
+    typedef shared_ptr<Point> Pointer;
+
+    struct Window {
+        Point start;
+        Point end;
+
+        Window(Point start, Point end) :
+            start(start), end(end)
+        {
+            assert(start.offset < end.offset);
+        }
     };
 
     struct SubLStream : public LStream {
@@ -37,6 +60,7 @@ namespace tilt {
 
         void Accept(Visitor&) const final;
     };
+    typedef shared_ptr<SubLStream> SubLSPtr;
 
     struct Element : public ValExpr {
         ExprPtr lstream;

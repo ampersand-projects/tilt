@@ -4,25 +4,30 @@
 #include "tilt/ir/expr.h"
 #include "tilt/ir/lstream.h"
 
+#include <map>
+
 using namespace std;
 
 namespace tilt
 {
 
     struct Op : public LStream {
+        Iterator iter;
         Params inputs;
-        SymTable vars;
+        SymTable syms;
         SymPtr output;
 
-        Op(Iter iter, Params inputs, SymTable vars, SymPtr output) :
-            LStream(move(Type(output->type.dtype, move(iter)))),
-            inputs(move(inputs)), vars(move(vars)), output(output)
+        Op(Timeline tl, Iterator iter, Params inputs, SymTable syms, SymPtr output) :
+            LStream(move(Type(output->type.dtype, move(tl)))),
+            iter(iter), inputs(move(inputs)), syms(move(syms)), output(output)
         {}
 
         void Accept(Visitor&) const final;
 
-    protected:
-        Op(Type type) : LStream(move(type)) {}
+        Pointer cur, prev;
+        map<SymPtr, vector<Pointer>> pointers;
+        map<SymPtr, SubLSPtr> subs;
+        vector<SymPtr> body;
     };
     typedef shared_ptr<Op> OpPtr;
 
