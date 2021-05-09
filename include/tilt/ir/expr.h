@@ -45,6 +45,7 @@ namespace tilt {
     struct ValExpr : public Expr {
         ValExpr(DataType dtype) : Expr(move(Type(dtype))) {}
     };
+    typedef shared_ptr<ValExpr> ValExprPtr;
 
     struct Now : public ValExpr {
         Now() : ValExpr(types::TIMESTAMP) {}
@@ -57,6 +58,13 @@ namespace tilt {
         Predicate() : ValExpr(types::BOOL) {}
     };
     typedef shared_ptr<Predicate> PredPtr;
+
+    struct True : public Predicate {
+        void Accept(Visitor&) const final;
+    };
+    struct False : public Predicate {
+        void Accept(Visitor&) const final;
+    };
 
     struct Exists : public Predicate {
         ExprPtr expr;
@@ -106,14 +114,31 @@ namespace tilt {
         void Accept(Visitor&) const final;
     };
 
+    struct Compare : public Predicate {
+        ValExprPtr a;
+        ValExprPtr b;
+
+        Compare(ValExprPtr a, ValExprPtr b) : a(a), b(b) {}
+    };
+
+    struct LessThan : public Compare {
+        LessThan(ValExprPtr a, ValExprPtr b) : Compare(a, b) {}
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct LessThanEqual : public Compare {
+        LessThanEqual(ValExprPtr a, ValExprPtr b) : Compare(a, b) {}
+
+        void Accept(Visitor&) const final;
+    };
+
     struct Lambda : public ValExpr {
         Params inputs;
-        PredPtr pred;
         ExprPtr output;
 
-        Lambda(Params inputs, PredPtr pred, ExprPtr output) :
-            ValExpr(output->type.dtype), inputs(move(inputs)),
-            pred(pred), output(output)
+        Lambda(Params inputs, ExprPtr output) :
+            ValExpr(output->type.dtype), inputs(move(inputs)), output(output)
         {}
 
         void Accept(Visitor&) const final;
@@ -194,6 +219,16 @@ namespace tilt {
         void Accept(Visitor&) const final;
     };
 
+    struct TConst : public Const {
+        const long val;
+
+        TConst(const long val) :
+            Const(types::TIME), val(val)
+        {}
+
+        void Accept(Visitor&) const final;
+    };
+
     struct NaryExpr : public ValExpr {
         vector<ExprPtr> inputs;
 
@@ -224,6 +259,36 @@ namespace tilt {
 
     struct Add : public BinaryExpr {
         Add(ExprPtr a, ExprPtr b) :
+            BinaryExpr(a->type.dtype, a, b)
+        {
+            assert(a->type.dtype == b->type.dtype);
+        }
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct Sub : public BinaryExpr {
+        Sub(ExprPtr a, ExprPtr b) :
+            BinaryExpr(a->type.dtype, a, b)
+        {
+            assert(a->type.dtype == b->type.dtype);
+        }
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct Max : public BinaryExpr {
+        Max(ExprPtr a, ExprPtr b) :
+            BinaryExpr(a->type.dtype, a, b)
+        {
+            assert(a->type.dtype == b->type.dtype);
+        }
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct Min : public BinaryExpr {
+        Min(ExprPtr a, ExprPtr b) :
             BinaryExpr(a->type.dtype, a, b)
         {
             assert(a->type.dtype == b->type.dtype);

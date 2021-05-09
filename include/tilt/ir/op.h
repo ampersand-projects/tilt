@@ -12,41 +12,41 @@ namespace tilt
 {
 
     struct Op : public LStream {
-        Iterator iter;
+        Iter iter;
         Params inputs;
+        Params vars;
+        PredPtr pred;
         SymTable syms;
         SymPtr output;
 
-        Op(Timeline tl, Iterator iter, Params inputs, SymTable syms, SymPtr output) :
-            LStream(move(Type(output->type.dtype, move(tl)))),
-            iter(iter), inputs(move(inputs)), syms(move(syms)), output(output)
+        Op(Timeline tl, Iter iter, Params inputs, Params vars, PredPtr pred, SymTable syms, SymPtr output) :
+            LStream(move(Type(output->type.dtype, move(tl)))), iter(iter),
+            inputs(move(inputs)), vars(move(vars)), pred(pred), syms(move(syms)), output(output)
         {}
 
         void Accept(Visitor&) const final;
-
-        Pointer cur, prev;
-        map<SymPtr, vector<Pointer>> pointers;
-        map<SymPtr, SubLSPtr> subs;
-        vector<SymPtr> body;
     };
     typedef shared_ptr<Op> OpPtr;
 
+    enum AggType {
+        SUM,
+    };
+
     struct AggExpr : public ValExpr {
+        AggType agg;
         OpPtr op;
 
-        AggExpr(DataType dtype, OpPtr op) :
-            ValExpr(dtype), op(op)
+        AggExpr(DataType dtype, AggType agg, OpPtr op) :
+            ValExpr(dtype), agg(agg), op(op)
         {
-            assert(op->inputs.size() == 1);
+            assert(op->output->type.tl.iters.size() == 0);
         }
+
+        void Accept(Visitor&) const final;
     };
 
     struct Sum : public AggExpr {
-        Sum(OpPtr op) :
-            AggExpr(op->type.dtype, op)
-        {}
-
-        void Accept(Visitor&) const final;
+        Sum(OpPtr op) : AggExpr(op->type.dtype, AggType::SUM, op) {}
     };
 
 } // namespace tilt

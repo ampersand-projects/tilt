@@ -9,22 +9,9 @@ using namespace std;
 
 namespace tilt {
 
-    struct Buf {
-        Type type;
-        BufType btype;
-        long size;
-
-        Buf(Type type, BufType btype, long size) :
-            type(move(type)), btype(btype), size(size)
-        {}
-    };
-    typedef shared_ptr<Buf> Buffer;
-
     struct LStream : public Expr {
         LStream(Type type) : Expr(move(type))
         {}
-
-        Buffer buf;
     };
     typedef shared_ptr<LStream> LSPtr;
 
@@ -36,6 +23,11 @@ namespace tilt {
             assert(offset <= 0);
         }
         Point() : Point(0) {}
+
+        bool operator<(const Point& o) const
+        {
+            return offset < o.offset;
+        }
     };
     typedef shared_ptr<Point> Pointer;
 
@@ -46,7 +38,7 @@ namespace tilt {
         Window(Point start, Point end) :
             start(start), end(end)
         {
-            assert(start.offset < end.offset);
+            assert(start < end);
         }
     };
 

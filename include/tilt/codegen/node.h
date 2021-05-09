@@ -1,6 +1,10 @@
 #ifndef TILT_NODE
 #define TILT_NODE
 
+#include <memory>
+
+using namespace std;
+
 namespace tilt {
 
     class Visitor;
@@ -8,6 +12,7 @@ namespace tilt {
     struct ASTNode {
         virtual void Accept(Visitor&) const = 0;
     };
+    typedef shared_ptr<ASTNode> ASTPtr;
 
 } // namespace tilt
 

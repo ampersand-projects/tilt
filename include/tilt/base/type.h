@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstdint>
 #include <memory>
+#include <string>
 
 using namespace std;
 
@@ -24,7 +25,11 @@ namespace tilt {
         FLOAT32,
         FLOAT64,
         TIMESTAMP,
-        UNKNOWN
+        UNKNOWN,
+
+        // Loop IR types
+        TIME,
+        INDEX,
     };
 
     struct DataType {
@@ -41,28 +46,33 @@ namespace tilt {
         }
     };
 
-    struct Iterator {
+    struct Iter {
         long offset;
         long period;
+        string name;
 
-        Iterator(long offset, long period) :
-            offset(offset), period(period)
+        Iter(long offset, long period, string name) :
+            offset(offset), period(period), name("~" + name)
         {}
 
-        bool operator==(const Iterator& o) const
+        Iter(long offset, long period) :
+            Iter(offset, period, "(" + to_string(offset) + "," + to_string(period) + ")")
+        {}
+
+        bool operator==(const Iter& o) const
         {
             return (this->offset == o.offset)
-                && (this->period == o.period);
+                && (this->period == o.period)
+                && (this->name == o.name);
         }
     };
-    typedef shared_ptr<Iterator> Iter;
 
-    struct OnceIter : public Iterator {
-        OnceIter() : Iterator(0, 0) {}
+    struct FreqIter : public Iter {
+        FreqIter(long offset, long period) : Iter(offset, period) {}
     };
 
-    struct FreeIter : public Iterator {
-        FreeIter() : Iterator(0, -1) {}
+    struct FreeIter : public Iter {
+        FreeIter(string name) : Iter(0, -1, name) {}
     };
 
     struct Timeline {
@@ -71,9 +81,6 @@ namespace tilt {
         Timeline(vector<Iter> iters) : iters(move(iters)) {}
         Timeline(Iter iter) : Timeline({iter}) {}
         Timeline(std::initializer_list<Iter> iters) : Timeline(move(vector<Iter>(iters))) {}
-        Timeline(Iterator iter) :
-            Timeline(make_shared<Iterator>(iter.offset, iter.period))
-        {}
         Timeline() {}
     };
 
@@ -87,14 +94,9 @@ namespace tilt {
 
         Type(DataType dtype) : Type(move(dtype), Timeline()) {}
 
-        Type(DataType dtype, Iterator iter) :
+        Type(DataType dtype, Iter iter) :
             Type(move(dtype), Timeline(iter))
         {}
-    };
-
-    enum BufType {
-        RING,
-        ARRAY
     };
 
     namespace types {
@@ -113,6 +115,9 @@ namespace tilt {
         static const DataType FLOAT64 = { BaseType::FLOAT64 };
         static const DataType TIMESTAMP = { BaseType::TIMESTAMP };
 
+        // Loop IR types
+        static const DataType TIME = vector<BaseType>{ BaseType::TIME };
+        static const DataType INDEX = vector<BaseType>{ BaseType::INDEX };
 
         template<typename H> struct Converter { static const BaseType btype = BaseType::UNKNOWN; };
         template<> struct Converter<bool> { static const BaseType btype = BaseType::BOOL; };
