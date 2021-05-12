@@ -18,7 +18,7 @@ include_directories(include)
 add_subdirectory(src)
 
 # Now build our tools
-add_executable(tilt main.cpp)
+add_executable(main main.cpp)
 
 # Find the libraries that correspond to the LLVM components
 # that we wish to use
@@ -26,6 +26,6 @@ add_executable(tilt main.cpp)
 
 # Link against LLVM libraries
 #target_link_libraries(tilt ${llvm_libs} tiltib)
-target_link_libraries(tilt tiltlib)
+target_link_libraries(main tilt)
 
 #target_include_directories(tilt PUBLIC "${PROJECT_SOURCE_DIR}/include")
