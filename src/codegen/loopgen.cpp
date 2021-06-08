@@ -20,19 +20,19 @@ void LoopGen::Visit(const Op& op)
     auto name = ctx.sym->name;
     loop = make_shared<Loop>(name);
 
-    loop->t_start = make_shared<Time>("t_start_" + name);
-    loop->t_end = make_shared<Time>("t_end_" + name);
+    loop->t_start = make_shared<Time>("t_start");
+    loop->t_end = make_shared<Time>("t_end");
 
     for (auto& in : op.inputs) {
-        auto in_reg = make_shared<Region>("reg_in_" + in->name, in->type);
+        auto in_reg = make_shared<Region>(in->name, in->type);
         loop->in_regs.push_back(in_reg);
         ctx.sym_reg_map[in] = in_reg;
     }
 
-    loop->out_reg = make_shared<Region>("reg_out_" + name, op.type);
+    loop->out_reg = make_shared<Region>(name, op.type);
 
-    loop->t_cur = make_shared<Time>("t_cur_" + name);
-    loop->t_prev = make_shared<Time>("t_prev_" + name);
+    loop->t_cur = make_shared<Time>("t_cur");
+    loop->t_prev = make_shared<Time>("t_prev");
 
     for (auto& var: op.vars) {
         eval(var, op.syms.at(var));

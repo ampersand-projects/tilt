@@ -77,12 +77,12 @@ namespace tilt
     typedef shared_ptr<Stmt> StmtPtr;
 
     struct CommitData : public Stmt {
-        ExprPtr region;
+        ExprPtr reg;
         ExprPtr time;
         ExprPtr data;
 
-        CommitData(ExprPtr region, ExprPtr time, ExprPtr data) :
-            region(region), time(time), data(data)
+        CommitData(ExprPtr reg, ExprPtr time, ExprPtr data) :
+            reg(reg), time(time), data(data)
         {
             //assert(data->type.dtype == region->type.dtype);
         }
@@ -91,11 +91,11 @@ namespace tilt
     };
 
     struct CommitNull : public Stmt {
-        ExprPtr region;
+        ExprPtr reg;
         ExprPtr time;
 
-        CommitNull(ExprPtr region, ExprPtr time) :
-            region(region), time(time)
+        CommitNull(ExprPtr reg, ExprPtr time) :
+            reg(reg), time(time)
         {}
 
         void Accept(Visitor&) const final;

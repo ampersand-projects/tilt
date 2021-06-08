@@ -106,6 +106,8 @@ int main()
     sel_op->Accept(printer);
     cout << printer.result() << endl;
 
+    cout << endl;
+
     cout << "Loop IR: " << endl;
     LoopGenCtx lgctx(sel_op_sym);
     LoopGen loopgen(move(lgctx));

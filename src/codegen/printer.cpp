@@ -30,35 +30,19 @@ void IRPrinter::Visit(const CConst& cconst) { ostr << cconst.val; }
 void IRPrinter::Visit(const TConst& tconst) { ostr << tconst.val; }
 void IRPrinter::Visit(const Add& add)
 {
-    ostr << "(";
-    add.Left()->Accept(*this);
-    ostr << " + ";
-    add.Right()->Accept(*this);
-    ostr << ")";
+    emitbinary(add.Left(), "+", add.Right());
 }
-void IRPrinter::Visit(const Sub& add)
+void IRPrinter::Visit(const Sub& sub)
 {
-    ostr << "(";
-    add.Left()->Accept(*this);
-    ostr << " - ";
-    add.Right()->Accept(*this);
-    ostr << ")";
+    emitbinary(sub.Left(), "-", sub.Right());
 }
 void IRPrinter::Visit(const Max& max)
 {
-    ostr << "max(";
-    max.Left()->Accept(*this);
-    ostr << ", ";
-    max.Right()->Accept(*this);
-    ostr << ")";
+    emitfunc("max", {max.Left(), max.Right()});
 }
-void IRPrinter::Visit(const Min& max)
+void IRPrinter::Visit(const Min& min)
 {
-    ostr << "min(";
-    max.Left()->Accept(*this);
-    ostr << ", ";
-    max.Right()->Accept(*this);
-    ostr << ")";
+    emitfunc("min", {min.Left(), min.Right()});
 }
 void IRPrinter::Visit(const Now&)
 {
@@ -67,41 +51,27 @@ void IRPrinter::Visit(const Now&)
 
 void IRPrinter::Visit(const Exists& exists)
 {
-    ostr << EXISTS;
-    exists.expr->Accept(*this);
+    emitunary(EXISTS, exists.expr);
 }
 
 void IRPrinter::Visit(const Equals& equals)
 {
-    ostr << "(";
-    equals.a->Accept(*this);
-    ostr << " == ";
-    equals.b->Accept(*this);
-    ostr << ")";
+    emitbinary(equals.a, "&&", equals.b);
 }
 
 void IRPrinter::Visit(const Not& not_pred)
 {
-    ostr << "!";
-    not_pred.a->Accept(*this);
+    emitunary("!", not_pred.a);
 }
 
 void IRPrinter::Visit(const And& and_pred)
 {
-    ostr << "(";
-    and_pred.a->Accept(*this);
-    ostr << " && ";
-    and_pred.b->Accept(*this);
-    ostr << ")";
+    emitbinary(and_pred.a, "&&", and_pred.b);
 }
 
 void IRPrinter::Visit(const Or& or_pred)
 {
-    ostr << "(";
-    or_pred.a->Accept(*this);
-    ostr << " || ";
-    or_pred.b->Accept(*this);
-    ostr << ")";
+    emitbinary(or_pred.a, "||", or_pred.b);
 }
 
 void IRPrinter::Visit(const Lambda& lambda)
@@ -190,74 +160,42 @@ void IRPrinter::Visit(const False&)
 
 void IRPrinter::Visit(const LessThan& lt)
 {
-    ostr << "(";
-    lt.a->Accept(*this);
-    ostr << " < ";
-    lt.b->Accept(*this);
-    ostr << ")";
+    emitbinary(lt.a, "<", lt.b);
 }
 
 void IRPrinter::Visit(const LessThanEqual& lte)
 {
-    ostr << "(";
-    lte.a->Accept(*this);
-    ostr << " <= ";
-    lte.b->Accept(*this);
-    ostr << ")";
+    emitbinary(lte.a, "<=", lte.b);
 }
 
 void IRPrinter::Visit(const GetTime& get_time)
 {
-    ostr << "get_time" << "(";
-    get_time.idx->Accept(*this);
-    ostr << ")";
+    emitfunc("get_time", {get_time.idx});
 }
 
 void IRPrinter::Visit(const Fetch& fetch)
 {
-    ostr << "fetch" << "(";
-    fetch.reg->Accept(*this);
-    ostr << ", ";
-    fetch.idx->Accept(*this);
-    ostr << ")";
+    emitfunc("fetch", {fetch.reg, fetch.idx});
 }
 
 void IRPrinter::Visit(const Advance& adv)
 {
-    ostr << "advance" << "(";
-    adv.reg->Accept(*this);
-    ostr << ", ";
-    adv.idx->Accept(*this);
-    ostr << ", ";
-    adv.time->Accept(*this);
-    ostr << ")";
+    emitfunc("advance", {adv.reg, adv.idx, adv.time});
 }
 
 void IRPrinter::Visit(const Next& next)
 {
-    ostr << "next" << "(";
-    next.idx->Accept(*this);
-    ostr << ")";
+    emitfunc("next", {next.reg, next.idx});
 }
 
 void IRPrinter::Visit(const CommitData& commit)
 {
-    ostr << "commit_data" << "(";
-    commit.region->Accept(*this);
-    ostr << ", ";
-    commit.time->Accept(*this);
-    ostr << ", ";
-    commit.data->Accept(*this);
-    ostr << ")";
+    emitfunc("commit", {commit.reg, commit.time, commit.data});
 }
 
 void IRPrinter::Visit(const CommitNull& commit)
 {
-    ostr << "commit_null" << "(";
-    commit.region->Accept(*this);
-    ostr << ", ";
-    commit.time->Accept(*this);
-    ostr << ")";
+    emitfunc("commit", {commit.reg, commit.time});
 }
 
 void IRPrinter::Visit(const Block& block)
