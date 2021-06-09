@@ -14,14 +14,13 @@ namespace tilt
     struct Op : public LStream {
         Iter iter;
         Params inputs;
-        Params vars;
-        PredPtr pred;
         SymTable syms;
+        PredPtr pred;
         SymPtr output;
 
-        Op(Timeline tl, Iter iter, Params inputs, Params vars, PredPtr pred, SymTable syms, SymPtr output) :
+        Op(Timeline tl, Iter iter, Params inputs, PredPtr pred, SymTable syms, SymPtr output) :
             LStream(move(Type(output->type.dtype, move(tl)))), iter(iter),
-            inputs(move(inputs)), vars(move(vars)), pred(pred), syms(move(syms)), output(output)
+            inputs(move(inputs)), syms(move(syms)), pred(pred), output(output)
         {}
 
         void Accept(Visitor&) const final;

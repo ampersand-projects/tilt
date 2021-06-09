@@ -15,7 +15,6 @@ namespace tilt
          * TiLT IR
          */
         virtual void Visit(const Symbol&) = 0;
-        virtual void Visit(const Lambda&) = 0;
         virtual void Visit(const Exists&) = 0;
         virtual void Visit(const Equals&) = 0;
         virtual void Visit(const Not&) = 0;
@@ -36,6 +35,7 @@ namespace tilt
         virtual void Visit(const False&) = 0;
         virtual void Visit(const LessThan&) = 0;
         virtual void Visit(const LessThanEqual&) = 0;
+        virtual void Visit(const GreaterThan&) = 0;
 
         virtual void Visit(const SubLStream&) = 0;
         virtual void Visit(const Element&) = 0;
@@ -46,13 +46,19 @@ namespace tilt
         /**
          * Loop IR
          */
+        virtual void Visit(const AllocIndex&) = 0;
         virtual void Visit(const GetTime&) = 0;
         virtual void Visit(const Fetch&) = 0;
+        virtual void Visit(const Load&) = 0;
         virtual void Visit(const Advance&) = 0;
         virtual void Visit(const Next&) = 0;
+        virtual void Visit(const GetStartIdx&) = 0;
         virtual void Visit(const CommitData&) = 0;
         virtual void Visit(const CommitNull&) = 0;
-        virtual void Visit(const Block&) = 0;
+        virtual void Visit(const AllocRegion&) = 0;
+        virtual void Visit(const MakeRegion&) = 0;
+        virtual void Visit(const Call&) = 0;
+        virtual void Visit(const IfElse&) = 0;
         virtual void Visit(const Loop&) = 0;
     };
 

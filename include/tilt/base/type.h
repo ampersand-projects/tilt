@@ -11,7 +11,7 @@ using namespace std;
 
 namespace tilt {
 
-    enum class BaseType {
+    enum class PrimitiveType {
         BOOL,
         CHAR,
         INT8,
@@ -33,16 +33,20 @@ namespace tilt {
     };
 
     struct DataType {
-        const vector<BaseType> btypes;
+        const vector<PrimitiveType> ptypes;
+        const bool is_ptr;
 
-        DataType(vector<BaseType> btypes) : btypes(btypes) {}
-        DataType(BaseType btype) :
-            DataType(move(vector<BaseType>{ btype }))
+        DataType(vector<PrimitiveType> ptypes, bool is_ptr = false) :
+            ptypes(ptypes), is_ptr(is_ptr)
+        {}
+        DataType(PrimitiveType ptype, bool is_ptr = false) :
+            DataType(move(vector<PrimitiveType>{ ptype }), is_ptr)
         {}
 
         bool operator==(const DataType& o) const
         {
-            return (this->btypes == o.btypes);
+            return (this->ptypes == o.ptypes)
+                && (this->is_ptr == o.is_ptr);
         }
     };
 
@@ -82,6 +86,11 @@ namespace tilt {
         Timeline(Iter iter) : Timeline({iter}) {}
         Timeline(std::initializer_list<Iter> iters) : Timeline(move(vector<Iter>(iters))) {}
         Timeline() {}
+
+        bool operator==(const Timeline& o) const
+        {
+            return this->iters == o.iters;
+        }
     };
 
     struct Type {
@@ -97,56 +106,65 @@ namespace tilt {
         Type(DataType dtype, Iter iter) :
             Type(move(dtype), Timeline(iter))
         {}
+
+        bool isLStream() const { return tl.iters.size() > 0; }
+
+        bool operator==(const Type& o) const
+        {
+            return (this->dtype == o.dtype)
+                && (this->tl == o.tl);
+        }
     };
 
     namespace types {
 
-        static const DataType BOOL = { BaseType::BOOL };
-        static const DataType CHAR = { BaseType::CHAR };
-        static const DataType INT8 = { BaseType::INT8 };
-        static const DataType INT16 = { BaseType::INT16 };
-        static const DataType INT32 = { BaseType::INT32 };
-        static const DataType INT64 = { BaseType::INT64 };
-        static const DataType UINT8 = { BaseType::UINT8 };
-        static const DataType UINT16 = { BaseType::UINT16 };
-        static const DataType UINT32 = { BaseType::UINT32 };
-        static const DataType UINT64 = { BaseType::UINT64 };
-        static const DataType FLOAT32 = { BaseType::FLOAT32 };
-        static const DataType FLOAT64 = { BaseType::FLOAT64 };
-        static const DataType TIMESTAMP = { BaseType::TIMESTAMP };
+        static const DataType BOOL = { PrimitiveType::BOOL };
+        static const DataType CHAR = { PrimitiveType::CHAR };
+        static const DataType INT8 = { PrimitiveType::INT8 };
+        static const DataType INT16 = { PrimitiveType::INT16 };
+        static const DataType INT32 = { PrimitiveType::INT32 };
+        static const DataType INT64 = { PrimitiveType::INT64 };
+        static const DataType UINT8 = { PrimitiveType::UINT8 };
+        static const DataType UINT16 = { PrimitiveType::UINT16 };
+        static const DataType UINT32 = { PrimitiveType::UINT32 };
+        static const DataType UINT64 = { PrimitiveType::UINT64 };
+        static const DataType FLOAT32 = { PrimitiveType::FLOAT32 };
+        static const DataType FLOAT64 = { PrimitiveType::FLOAT64 };
+        static const DataType TIMESTAMP = { PrimitiveType::TIMESTAMP };
 
         // Loop IR types
-        static const DataType TIME = vector<BaseType>{ BaseType::TIME };
-        static const DataType INDEX = vector<BaseType>{ BaseType::INDEX };
+        static const DataType TIME = vector<PrimitiveType>{ PrimitiveType::TIME };
+        static const DataType INDEX = vector<PrimitiveType>{ PrimitiveType::INDEX };
+        static const DataType INDEX_PTR = DataType(vector<PrimitiveType>{ PrimitiveType::INDEX }, true);
 
-        template<typename H> struct Converter { static const BaseType btype = BaseType::UNKNOWN; };
-        template<> struct Converter<bool> { static const BaseType btype = BaseType::BOOL; };
-        template<> struct Converter<char> { static const BaseType btype = BaseType::CHAR; };
-        template<> struct Converter<int8_t> { static const BaseType btype = BaseType::INT8; };
-        template<> struct Converter<int16_t> { static const BaseType btype = BaseType::INT16; };
-        template<> struct Converter<int32_t> { static const BaseType btype = BaseType::INT32; };
-        template<> struct Converter<int64_t> { static const BaseType btype = BaseType::INT64; };
-        template<> struct Converter<uint8_t> { static const BaseType btype = BaseType::UINT8; };
-        template<> struct Converter<uint16_t> { static const BaseType btype = BaseType::UINT16; };
-        template<> struct Converter<uint32_t> { static const BaseType btype = BaseType::UINT32; };
-        template<> struct Converter<uint64_t> { static const BaseType btype = BaseType::UINT64; };
-        template<> struct Converter<float> { static const BaseType btype = BaseType::FLOAT32; };
-        template<> struct Converter<double> { static const BaseType btype = BaseType::FLOAT64; };
+        template<typename H> struct Converter { static const PrimitiveType btype = PrimitiveType::UNKNOWN; };
+        template<> struct Converter<bool> { static const PrimitiveType btype = PrimitiveType::BOOL; };
+        template<> struct Converter<char> { static const PrimitiveType btype = PrimitiveType::CHAR; };
+        template<> struct Converter<int8_t> { static const PrimitiveType btype = PrimitiveType::INT8; };
+        template<> struct Converter<int16_t> { static const PrimitiveType btype = PrimitiveType::INT16; };
+        template<> struct Converter<int32_t> { static const PrimitiveType btype = PrimitiveType::INT32; };
+        template<> struct Converter<int64_t> { static const PrimitiveType btype = PrimitiveType::INT64; };
+        template<> struct Converter<uint8_t> { static const PrimitiveType btype = PrimitiveType::UINT8; };
+        template<> struct Converter<uint16_t> { static const PrimitiveType btype = PrimitiveType::UINT16; };
+        template<> struct Converter<uint32_t> { static const PrimitiveType btype = PrimitiveType::UINT32; };
+        template<> struct Converter<uint64_t> { static const PrimitiveType btype = PrimitiveType::UINT64; };
+        template<> struct Converter<float> { static const PrimitiveType btype = PrimitiveType::FLOAT32; };
+        template<> struct Converter<double> { static const PrimitiveType btype = PrimitiveType::FLOAT64; };
 
         template<size_t n, typename H, typename... Ts>
-        static constexpr void convert(vector<BaseType>& btypes)
+        static constexpr void convert(vector<PrimitiveType>& btypes)
         {
             btypes[n - sizeof...(Ts) - 1] = Converter<H>::btype;
             convert<n, Ts...>(btypes);
         }
 
         template<size_t n>
-        static constexpr void convert(vector<BaseType>& btypes) {}
+        static constexpr void convert(vector<PrimitiveType>& btypes) {}
 
         template<typename... Ts>
         constexpr DataType BuildType()
         {
-            vector<BaseType> btypes(sizeof...(Ts));
+            vector<PrimitiveType> btypes(sizeof...(Ts));
             convert<sizeof...(Ts), Ts...>(btypes);
             return DataType(btypes);
         }

@@ -19,6 +19,7 @@ string idx_str(long idx)
 void IRPrinter::Visit(const Symbol& sym)
 {
     if (sym.type.tl.iters.size()) ctx.ostr << "~";
+    if (sym.type.dtype.is_ptr) ctx.ostr << "*";
     ctx.ostr << sym.name;
 }
 
@@ -51,7 +52,7 @@ void IRPrinter::Visit(const Now&)
 
 void IRPrinter::Visit(const Exists& exists)
 {
-    emitunary(EXISTS, exists.expr);
+    emitunary(EXISTS, exists.sym);
 }
 
 void IRPrinter::Visit(const Equals& equals)
@@ -72,11 +73,6 @@ void IRPrinter::Visit(const And& and_pred)
 void IRPrinter::Visit(const Or& or_pred)
 {
     emitbinary(or_pred.a, "||", or_pred.b);
-}
-
-void IRPrinter::Visit(const Lambda& lambda)
-{
-    lambda.output->Accept(*this);
 }
 
 void IRPrinter::Visit(const SubLStream& subls)
@@ -168,6 +164,16 @@ void IRPrinter::Visit(const LessThanEqual& lte)
     emitbinary(lte.a, "<=", lte.b);
 }
 
+void IRPrinter::Visit(const GreaterThan& gt)
+{
+    emitbinary(gt.a, ">", gt.b);
+}
+
+void IRPrinter::Visit(const AllocIndex& alloc_idx)
+{
+    emitfunc("alloc_index", {alloc_idx.idx});
+}
+
 void IRPrinter::Visit(const GetTime& get_time)
 {
     emitfunc("get_time", {get_time.idx});
@@ -176,6 +182,11 @@ void IRPrinter::Visit(const GetTime& get_time)
 void IRPrinter::Visit(const Fetch& fetch)
 {
     emitfunc("fetch", {fetch.reg, fetch.idx});
+}
+
+void IRPrinter::Visit(const Load& load)
+{
+    emitfunc("load", {load.ptr});
 }
 
 void IRPrinter::Visit(const Advance& adv)
@@ -188,6 +199,11 @@ void IRPrinter::Visit(const Next& next)
     emitfunc("next", {next.reg, next.idx});
 }
 
+void IRPrinter::Visit(const GetStartIdx& gsi)
+{
+    emitfunc("get_start_idx", {gsi.reg});
+}
+
 void IRPrinter::Visit(const CommitData& commit)
 {
     emitfunc("commit", {commit.reg, commit.time, commit.data});
@@ -198,24 +214,36 @@ void IRPrinter::Visit(const CommitNull& commit)
     emitfunc("commit", {commit.reg, commit.time});
 }
 
-void IRPrinter::Visit(const Block& block)
+void IRPrinter::Visit(const AllocRegion& alloc_reg)
 {
-    ctx.ostr << "{";
-    enter_block();
-    for (auto& stmt : block.stmts) {
-        stmt->Accept(*this);
-        emitnewline();
-    }
-    exit_block();
-    ctx.ostr << "}";
-    emitnewline();
+    emitfunc("alloc_region", {alloc_reg.size});
+}
+
+void IRPrinter::Visit(const MakeRegion& make_reg)
+{
+    emitfunc("make_region", {make_reg.reg, make_reg.start_idx, make_reg.end_idx});
+}
+
+void IRPrinter::Visit(const Call& call)
+{
+    ctx.loops.push(call.loop);
+    emitfunc(call.loop->GetName(), call.args);
+}
+
+void IRPrinter::Visit(const IfElse& ifelse)
+{
+    ifelse.cond->Accept(*this);
+    ctx.ostr << " ? ";
+    ifelse.true_body->Accept(*this);
+    ctx.ostr << " : ";
+    ifelse.false_body->Accept(*this);
 }
 
 void IRPrinter::Visit(const Loop& loop)
 {
-    vector<ASTPtr> args = {loop.t_start, loop.t_end, loop.out_reg};
-    args.insert(args.end(), loop.in_regs.begin(), loop.in_regs.end());
-    emitfunc("void loop_" + loop.name, args);
+    vector<ExprPtr> args;
+    args.insert(args.end(), loop.inputs.begin(), loop.inputs.end());
+    emitfunc(loop.GetName(), args);
     emitnewline();
 
     ctx.ostr << "{";
@@ -223,49 +251,40 @@ void IRPrinter::Visit(const Loop& loop)
 
     emitcomment("initialization");
     emitnewline();
-    emitassign(loop.t_cur, loop.t_start);
-    emitnewline();
-
-    for (const auto& [idx, reg]: loop.idx_map) {
-        idx->Accept(*this);
-        ctx.ostr << " = ";
-        reg->Accept(*this);
-        ctx.ostr << "->start_idx;";
+    for (const auto& [sym, state]: loop.states) {
+        emitassign(state.base, state.init);
         emitnewline();
     }
     emitnewline();
 
-    ctx.ostr << "While(1) {";
+    ctx.ostr << "while(1) {";
     enter_block();
 
-    emitcomment("update timers");
+    emitcomment("update timer");
     emitnewline();
-    emitassign(loop.t_prev, loop.t_cur);
-    emitnewline();
-
-    emitassign(loop.t_cur, loop.next_t);
+    emitassign(loop.t, loop.states.at(loop.t).update);
     emitnewline();
     emitnewline();
 
     emitcomment("loop condition check");
     emitnewline();
     ctx.ostr << "if (";
-    emitbinary(loop.t_cur, ">", loop.t_end);
+    loop.exit_cond->Accept(*this);
     ctx.ostr << ") break;";
     emitnewline();
     emitnewline();
 
     emitcomment("update indices");
     emitnewline();
-    for (const auto& [idx, expr]: loop.idx_update) {
-        emitassign(idx, expr);
+    for (const auto& idx: loop.idxs) {
+        emitassign(idx, loop.states.at(idx).update);
         emitnewline();
     }
     emitnewline();
 
     emitcomment("set local variables");
     emitnewline();
-    for (const auto& [sym, expr]: loop.vars) {
+    for (const auto& [sym, expr]: loop.syms) {
         emitassign(sym, expr);
         emitnewline();
     }
@@ -273,17 +292,16 @@ void IRPrinter::Visit(const Loop& loop)
 
     emitcomment("loop body");
     emitnewline();
-    ctx.ostr << "if (";
-    loop.pred->Accept(*this);
-    ctx.ostr << ") {";
-    enter_block();
-    loop.true_body->Accept(*this);
-    exit_block();
-    ctx.ostr << "} else {";
-    enter_block();
-    loop.false_body->Accept(*this);
-    exit_block();
-    ctx.ostr << "}";
+    emitassign(loop.output, loop.states.at(loop.output).update);
+    emitnewline();
+    emitnewline();
+
+    emitcomment("Update states");
+    emitnewline();
+    for (const auto& [sym, state]: loop.states) {
+        emitnewline();
+        emitassign(state.base, sym);
+    }
 
     exit_block();
     ctx.ostr << "}";
@@ -291,4 +309,11 @@ void IRPrinter::Visit(const Loop& loop)
     exit_block();
     ctx.ostr << "}";
     emitnewline();
+
+    while (!ctx.loops.empty()) {
+        const auto& loop = ctx.loops.top();
+        ctx.loops.pop();
+        emitnewline();
+        loop->Accept(*this);
+    }
 }

@@ -15,13 +15,14 @@ using namespace std;
 namespace tilt {
 
     struct Symbol;
-    
+    typedef shared_ptr<Symbol> SymPtr;
+
     struct Expr : public ASTNode {
         const Type type;
 
         Expr(Type type) : type(type) {}
 
-        shared_ptr<Symbol> GetSym(string name)
+        SymPtr GetSym(string name)
         {
             return make_shared<Symbol>(name, type);
         }
@@ -37,10 +38,24 @@ namespace tilt {
 
         void Accept(Visitor&) const final;
     };
-    typedef shared_ptr<Symbol> SymPtr;
 
     typedef vector<SymPtr> Params; // Input parameters to the Op
     typedef map<SymPtr, ExprPtr> SymTable;
+
+    struct IfElse : public Expr {
+        ExprPtr cond;
+        ExprPtr true_body;
+        ExprPtr false_body;
+
+        IfElse(ExprPtr cond, ExprPtr true_body, ExprPtr false_body) :
+            Expr(true_body->type), cond(cond), true_body(true_body), false_body(false_body)
+        {
+            assert(cond->type == types::BOOL);
+            assert(true_body->type.dtype == false_body->type.dtype);
+        }
+
+        void Accept(Visitor&) const final;
+    };
 
     struct ValExpr : public Expr {
         ValExpr(DataType dtype) : Expr(move(Type(dtype))) {}
@@ -67,9 +82,9 @@ namespace tilt {
     };
 
     struct Exists : public Predicate {
-        ExprPtr expr;
+        SymPtr sym;
 
-        Exists(ExprPtr expr) : expr(expr) {}
+        Exists(SymPtr sym) : sym(sym) {}
 
         void Accept(Visitor&) const final;
     };
@@ -115,35 +130,29 @@ namespace tilt {
     };
 
     struct Compare : public Predicate {
-        ValExprPtr a;
-        ValExprPtr b;
+        ExprPtr a;
+        ExprPtr b;
 
-        Compare(ValExprPtr a, ValExprPtr b) : a(a), b(b) {}
+        Compare(ExprPtr a, ExprPtr b) : a(a), b(b) {}
     };
 
     struct LessThan : public Compare {
-        LessThan(ValExprPtr a, ValExprPtr b) : Compare(a, b) {}
+        LessThan(ExprPtr a, ExprPtr b) : Compare(a, b) {}
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct GreaterThan : public Compare {
+        GreaterThan(ExprPtr a, ExprPtr b) : Compare(a, b) {}
 
         void Accept(Visitor&) const final;
     };
 
     struct LessThanEqual : public Compare {
-        LessThanEqual(ValExprPtr a, ValExprPtr b) : Compare(a, b) {}
+        LessThanEqual(ExprPtr a, ExprPtr b) : Compare(a, b) {}
 
         void Accept(Visitor&) const final;
     };
-
-    struct Lambda : public ValExpr {
-        Params inputs;
-        ExprPtr output;
-
-        Lambda(Params inputs, ExprPtr output) :
-            ValExpr(output->type.dtype), inputs(move(inputs)), output(output)
-        {}
-
-        void Accept(Visitor&) const final;
-    };
-    typedef shared_ptr<Lambda> LambdaExpr;
 
     struct Const : public ValExpr {
         Const(DataType dtype) : ValExpr(dtype) {}

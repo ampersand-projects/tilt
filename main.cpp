@@ -4,6 +4,7 @@
 #include "tilt/ir/op.h"
 #include "tilt/codegen/printer.h"
 #include "tilt/codegen/loopgen.h"
+#include "tilt/codegen/llvmgen.h"
 
 #include <iostream>
 #include <memory>
@@ -14,7 +15,7 @@ using namespace tilt;
 int main()
 {
     // input stream
-    auto in_sym = make_shared<Symbol>("in", Type(types::INT32, FreeIter("in")));
+    auto in_sym = make_shared<Symbol>("in", tilt::Type(types::INT32, FreeIter("in")));
 
     unsigned long len = 500;
     auto inwin = make_shared<SubLStream>(in_sym, Window(-len, 0));
@@ -26,15 +27,13 @@ int main()
     auto ten = make_shared<IConst>(types::INT32, 10);
     auto add = make_shared<Add>(elem_sym, ten);
     auto elem_exists = make_shared<Exists>(elem_sym);
-    auto sel = make_shared<Lambda>(vector<SymPtr>{elem_sym}, add);
-    auto sel_sym = sel->GetSym("selector");
+    auto sel_sym = add->GetSym("selector");
     auto sel_op = make_shared<Op>(
         inwin_sym->type.tl,
         FreqIter(0, 1),
         Params{ inwin_sym },
-        Params{ elem_sym },
         elem_exists,
-        SymTable{ {elem_sym, elem}, { sel_sym, sel } },
+        SymTable{ {elem_sym, elem}, { sel_sym, add } },
         sel_sym);
     auto sel_op_sym = sel_op->GetSym("sel");
 
@@ -48,15 +47,13 @@ int main()
     auto cur_sym = cur->GetSym("cur");
     auto cur_exists = make_shared<Exists>(cur_sym);
     auto one = make_shared<IConst>(types::INT32, 1);
-    auto count_sel = make_shared<Lambda>(vector<SymPtr>{cur_sym}, one);
-    auto count_sel_sym = count_sel->GetSym("count_sel");
+    auto count_sel_sym = one->GetSym("count_sel");
     auto count_op = make_shared<Op>(
         win_sym->type.tl,
         FreqIter(0, 1),
         Params{ win_sym },
-        Params{ cur_sym },
         cur_exists,
-        SymTable{ {cur_sym, cur}, { count_sel_sym, count_sel } },
+        SymTable{ {cur_sym, cur}, { count_sel_sym, one } },
         count_sel_sym);
     auto count = make_shared<Sum>(count_op);
     auto count_sym = count->GetSym("count");
@@ -64,7 +61,6 @@ int main()
         Timeline(FreqIter(0, w)),
         FreqIter(0, w),
         Params{ inwin_sym },
-        Params{ win_sym },
         make_shared<True>(),
         SymTable{ {win_sym, win}, { count_sym, count } },
         count_sym);
@@ -84,7 +80,6 @@ int main()
         Timeline{sel_op_sym->type.tl.iters[0], wc_op_sym->type.tl.iters[0]},
         FreqIter(0, 1),
         Params{ sel_op_sym, wc_op_sym },
-        Params{ left_sym, right_sym },
         join_cond,
         SymTable{ {left_sym, left}, {right_sym, right}, {accum_sym, accum} },
         accum_sym);
@@ -95,24 +90,29 @@ int main()
         join_op_sym->type.tl,
         FreqIter(0, len),
         Params{ in_sym },
-        Params{ inwin_sym },
         make_shared<True>(),
         SymTable{ {inwin_sym, inwin}, {sel_op_sym, sel_op}, {wc_op_sym, wc_op}, {join_op_sym, join_op} },
         join_op_sym);
 
-    cout << "TiLT IR: " << endl;
+    auto nest_sel_op = make_shared<Op>(
+        Timeline{sel_op_sym->type.tl.iters[0], FreqIter(0, w)},
+        FreqIter(0, len),
+        Params{in_sym},
+        make_shared<True>(),
+        SymTable{ {inwin_sym, inwin}, {sel_op_sym, sel_op} },
+        sel_op_sym
+    );
+    auto nest_sel_op_sym = nest_sel_op->GetSym("nest_sel");
+
+    cout << endl << "TiLT IR: " << endl;
     IRPrinter printer;
-    sel_op->Accept(printer);
+    nest_sel_op->Accept(printer);
     cout << printer.result() << endl;
 
-    cout << endl;
-
-    cout << "Loop IR: " << endl;
-    LoopGenCtx lgctx(sel_op_sym);
-    LoopGen loopgen(move(lgctx));
-    sel_op->Accept(loopgen);
+    cout << endl << "Loop IR: " << endl;
     IRPrinter loop_printer;
-    loopgen.result()->Accept(loop_printer);
+    auto loop = LoopGen::Build(nest_sel_op_sym, nest_sel_op.get());
+    loop->Accept(loop_printer);
     cout << loop_printer.result() << endl;
 
     return 0;

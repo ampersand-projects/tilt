@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <any>
+#include <stack>
 
 using namespace std;
 
@@ -20,6 +21,7 @@ namespace tilt
         size_t indent;
         size_t nesting;
         ostringstream ostr;
+        stack<Looper> loops;
 
         friend class IRPrinter;
     };
@@ -39,7 +41,7 @@ namespace tilt
          * TiLT IR
          */
         void Visit(const Symbol&) override;
-        void Visit(const Lambda&) override;
+        void Visit(const IfElse&) override;
         void Visit(const Exists&) override;
         void Visit(const Equals&) override;
         void Visit(const Not&) override;
@@ -60,6 +62,7 @@ namespace tilt
         void Visit(const False&) override;
         void Visit(const LessThan&) override;
         void Visit(const LessThanEqual&) override;
+        void Visit(const GreaterThan&) override;
 
         void Visit(const SubLStream&) override;
         void Visit(const Element&) override;
@@ -70,13 +73,18 @@ namespace tilt
         /**
          * Loop IR
          */
+        void Visit(const AllocIndex&) override;
         void Visit(const GetTime&) override;
         void Visit(const Fetch&) override;
+        void Visit(const Load&) override;
         void Visit(const Advance&) override;
         void Visit(const Next&) override;
+        void Visit(const GetStartIdx&) override;
         void Visit(const CommitData&) override;
         void Visit(const CommitNull&) override;
-        void Visit(const Block&) override;
+        void Visit(const AllocRegion&) override;
+        void Visit(const MakeRegion&) override;
+        void Visit(const Call&) override;
         void Visit(const Loop&) override;
 
     private:
@@ -90,20 +98,20 @@ namespace tilt
         void emit(string str) { ctx.ostr << str; }
         void emitcomment(string comment) { ctx.ostr << "/* " << comment << " */"; }
 
-        void emitunary(string op, ASTPtr a)
+        void emitunary(const string op, const ExprPtr a)
         {
             ctx.ostr << op;
             a->Accept(*this);
         }
 
-        void emitbinary(ASTPtr a, string op, ASTPtr b)
+        void emitbinary(const ExprPtr a, const string op, const ExprPtr b)
         {
             a->Accept(*this);
             ctx.ostr << " " << op << " ";
             b->Accept(*this);
         }
 
-        void emitassign(ASTPtr lhs, ASTPtr rhs)
+        void emitassign(const ExprPtr lhs, const ExprPtr rhs)
         {
             lhs->Accept(*this);
             ctx.ostr << " = ";
@@ -111,7 +119,7 @@ namespace tilt
             ctx.ostr << ";";
         }
 
-        void emitfunc(string name, vector<ASTPtr> args)
+        void emitfunc(const string name, const vector<ExprPtr> args)
         {
             ctx.ostr << name << "(";
             for (size_t i = 0; i < args.size()-1; i++) {

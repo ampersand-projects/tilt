@@ -21,19 +21,39 @@ namespace tilt
     typedef shared_ptr<Time> Timer;
 
     struct Index : public Symbol {
-        Index(string name) : Symbol(name, types::INDEX) {}
+        Index(string name) : Symbol(name, types::INDEX_PTR) {}
     };
     typedef shared_ptr<Index> Indexer;
 
     struct Region : public Symbol {
-        Region(string name, Type type) : Symbol(name, move(type)) {}
+        Region(string name, Type type) :
+            Symbol(name, move(type))
+        {
+            assert(type.isLStream());
+        }
     };
     typedef shared_ptr<Region> RegPtr;
+
+    struct AllocIndex : public ValExpr {
+        ExprPtr idx;
+
+        AllocIndex(ExprPtr idx) :
+            ValExpr(types::INDEX_PTR), idx(idx)
+        {
+            assert(idx->type == types::INDEX_PTR);
+        }
+
+        void Accept(Visitor&) const final;
+    };
 
     struct GetTime : public ValExpr {
         ExprPtr idx;
 
-        GetTime(ExprPtr idx) : ValExpr(types::TIME), idx(idx) {}
+        GetTime(ExprPtr idx) :
+            ValExpr(types::TIME), idx(idx)
+        {
+            assert(idx->type == types::INDEX_PTR);
+        }
 
         void Accept(Visitor&) const final;
     };
@@ -42,9 +62,26 @@ namespace tilt
         ExprPtr reg;
         ExprPtr idx;
 
-        Fetch(RegPtr reg, ExprPtr idx) :
-            ValExpr(reg->type.dtype), reg(reg), idx(idx)
-        {}
+        Fetch(ExprPtr reg, ExprPtr idx) :
+            ValExpr(move(DataType(reg->type.dtype.ptypes, true))),
+            reg(reg), idx(idx)
+        {
+            assert(reg->type.isLStream());
+            assert(idx->type == types::INDEX_PTR);
+        }
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct Load : public ValExpr {
+        ExprPtr ptr;
+
+        Load(ExprPtr ptr) :
+            ValExpr(move(DataType(ptr->type.dtype.ptypes, false))),
+            ptr(ptr)
+        {
+            assert(ptr->type.dtype.is_ptr);
+        }
 
         void Accept(Visitor&) const final;
     };
@@ -55,8 +92,12 @@ namespace tilt
         ExprPtr time;
 
         Advance(ExprPtr reg, ExprPtr idx, ExprPtr time) :
-            ValExpr(types::INDEX), reg(reg), idx(idx), time(time)
-        {}
+            ValExpr(types::INDEX_PTR), reg(reg), idx(idx), time(time)
+        {
+            assert(reg->type.isLStream());
+            assert(idx->type == types::INDEX_PTR);
+            assert(time->type == types::TIME);
+        }
 
         void Accept(Visitor&) const final;
     };
@@ -66,79 +107,136 @@ namespace tilt
         ExprPtr idx;
 
         Next(ExprPtr reg, ExprPtr idx) :
-            ValExpr(types::INDEX), reg(reg), idx(idx)
-        {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct Stmt : public ASTNode {
-    };
-    typedef shared_ptr<Stmt> StmtPtr;
-
-    struct CommitData : public Stmt {
-        ExprPtr reg;
-        ExprPtr time;
-        ExprPtr data;
-
-        CommitData(ExprPtr reg, ExprPtr time, ExprPtr data) :
-            reg(reg), time(time), data(data)
+            ValExpr(types::INDEX_PTR), reg(reg), idx(idx)
         {
-            //assert(data->type.dtype == region->type.dtype);
+            assert(reg->type.isLStream());
+            assert(idx->type == types::INDEX_PTR);
         }
 
         void Accept(Visitor&) const final;
     };
 
-    struct CommitNull : public Stmt {
+    struct GetStartIdx : public ValExpr {
+        ExprPtr reg;
+
+        GetStartIdx(ExprPtr reg) :
+            ValExpr(types::INDEX_PTR), reg(reg)
+        {
+            assert(reg->type.isLStream());
+        }
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct CommitData : public Expr {
+        ExprPtr reg;
+        ExprPtr time;
+        ExprPtr data;
+
+        CommitData(ExprPtr reg, ExprPtr time, ExprPtr data) :
+            Expr(reg->type), reg(reg), time(time), data(data)
+        {
+            assert(reg->type.isLStream());
+            assert(time->type == types::TIME);
+            assert(data->type.dtype == reg->type.dtype);
+        }
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct CommitNull : public Expr {
         ExprPtr reg;
         ExprPtr time;
 
         CommitNull(ExprPtr reg, ExprPtr time) :
-            reg(reg), time(time)
-        {}
+            Expr(reg->type), reg(reg), time(time)
+        {
+            assert(reg->type.isLStream());
+            assert(time->type == types::TIME);
+        }
 
         void Accept(Visitor&) const final;
     };
 
-    struct Block : public Stmt {
-        vector<StmtPtr> stmts;
+    struct AllocRegion : public Expr {
+        ValExprPtr size;
+
+        AllocRegion(Type type, ValExprPtr size) :
+            Expr(type), size(size)
+        {
+            assert(type.isLStream());
+            assert(size->type.dtype == types::TIME);
+        }
 
         void Accept(Visitor&) const final;
     };
-    typedef shared_ptr<Block> BlockPtr;
 
-    struct Loop : public Stmt {
+    struct MakeRegion : public Expr {
+        ExprPtr reg;
+        ExprPtr start_idx;
+        ExprPtr end_idx;
+
+        MakeRegion(ExprPtr reg, ExprPtr start_idx, ExprPtr end_idx) :
+            Expr(reg->type), reg(reg), start_idx(start_idx), end_idx(end_idx)
+        {
+            assert(reg->type.isLStream());
+            assert(start_idx->type == types::INDEX_PTR);
+            assert(end_idx->type == types::INDEX_PTR);
+        }
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct Loop : public Expr {
+        struct LoopState {
+            SymPtr base;
+            ExprPtr init;
+            ExprPtr update;
+        };
+
+        // Identifier
         string name;
 
         // Arguments
-        Timer t_start, t_end;
-        RegPtr out_reg;
-        vector<RegPtr> in_regs;
+        vector<SymPtr> inputs;
+
+        // Loop counter
+        Timer t;
+
+        // Indices
+        vector<Indexer> idxs;
+
+        // Output
+        RegPtr output;
 
         // States
-        Timer t_cur, t_prev;
-        map<Indexer, RegPtr> idx_map;
+        map<SymPtr, LoopState> states;
 
-        // Incrementor
-        ExprPtr next_t;
+        // loop condition
+        PredPtr exit_cond;
 
-        // Update indices
-        map<Indexer, ExprPtr> idx_update;
+        // Local symbols
+        SymTable syms;
 
-        // Set vars
-        map<SymPtr, ExprPtr> vars;
+        Loop(string name, Type type) : Expr(type), name(name) {}
+        Loop(SymPtr sym) : Expr(sym->type), name(sym->name) {}
 
-        // Predicate
-        ExprPtr pred;
-        StmtPtr true_body;
-        StmtPtr false_body;
-
-        Loop(string name) : name(name) {}
+        const string GetName() const { return "loop_" + this->name; }
 
         void Accept(Visitor&) const final;
     };
     typedef shared_ptr<Loop> Looper;
+
+    struct Call : public Expr {
+        Looper loop;
+        vector<ExprPtr> args;
+
+        Call(Looper loop, vector<ExprPtr> args) :
+            Expr(loop->type), loop(loop), args(move(args))
+        {}
+
+        void Accept(Visitor&) const final;
+    };
 
 } // namespace tilt
 

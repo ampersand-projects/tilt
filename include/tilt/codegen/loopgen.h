@@ -11,54 +11,71 @@ namespace tilt
 {
 
     class LoopGenCtx {
-    public:
-        LoopGenCtx(SymPtr sym) :
-            LoopGenCtx(sym, make_shared<Loop>(sym->name))
+        LoopGenCtx(SymPtr sym, const Op* op, Looper loop) :
+            sym(sym), op(op), loop(loop)
         {}
 
-    private:
-        LoopGenCtx(SymPtr sym, Looper loop) : sym(sym), loop(loop) {}
-
         SymPtr sym;
-        map<ExprPtr, RegPtr> sym_reg_map;
-        map<RegPtr, map<Point, Indexer>> pt_idx_maps;
-
+        const Op* op;
         Looper loop;
+
+        ExprPtr val;
+
+        map<SymPtr, SymPtr> sym_sym_map;
+        map<SymPtr, SymPtr> sym_ref_map;
+        map<SymPtr, map<Point, Indexer>> pt_idx_maps;
 
         friend class LoopGen;
     };
 
     class LoopGen : public Visitor {
     public:
-        LoopGen(LoopGenCtx ctx) : ctx(move(ctx)) {}
+        static Looper Build(SymPtr sym, const Op* op);
 
-        Looper result() { return ctx.loop; }
+    private:
+        LoopGen(LoopGenCtx ctx) : ctx(ctx) {}
+
+        void build_loop();
+
+        Indexer& create_idx(const SymPtr, const Point);
+
+        ExprPtr eval(const ExprPtr expr)
+        {
+            ExprPtr val = nullptr;
+
+            swap(val, ctx.val);
+            expr->Accept(*this);
+            swap(ctx.val, val);
+
+            return val;
+        }
 
         /**
          * TiLT IR
          */
-        void Visit(const Symbol&) final {}
-        void Visit(const Lambda&) final {}
-        void Visit(const Exists&) final {}
-        void Visit(const Equals&) final {}
-        void Visit(const Not&) final {}
-        void Visit(const And&) final {}
-        void Visit(const Or&) final {}
-        void Visit(const IConst&) final {}
-        void Visit(const UConst&) final {}
-        void Visit(const FConst&) final {}
-        void Visit(const BConst&) final {}
-        void Visit(const CConst&) final {}
-        void Visit(const TConst&) final {}
-        void Visit(const Add&) final {}
-        void Visit(const Sub&) final {}
-        void Visit(const Max&) final {}
-        void Visit(const Min&) final {}
-        void Visit(const Now&) final {}
-        void Visit(const True&) final {}
-        void Visit(const False&) final {}
-        void Visit(const LessThan&) final {}
-        void Visit(const LessThanEqual&) final {}
+        void Visit(const Symbol&) override;
+        void Visit(const IfElse&) override;
+        void Visit(const Exists&) override;
+        void Visit(const Equals&) override;
+        void Visit(const Not&) override;
+        void Visit(const And&) override;
+        void Visit(const Or&) override;
+        void Visit(const IConst&) override;
+        void Visit(const UConst&) override;
+        void Visit(const FConst&) override;
+        void Visit(const BConst&) override;
+        void Visit(const CConst&) override;
+        void Visit(const TConst&) override;
+        void Visit(const Add&) override;
+        void Visit(const Sub&) override;
+        void Visit(const Max&) override;
+        void Visit(const Min&) override;
+        void Visit(const Now&) override;
+        void Visit(const True&) override;
+        void Visit(const False&) override;
+        void Visit(const LessThan&) override;
+        void Visit(const LessThanEqual&) override;
+        void Visit(const GreaterThan&) override;
 
         void Visit(const SubLStream&) override;
         void Visit(const Element&) override;
@@ -68,34 +85,19 @@ namespace tilt
         /**
          * Loop IR
          */
+        void Visit(const AllocIndex&) final {}
         void Visit(const GetTime&) final {}
         void Visit(const Fetch&) final {}
+        void Visit(const Load&) final {}
         void Visit(const Advance&) final {}
         void Visit(const Next&) final {}
+        void Visit(const GetStartIdx&) final {}
         void Visit(const CommitData&) final {}
         void Visit(const CommitNull&) final {}
-        void Visit(const Block&) final {}
+        void Visit(const AllocRegion&) final {}
+        void Visit(const MakeRegion&) final {}
+        void Visit(const Call&) final {}
         void Visit(const Loop&) final {}
-
-    private:
-        Indexer& create_idx(RegPtr reg, Point pt)
-        {
-            auto& pt_idx_map = ctx.pt_idx_maps[reg];
-            if (pt_idx_map.find(pt) == pt_idx_map.end()) {
-                auto idx = make_shared<Index>("i_" + to_string(pt.offset) + "_" + reg->name);
-                pt_idx_map[pt] = idx;
-                ctx.loop->idx_map[idx] = reg;
-            }
-
-            return pt_idx_map[pt];
-        }
-
-        void eval(SymPtr sym, ExprPtr expr)
-        {
-            swap(sym, ctx.sym);
-            expr->Accept(*this);
-            swap(ctx.sym, sym);
-        }
 
         LoopGenCtx ctx;
     };

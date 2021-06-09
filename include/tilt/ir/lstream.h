@@ -43,10 +43,10 @@ namespace tilt {
     };
 
     struct SubLStream : public LStream {
-        ExprPtr lstream;
+        SymPtr lstream;
         const Window win;
 
-        SubLStream(ExprPtr lstream, Window win) :
+        SubLStream(SymPtr lstream, Window win) :
             LStream(lstream->type), lstream(lstream), win(win)
         {}
 
@@ -55,10 +55,10 @@ namespace tilt {
     typedef shared_ptr<SubLStream> SubLSPtr;
 
     struct Element : public ValExpr {
-        ExprPtr lstream;
+        SymPtr lstream;
         const Point pt;
 
-        Element(ExprPtr lstream, Point pt) :
+        Element(SymPtr lstream, Point pt) :
             ValExpr(lstream->type.dtype), lstream(lstream), pt(pt)
         {}
 
