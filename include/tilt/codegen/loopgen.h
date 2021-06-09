@@ -12,21 +12,27 @@ namespace tilt
 
     class LoopGenCtx {
     public:
-        LoopGenCtx(SymPtr sym) : sym(sym) {}
+        LoopGenCtx(SymPtr sym) :
+            LoopGenCtx(sym, make_shared<Loop>(sym->name))
+        {}
 
     private:
-        friend class LoopGen;
+        LoopGenCtx(SymPtr sym, Looper loop) : sym(sym), loop(loop) {}
 
         SymPtr sym;
         map<ExprPtr, RegPtr> sym_reg_map;
         map<RegPtr, map<Point, Indexer>> pt_idx_maps;
+
+        Looper loop;
+
+        friend class LoopGen;
     };
 
     class LoopGen : public Visitor {
     public:
         LoopGen(LoopGenCtx ctx) : ctx(move(ctx)) {}
 
-        ASTPtr result() { return loop; }
+        Looper result() { return ctx.loop; }
 
         /**
          * TiLT IR
@@ -78,7 +84,7 @@ namespace tilt
             if (pt_idx_map.find(pt) == pt_idx_map.end()) {
                 auto idx = make_shared<Index>("i_" + to_string(pt.offset) + "_" + reg->name);
                 pt_idx_map[pt] = idx;
-                loop->idx_map[idx] = reg;
+                ctx.loop->idx_map[idx] = reg;
             }
 
             return pt_idx_map[pt];
@@ -92,7 +98,6 @@ namespace tilt
         }
 
         LoopGenCtx ctx;
-        Looper loop;
     };
 
 } // namespace tilt

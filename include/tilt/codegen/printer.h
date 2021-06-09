@@ -5,6 +5,7 @@
 
 #include <sstream>
 #include <string>
+#include <any>
 
 using namespace std;
 
@@ -18,19 +19,21 @@ namespace tilt
     private:
         size_t indent;
         size_t nesting;
+        ostringstream ostr;
 
         friend class IRPrinter;
     };
 
     class IRPrinter : public Visitor {
     public:
+        IRPrinter() : IRPrinter(move(IRPrinterCtx())) {}
         IRPrinter(IRPrinterCtx ctx) : IRPrinter(move(ctx), 2) {}
 
         IRPrinter(IRPrinterCtx ctx, size_t tabstop) :
             ctx(move(ctx)), tabstop(tabstop)
         {}
 
-        string result() const { return ostr.str(); }
+        string result() const { return ctx.ostr.str(); }
 
         /**
          * TiLT IR
@@ -82,44 +85,44 @@ namespace tilt
         void enter_block() { ctx.indent++; emitnewline(); }
         void exit_block() { ctx.indent--; emitnewline(); }
 
-        void emittab() { ostr << string(1 << tabstop, ' '); }
-        void emitnewline() { ostr << endl << string(ctx.indent << tabstop, ' '); }
-        void emitcomment(string comment) { ostr << "/* " << comment << " */"; }
+        void emittab() { ctx.ostr << string(1 << tabstop, ' '); }
+        void emitnewline() { ctx.ostr << endl << string(ctx.indent << tabstop, ' '); }
+        void emit(string str) { ctx.ostr << str; }
+        void emitcomment(string comment) { ctx.ostr << "/* " << comment << " */"; }
 
         void emitunary(string op, ASTPtr a)
         {
-            ostr << op;
+            ctx.ostr << op;
             a->Accept(*this);
         }
 
         void emitbinary(ASTPtr a, string op, ASTPtr b)
         {
             a->Accept(*this);
-            ostr << " " << op << " ";
+            ctx.ostr << " " << op << " ";
             b->Accept(*this);
         }
 
         void emitassign(ASTPtr lhs, ASTPtr rhs)
         {
             lhs->Accept(*this);
-            ostr << " = ";
+            ctx.ostr << " = ";
             rhs->Accept(*this);
-            ostr << ";";
+            ctx.ostr << ";";
         }
 
         void emitfunc(string name, vector<ASTPtr> args)
         {
-            ostr << name << "(";
+            ctx.ostr << name << "(";
             for (size_t i = 0; i < args.size()-1; i++) {
                 args[i]->Accept(*this);
-                ostr << ", ";
+                ctx.ostr << ", ";
             }
             args.back()->Accept(*this);
-            ostr << ")";
+            ctx.ostr << ")";
         }
 
         IRPrinterCtx ctx;
-        ostringstream ostr;
         size_t tabstop;
     };
 

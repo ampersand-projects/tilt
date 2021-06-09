@@ -101,8 +101,7 @@ int main()
         join_op_sym);
 
     cout << "TiLT IR: " << endl;
-    IRPrinterCtx irpctx;
-    IRPrinter printer(irpctx);
+    IRPrinter printer;
     sel_op->Accept(printer);
     cout << printer.result() << endl;
 
@@ -112,8 +111,7 @@ int main()
     LoopGenCtx lgctx(sel_op_sym);
     LoopGen loopgen(move(lgctx));
     sel_op->Accept(loopgen);
-    IRPrinterCtx lpctx;
-    IRPrinter loop_printer(lpctx);
+    IRPrinter loop_printer;
     loopgen.result()->Accept(loop_printer);
     cout << loop_printer.result() << endl;
 
