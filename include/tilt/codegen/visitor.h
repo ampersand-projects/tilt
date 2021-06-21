@@ -23,7 +23,6 @@ namespace tilt
         virtual void Visit(const IConst&) = 0;
         virtual void Visit(const UConst&) = 0;
         virtual void Visit(const FConst&) = 0;
-        virtual void Visit(const BConst&) = 0;
         virtual void Visit(const CConst&) = 0;
         virtual void Visit(const TConst&) = 0;
         virtual void Visit(const Add&) = 0;

@@ -50,7 +50,6 @@ namespace tilt
         void Visit(const IConst&) override;
         void Visit(const UConst&) override;
         void Visit(const FConst&) override;
-        void Visit(const BConst&) override;
         void Visit(const CConst&) override;
         void Visit(const TConst&) override;
         void Visit(const Add&) override;

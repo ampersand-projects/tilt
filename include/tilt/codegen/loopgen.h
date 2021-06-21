@@ -1,105 +1,79 @@
 #ifndef TILT_LOOPGEN
 #define TILT_LOOPGEN
 
-#include "tilt/codegen/visitor.h"
+#include "tilt/codegen/irgen.h"
 
-#include <utility>
+#include <stdexcept>
 
 using namespace std;
 
 namespace tilt
 {
 
-    class LoopGenCtx {
+    class LoopGenCtx : public IRGenCtx<ExprPtr, ExprPtr> {
+    public:
         LoopGenCtx(SymPtr sym, const Op* op, Looper loop) :
-            sym(sym), op(op), loop(loop)
+            IRGenCtx(sym, op->syms, loop->syms), op(op), loop(loop)
         {}
 
-        SymPtr sym;
+    private:
         const Op* op;
         Looper loop;
 
-        ExprPtr val;
-
-        map<SymPtr, SymPtr> sym_sym_map;
         map<SymPtr, SymPtr> sym_ref_map;
         map<SymPtr, map<Point, Indexer>> pt_idx_maps;
 
         friend class LoopGen;
     };
 
-    class LoopGen : public Visitor {
+    class LoopGen : public IRGen<LoopGenCtx, ExprPtr, ExprPtr> {
     public:
+        LoopGen(LoopGenCtx ctx) : IRGen(ctx) {}
+
         static Looper Build(SymPtr sym, const Op* op);
 
     private:
-        LoopGen(LoopGenCtx ctx) : ctx(ctx) {}
-
-        void build_loop();
-
         Indexer& create_idx(const SymPtr, const Point);
-
-        ExprPtr eval(const ExprPtr expr)
-        {
-            ExprPtr val = nullptr;
-
-            swap(val, ctx.val);
-            expr->Accept(*this);
-            swap(ctx.val, val);
-
-            return val;
-        }
-
-        /**
-         * TiLT IR
-         */
-        void Visit(const Symbol&) override;
-        void Visit(const IfElse&) override;
-        void Visit(const Exists&) override;
-        void Visit(const Equals&) override;
-        void Visit(const Not&) override;
-        void Visit(const And&) override;
-        void Visit(const Or&) override;
-        void Visit(const IConst&) override;
-        void Visit(const UConst&) override;
-        void Visit(const FConst&) override;
-        void Visit(const BConst&) override;
-        void Visit(const CConst&) override;
-        void Visit(const TConst&) override;
-        void Visit(const Add&) override;
-        void Visit(const Sub&) override;
-        void Visit(const Max&) override;
-        void Visit(const Min&) override;
-        void Visit(const Now&) override;
-        void Visit(const True&) override;
-        void Visit(const False&) override;
-        void Visit(const LessThan&) override;
-        void Visit(const LessThanEqual&) override;
-        void Visit(const GreaterThan&) override;
-
-        void Visit(const SubLStream&) override;
-        void Visit(const Element&) override;
-        void Visit(const Op&) override;
-        void Visit(const AggExpr&) override;
-
-        /**
-         * Loop IR
-         */
-        void Visit(const AllocIndex&) final {}
-        void Visit(const GetTime&) final {}
-        void Visit(const Fetch&) final {}
-        void Visit(const Load&) final {}
-        void Visit(const Advance&) final {}
-        void Visit(const Next&) final {}
-        void Visit(const GetStartIdx&) final {}
-        void Visit(const CommitData&) final {}
-        void Visit(const CommitNull&) final {}
-        void Visit(const AllocRegion&) final {}
-        void Visit(const MakeRegion&) final {}
-        void Visit(const Call&) final {}
-        void Visit(const Loop&) final {}
-
-        LoopGenCtx ctx;
+        void build_loop() final;
+        ExprPtr visit(const Symbol&);
+        ExprPtr visit(const IfElse&);
+        ExprPtr visit(const Exists&) final;
+        ExprPtr visit(const Equals&) final;
+        ExprPtr visit(const Not&) final;
+        ExprPtr visit(const And&) final;
+        ExprPtr visit(const Or&) final;
+        ExprPtr visit(const IConst&) final;
+        ExprPtr visit(const UConst&) final;
+        ExprPtr visit(const FConst&) final;
+        ExprPtr visit(const CConst&) final;
+        ExprPtr visit(const TConst&) final;
+        ExprPtr visit(const Add&) final;
+        ExprPtr visit(const Sub&) final;
+        ExprPtr visit(const Max&) final;
+        ExprPtr visit(const Min&) final;
+        ExprPtr visit(const Now&) final;
+        ExprPtr visit(const True&) final;
+        ExprPtr visit(const False&) final;
+        ExprPtr visit(const LessThan&) final;
+        ExprPtr visit(const LessThanEqual&) final;
+        ExprPtr visit(const GreaterThan&) final;
+        ExprPtr visit(const SubLStream&) final;
+        ExprPtr visit(const Element&) final;
+        ExprPtr visit(const Op&) final;
+        ExprPtr visit(const AggExpr&) final;
+        ExprPtr visit(const AllocIndex&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const GetTime&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const Fetch&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const Load&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const Advance&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const Next&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const GetStartIdx&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const CommitData&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const CommitNull&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const AllocRegion&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const MakeRegion&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const Call&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const Loop&) final { throw std::runtime_error("Invalid expression"); };
     };
 
 } // namespace tilt

@@ -1,7 +1,7 @@
 #ifndef TILT_LLVMGEN
 #define TILT_LLVMGEN
 
-#include "tilt/codegen/visitor.h"
+#include "tilt/codegen/irgen.h"
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
@@ -13,106 +13,82 @@ using namespace std;
 
 namespace tilt {
 
-    class LLVMGenCtx {
+    class LLVMGenCtx : public IRGenCtx<ExprPtr, llvm::Value*> {
     public:
-        LLVMGenCtx() :
-            llctx(move(make_unique<llvm::LLVMContext>())),
-            llmod(nullptr), builder(nullptr), val(nullptr)
+        LLVMGenCtx(SymPtr sym, Looper loop, map<SymPtr, llvm::Value*>& sym_tbl) :
+            IRGenCtx(sym, loop->syms, sym_tbl),
+            llcontext(move(make_unique<llvm::LLVMContext>())),
+            llmodule(nullptr), builder(nullptr)
         {}
-    private:
-        unique_ptr<llvm::LLVMContext> llctx;
-        unique_ptr<llvm::Module> llmod;
-        unique_ptr<llvm::IRBuilder<>> builder;
-        llvm::Value* val;
-        map<Symbol*, llvm::Value*> sym_tbl;
-        
-        friend class LLVMGen;
 
-        llvm::Module* llmodule() { return llmod.get(); }
-        llvm::LLVMContext& llcontext() { return *llctx; }
+    private:
+        unique_ptr<llvm::LLVMContext> llcontext;
+        unique_ptr<llvm::Module> llmodule;
+        unique_ptr<llvm::IRBuilder<>> builder;
+
+        friend class LLVMGen;
     };
 
-    class LLVMGen : public Visitor {
+    class LLVMGen : public IRGen<LLVMGenCtx, ExprPtr, llvm::Value*> {
     public:
-        LLVMGen(LLVMGenCtx ctx) : ctx(move(ctx)) {}
-
-        llvm::Module* result() { return ctx.llmodule(); }
-
-        /**
-         * TiLT IR
-         */
-        void Visit(const Symbol&) override;
-        void Visit(const IfElse&) override;
-        void Visit(const Exists&) override;
-        void Visit(const Equals&) override;
-        void Visit(const Not&) override;
-        void Visit(const And&) override;
-        void Visit(const Or&) override;
-        void Visit(const IConst&) override;
-        void Visit(const UConst&) override;
-        void Visit(const FConst&) override;
-        void Visit(const BConst&) override;
-        void Visit(const CConst&) override;
-        void Visit(const TConst&) override;
-        void Visit(const Add&) override;
-        void Visit(const Sub&) override;
-        void Visit(const Max&) override;
-        void Visit(const Min&) override;
-        void Visit(const Now&) override;
-        void Visit(const True&) override;
-        void Visit(const False&) override;
-        void Visit(const LessThan&) override;
-        void Visit(const LessThanEqual&) override;
-        void Visit(const GreaterThan&) override;
-
-        void Visit(const SubLStream&) final {}
-        void Visit(const Element&) final {}
-
-        void Visit(const Op&) final {}
-        void Visit(const AggExpr&) override;
-
-        /**
-         * Loop IR
-         */
-        void Visit(const AllocIndex&) override;
-        void Visit(const GetTime&) override;
-        void Visit(const Fetch&) override;
-        void Visit(const Load&) override;
-        void Visit(const Advance&) override;
-        void Visit(const Next&) override;
-        void Visit(const GetStartIdx&) override;
-        void Visit(const CommitData&) override;
-        void Visit(const CommitNull&) override;
-        void Visit(const AllocRegion&) override;
-        void Visit(const MakeRegion&) override;
-        void Visit(const Call&) override;
-        void Visit(const Loop&) override;
+        LLVMGen(LLVMGenCtx ctx) : IRGen(move(ctx)) {}
 
     private:
-        llvm::Value* eval(const ExprPtr& expr)
-        {
-            llvm::Value* val = nullptr;
+        void build_loop() final;
+        llvm::Value* visit(const Symbol&) final;
+        llvm::Value* visit(const IfElse&) final;
+        llvm::Value* visit(const Exists&) final;
+        llvm::Value* visit(const Equals&) final;
+        llvm::Value* visit(const Not&) final;
+        llvm::Value* visit(const And&) final;
+        llvm::Value* visit(const Or&) final;
+        llvm::Value* visit(const IConst&) final;
+        llvm::Value* visit(const UConst&) final;
+        llvm::Value* visit(const FConst&) final;
+        llvm::Value* visit(const CConst&) final;
+        llvm::Value* visit(const TConst&) final;
+        llvm::Value* visit(const Add&) final;
+        llvm::Value* visit(const Sub&) final;
+        llvm::Value* visit(const Max&) final;
+        llvm::Value* visit(const Min&) final;
+        llvm::Value* visit(const Now&) final;
+        llvm::Value* visit(const True&) final;
+        llvm::Value* visit(const False&) final;
+        llvm::Value* visit(const LessThan&) final;
+        llvm::Value* visit(const LessThanEqual&) final;
+        llvm::Value* visit(const GreaterThan&) final;
+        llvm::Value* visit(const SubLStream&) { throw std::runtime_error("Invalid expression"); }
+        llvm::Value* visit(const Element&) { throw std::runtime_error("Invalid expression"); }
+        llvm::Value* visit(const Op&) { throw std::runtime_error("Invalid expression"); }
+        llvm::Value* visit(const AggExpr&) final;
+        llvm::Value* visit(const AllocIndex&) final;
+        llvm::Value* visit(const GetTime&) final;
+        llvm::Value* visit(const Fetch&) final;
+        llvm::Value* visit(const Load&) final;
+        llvm::Value* visit(const Advance&) final;
+        llvm::Value* visit(const Next&) final;
+        llvm::Value* visit(const GetStartIdx&) final;
+        llvm::Value* visit(const CommitData&) final;
+        llvm::Value* visit(const CommitNull&) final;
+        llvm::Value* visit(const AllocRegion&) final;
+        llvm::Value* visit(const MakeRegion&) final;
+        llvm::Value* visit(const Call&) final;
+        llvm::Value* visit(const Loop&) final;
 
-            swap(val, ctx.val);
-            expr->Accept(*this);
-            swap(ctx.val, val);
-
-            return val;
-        }
-
-        llvm::Value*& sym(const SymPtr& sym)
-        {
-            return ctx.sym_tbl[sym.get()];
-        }
-
-        llvm::Function* get_func(const string, llvm::Type*, vector<llvm::Type*>);
+        llvm::Function* llfunc(const string, llvm::Type*, vector<llvm::Type*>);
+        llvm::Value* llcall(const string, llvm::Type*, vector<llvm::Value*>);
+        llvm::Value* llcall(const string, llvm::Type*, vector<ExprPtr>);
 
         llvm::Type* lltype(const PrimitiveType&);
         llvm::Type* lltype(const vector<PrimitiveType>&, const bool);
-        llvm::Type* lltype(const DataType&);
+        llvm::Type* lltype(const DataType& dtype) { return lltype(dtype.ptypes, dtype.is_ptr); }
         llvm::Type* lltype(const Type&);
+        llvm::Type* lltype(const Expr& expr) { return lltype(expr.type); }
+        llvm::Type* lltype(const ExprPtr& expr) { return lltype(expr->type); }
 
-        LLVMGenCtx ctx;
+        llvm::Module* llmod() { return ctx().llmodule.get(); }
+        llvm::LLVMContext& llctx() { return *(ctx().llcontext); }
+        llvm::IRBuilder<>* builder() { return ctx().builder.get(); }
     };
 
 } // namespace tilt

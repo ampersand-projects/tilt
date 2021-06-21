@@ -115,5 +115,13 @@ int main()
     loop->Accept(loop_printer);
     cout << loop_printer.result() << endl;
 
+    cout << endl << "LLVM IR: " << endl;
+    LLVMGenCtx llctx;
+    LLVMGen llgen(move(llctx));
+    loop->Accept(llgen);
+    auto llmod = llgen.result();
+    llvm::raw_fd_ostream r(fileno(stdout), false);
+    if (!llvm::verifyModule(*llmod, &r)) { r << *llmod; }
+
     return 0;
 }

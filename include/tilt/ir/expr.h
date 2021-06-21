@@ -208,16 +208,6 @@ namespace tilt {
         void Accept(Visitor&) const final;
     };
 
-    struct BConst : public Const {
-        const bool val;
-
-        BConst(const bool val) :
-            Const(types::BOOL), val(val)
-        {}
-
-        void Accept(Visitor&) const final;
-    };
-
     struct CConst : public Const {
         const char val;
 

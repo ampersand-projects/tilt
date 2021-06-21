@@ -26,7 +26,6 @@ void IRPrinter::Visit(const Symbol& sym)
 void IRPrinter::Visit(const IConst& iconst) { ctx.ostr << iconst.val; }
 void IRPrinter::Visit(const UConst& uconst) { ctx.ostr << uconst.val; }
 void IRPrinter::Visit(const FConst& fconst) { ctx.ostr << fconst.val; }
-void IRPrinter::Visit(const BConst& bconst) { ctx.ostr << bconst.val; }
 void IRPrinter::Visit(const CConst& cconst) { ctx.ostr << cconst.val; }
 void IRPrinter::Visit(const TConst& tconst) { ctx.ostr << tconst.val; }
 void IRPrinter::Visit(const Add& add)

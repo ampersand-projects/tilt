@@ -2,21 +2,41 @@
 #include "tilt/codegen/llvmgen.h"
 
 #include "llvm/IR/Function.h"
+#include "llvm/IR/DataLayout.h"
 
 using namespace std;
 using namespace tilt;
 using namespace llvm;
 
-llvm::Function* LLVMGen::get_func(
-    const string name, llvm::Type* ret_type, vector<llvm::Type*> arg_types)
+Function* LLVMGen::llfunc(const string name, llvm::Type* ret_type, vector<llvm::Type*> arg_types)
 {
-    auto fn = ctx.llmodule()->getFunction(name);
+    auto fn = llmod()->getFunction(name);
     if (!fn) {
         auto fn_type = FunctionType::get(ret_type, arg_types, false);
-        fn = Function::Create(fn_type, Function::ExternalLinkage, name, ctx.llmodule());
+        fn = Function::Create(fn_type, Function::ExternalLinkage, name, llmod());
     }
 
     return fn;
+}
+
+Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<Value*> arg_vals)
+{
+    vector<llvm::Type*> arg_types;
+    for (const auto& arg_val: arg_vals) {
+        arg_types.push_back(arg_val->getType());
+    }
+    auto fn = llfunc(name, ret_type, arg_types);
+    return builder()->CreateCall(fn, arg_vals);
+}
+
+Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<ExprPtr> args)
+{
+    vector<Value*> arg_vals;
+    for (const auto& arg: args) {
+        arg_vals.push_back(eval(arg));
+    }
+
+    return llcall(name, ret_type, arg_vals);
 }
 
 llvm::Type* LLVMGen::lltype(const PrimitiveType& btype)
@@ -24,32 +44,32 @@ llvm::Type* LLVMGen::lltype(const PrimitiveType& btype)
     switch (btype)
     {
     case PrimitiveType::BOOL:
-        return llvm::Type::getInt1Ty(ctx.llcontext());
+        return llvm::Type::getInt1Ty(llctx());
     case PrimitiveType::CHAR:
-        return llvm::Type::getInt8Ty(ctx.llcontext());
+        return llvm::Type::getInt8Ty(llctx());
     case PrimitiveType::INT8:
     case PrimitiveType::UINT8:
-        return llvm::Type::getInt8Ty(ctx.llcontext());
+        return llvm::Type::getInt8Ty(llctx());
     case PrimitiveType::INT16:
     case PrimitiveType::UINT16:
-        return llvm::Type::getInt16Ty(ctx.llcontext());
+        return llvm::Type::getInt16Ty(llctx());
     case PrimitiveType::INT32:
     case PrimitiveType::UINT32:
-        return llvm::Type::getInt32Ty(ctx.llcontext());
+        return llvm::Type::getInt32Ty(llctx());
     case PrimitiveType::INT64:
     case PrimitiveType::UINT64:
-        return llvm::Type::getInt64Ty(ctx.llcontext());
+        return llvm::Type::getInt64Ty(llctx());
     case PrimitiveType::FLOAT32:
-        return llvm::Type::getFloatTy(ctx.llcontext());
+        return llvm::Type::getFloatTy(llctx());
     case PrimitiveType::FLOAT64:
-        return llvm::Type::getDoubleTy(ctx.llcontext());
+        return llvm::Type::getDoubleTy(llctx());
     case PrimitiveType::TIMESTAMP:
-        return llvm::Type::getInt64Ty(ctx.llcontext());
+        return llvm::Type::getInt64Ty(llctx());
     case PrimitiveType::TIME:
-        return llvm::Type::getInt64Ty(ctx.llcontext());
+        return llvm::Type::getInt64Ty(llctx());
     case PrimitiveType::INDEX:
         return llvm::StructType::get(
-            ctx.llcontext(),
+            llctx(),
             {
                 lltype(types::INT32),                           // index
                 lltype(types::TIME),                            // time
@@ -71,7 +91,7 @@ llvm::Type* LLVMGen::lltype(const vector<PrimitiveType>& btypes, const bool is_p
 
     llvm::Type* type;
     if (btypes.size() > 1) {
-        type = StructType::get(ctx.llcontext(), lltypes);
+        type = StructType::get(llctx(), lltypes);
     } else {
         type = lltypes[0];
     }
@@ -83,16 +103,11 @@ llvm::Type* LLVMGen::lltype(const vector<PrimitiveType>& btypes, const bool is_p
     return type;
 }
 
-llvm::Type* LLVMGen::lltype(const DataType& dtype)
-{
-    return lltype(dtype.ptypes, dtype.is_ptr);
-}
-
 llvm::Type* LLVMGen::lltype(const Type& type)
 {
     if (type.isLStream()) {
         auto reg_type = StructType::get(
-            ctx.llcontext(),
+            llctx(),
             {
                 lltype(types::INDEX),                           // start index
                 lltype(types::INDEX),                           // end index
@@ -108,124 +123,180 @@ llvm::Type* LLVMGen::lltype(const Type& type)
     }
 }
 
-void LLVMGen::Visit(const Symbol& sym)
+Value* LLVMGen::visit(const Symbol& symbol)
 {
-    ctx.val = ctx.sym_tbl[const_cast<Symbol*>(&sym)];
+    shared_ptr<Symbol> tmp_sym(const_cast<Symbol*>(&symbol), [](Symbol*) {});
+    return sym(map_sym(tmp_sym));
 }
 
-void LLVMGen::Visit(const IConst&) {}
-void LLVMGen::Visit(const UConst&) {}
-void LLVMGen::Visit(const FConst&) {}
-void LLVMGen::Visit(const BConst&) {}
-void LLVMGen::Visit(const CConst&) {}
-void LLVMGen::Visit(const TConst&) {}
-void LLVMGen::Visit(const Add&) {}
-void LLVMGen::Visit(const Sub&) {}
-void LLVMGen::Visit(const Max&) {}
-void LLVMGen::Visit(const Min&) {}
-void LLVMGen::Visit(const Now&) {}
-void LLVMGen::Visit(const Exists&) {}
-void LLVMGen::Visit(const Equals&) {}
-void LLVMGen::Visit(const Not&) {}
-void LLVMGen::Visit(const And&) {}
-void LLVMGen::Visit(const Or&) {}
-void LLVMGen::Visit(const True&) {}
-void LLVMGen::Visit(const False&) {}
-void LLVMGen::Visit(const LessThan&) {}
-void LLVMGen::Visit(const LessThanEqual&) {}
-void LLVMGen::Visit(const GreaterThan&) {}
-void LLVMGen::Visit(const AggExpr&) {}
-
-void LLVMGen::Visit(const GetTime& get_time)
+Value* LLVMGen::visit(const IConst& iconst)
 {
-    auto idx_val = eval(get_time.idx);
-    ctx.val = ctx.builder->CreateExtractValue(idx_val, 1);
+    return ConstantInt::getSigned(lltype(iconst), iconst.val);
 }
 
-void LLVMGen::Visit(const Fetch& fetch)
+Value* LLVMGen::visit(const UConst& uconst)
 {
-    auto reg_val = eval(fetch.reg);
-    auto idx_val = eval(fetch.idx);
-
-    auto get_data_addr_fn = get_func(
-            "get_data_addr_fn",
-            lltype({PrimitiveType::INT8}, true),
-            {lltype(fetch.reg->type), lltype(fetch.idx->type)}
-        );
-    auto addr = ctx.builder->CreateCall(get_data_addr_fn, {reg_val, idx_val});
-    auto data_ptr = ctx.builder->CreateBitCast(addr, lltype(fetch.reg->type.dtype));
-    ctx.val = ctx.builder->CreateLoad(data_ptr);
+    return ConstantInt::get(lltype(uconst), uconst.val);
 }
 
-void LLVMGen::Visit(const Advance& adv)
+Value* LLVMGen::visit(const FConst& fconst)
 {
-    /*
-    auto reg_val = eval(adv.reg);
-    auto idx_val = eval(adv.idx);
-    auto t_val = eval(adv.time);
-    */
+    return ConstantFP::get(lltype(fconst), fconst.val);
 }
 
-void LLVMGen::Visit(const Next&) {}
+Value* LLVMGen::visit(const CConst& cconst)
+{
+    return ConstantInt::get(lltype(cconst), cconst.val);
+}
 
-void LLVMGen::Visit(const GetStartIdx& start_idx)
+Value* LLVMGen::visit(const TConst& tconst)
+{
+    return ConstantInt::get(lltype(tconst), tconst.val);
+}
+
+Value* LLVMGen::visit(const Add& add)
+{
+    return builder()->CreateAdd(eval(add.Left()), eval(add.Right()));
+}
+
+Value* LLVMGen::visit(const Sub& sub)
+{
+    return builder()->CreateSub(eval(sub.Left()), eval(sub.Right()));
+}
+
+Value* LLVMGen::visit(const Max& max)
+{
+    return builder()->CreateMaximum(eval(max.Left()), eval(max.Right()));
+}
+
+Value* LLVMGen::visit(const Min& min)
+{
+    return builder()->CreateMinimum(eval(min.Left()), eval(min.Right()));
+}
+
+Value* LLVMGen::visit(const Now&) { throw std::runtime_error("Invalid expression"); }
+Value* LLVMGen::visit(const Exists&) { throw std::runtime_error("Invalid expression"); }
+
+Value* LLVMGen::visit(const Equals& equals)
+{
+    return builder()->CreateICmpEQ(eval(equals.a), eval(equals.b));
+}
+
+Value* LLVMGen::visit(const Not& not_expr)
+{
+    return builder()->CreateNot(eval(not_expr.a));
+}
+
+Value* LLVMGen::visit(const And& and_expr)
+{
+    return builder()->CreateAnd(eval(and_expr.a), eval(and_expr.b));
+}
+
+Value* LLVMGen::visit(const Or& or_expr)
+{
+    return builder()->CreateOr(eval(or_expr.a), eval(or_expr.b));
+}
+
+Value* LLVMGen::visit(const True&)
+{
+    return ConstantInt::getTrue(llctx());
+}
+
+Value* LLVMGen::visit(const False&)
+{
+    return ConstantInt::getFalse(llctx());
+}
+
+Value* LLVMGen::visit(const LessThan& lt)
+{
+    return builder()->CreateICmpSLT(eval(lt.a), eval(lt.b));
+}
+
+Value* LLVMGen::visit(const LessThanEqual& lte)
+{
+    return builder()->CreateICmpSLE(eval(lte.a), eval(lte.b));
+}
+
+Value* LLVMGen::visit(const GreaterThan& gt)
+{
+    return builder()->CreateICmpSGT(eval(gt.a), eval(gt.b));
+}
+
+Value* LLVMGen::visit(const AggExpr&) { throw std::runtime_error("Invalid expression"); }
+
+Value* LLVMGen::visit(const GetTime& get_time)
+{
+    return builder()->CreateExtractValue(eval(get_time.idx), 1);
+}
+
+Value* LLVMGen::visit(const Fetch& fetch)
+{
+    auto ret_type = lltype({PrimitiveType::INT8}, true);
+    auto addr = llcall("fetch", ret_type, { fetch.reg, fetch.idx });
+    return builder()->CreateBitCast(addr, lltype(fetch.reg->type.dtype));
+}
+
+Value* LLVMGen::visit(const Advance& adv)
+{
+    return llcall("advance", lltype(adv), { adv.reg, adv.idx, adv.time });
+}
+
+Value* LLVMGen::visit(const Next& next)
+{
+    return llcall("next", lltype(next), { next.reg, next.idx });
+}
+
+Value* LLVMGen::visit(const GetStartIdx& start_idx)
 {
     auto reg_val = eval(start_idx.reg);
-    ctx.val = ctx.builder->CreateExtractValue(reg_val, 0);
+    return builder()->CreateExtractValue(reg_val, 0);
 }
 
-void LLVMGen::Visit(const CommitData& commit)
+Value* LLVMGen::visit(const CommitNull& commit)
 {
-    /*
-    auto reg_val = eval(commit.reg);
-    auto t = eval(commit.time);
-    auto data = eval(commit.data);
-
-    vector<llvm::Type*> args_type = {lltype(commit.reg->type), lltype(commit.time->type), lltype(type)};
-    auto fn_type = FunctionType::get(lltype(commit.reg->type), args_type, false);
-    auto fn = Function::Create(fn_type, Function::ExternalLinkage, "commit", ctx.llmodule());
-    ctx.val = ctx.builder->CreateCall(fn, {reg_val, t, data});
-    */
+    return llcall("commit_null", lltype(commit), { commit.reg, commit.time });
 }
 
-void LLVMGen::Visit(const CommitNull& commit)
+Value* LLVMGen::visit(const CommitData& commit)
 {
     auto reg_val = eval(commit.reg);
-    auto t = eval(commit.time);
+    auto t_val = eval(commit.time);
 
-    vector<llvm::Type*> args_type = {lltype(commit.reg->type), lltype(commit.time->type)};
-    auto fn_type = FunctionType::get(lltype(commit.reg->type), args_type, false);
-    auto fn = Function::Create(fn_type, Function::ExternalLinkage, "commit", ctx.llmodule());
-    ctx.val = ctx.builder->CreateCall(fn, {reg_val, t});
+    auto data_val = eval(commit.data);
+    auto data_ptr = builder()->CreateAlloca(lltype(commit.data));
+    auto local_ptr = builder()->CreateBitCast(data_ptr, lltype(types::CHAR.ptypes, true));
+    builder()->CreateStore(data_val, data_ptr);
+
+    auto data_size = llmod()->getDataLayout().getTypeSizeInBits(data_val->getType()).getFixedSize();
+    auto size_val = ConstantInt::get(lltype(types::UINT64), data_size);
+    return llcall("commit_data", lltype(commit), { reg_val, t_val, local_ptr, size_val });
 }
 
-void LLVMGen::Visit(const IfElse& ifelse)
+Value* LLVMGen::visit(const IfElse& ifelse)
 {
     auto cond = eval(ifelse.cond);
     auto true_body = eval(ifelse.true_body);
     auto false_body = eval(ifelse.false_body);
-    ctx.val = ctx.builder->CreateSelect(cond, true_body, false_body);
+    return builder()->CreateSelect(cond, true_body, false_body);
 }
 
-void LLVMGen::Visit(const Loop& loop)
+Value* LLVMGen::visit(const Loop& loop)
 {
-#ifdef BLAH
-    ctx.llmod = make_unique<Module>(loop.name, ctx.llcontext());
-    ctx.builder = make_unique<IRBuilder<>>(ctx.llcontext());
+    ctx().llmodule = make_unique<Module>(loop.name, llctx());
+    ctx().builder = make_unique<IRBuilder<>>(llctx());
 
     vector<llvm::Type*> args_type;
     for (const auto& input: loop.inputs) {
         args_type.push_back(lltype(input->type));
     }
 
-    auto fn_type = FunctionType::get(lltype(loop.output->type), args_type, false);
-    auto loop_fn = Function::Create(fn_type, Function::ExternalLinkage, loop.name, ctx.llmodule());
+    auto loop_fn = llfunc(loop.name, lltype(loop.output), args_type);
 
-    auto preheader_bb = BasicBlock::Create(ctx.llcontext(), "preheader");
-    auto header_bb = BasicBlock::Create(ctx.llcontext(), "header");
-    auto body_bb = BasicBlock::Create(ctx.llcontext(), "body");
-    auto end_bb = BasicBlock::Create(ctx.llcontext(), "end");
-    auto exit_bb = BasicBlock::Create(ctx.llcontext(), "exit");
+    auto preheader_bb = BasicBlock::Create(llctx(), "preheader");
+    auto header_bb = BasicBlock::Create(llctx(), "header");
+    auto body_bb = BasicBlock::Create(llctx(), "body");
+    auto end_bb = BasicBlock::Create(llctx(), "end");
+    auto exit_bb = BasicBlock::Create(llctx(), "exit");
 
     for (size_t i = 0; i < loop.inputs.size(); i++) {
         sym(loop.inputs[i]) = loop_fn->getArg(i);
@@ -234,66 +305,50 @@ void LLVMGen::Visit(const Loop& loop)
 
     /* Initial values of base states */
     loop_fn->getBasicBlockList().push_back(preheader_bb);
-    ctx.builder->SetInsertPoint(preheader_bb);
-    auto t_base_init = eval(loop.t_state.init);
-    auto output_base_init = eval(loop.output_state.init);
-    map<SymPtr, llvm::Value*> idx_base_init;
-    for (const auto& [idx, state]: loop.idx_states) {
-        idx_base_init[state.base] = eval(state.init);
+    builder()->SetInsertPoint(preheader_bb);
+    map<SymPtr, llvm::Value*> base_inits;
+    for (const auto& [state_sym, state]: loop.states) {
+        base_inits[state.base] = eval(state.init);
     }
-    ctx.builder->CreateBr(header_bb);
+    builder()->CreateBr(header_bb);
 
     /* Phi nodes for base states */
     loop_fn->getBasicBlockList().push_back(header_bb);
-    ctx.builder->SetInsertPoint(header_bb);
-    auto t_base = ctx.builder->CreatePHI(lltype(loop.t_state.base->type), 2, loop.t_state.base->name);
-    sym(loop.t_state.base) = t_base;
-    t_base->addIncoming(t_base_init, preheader_bb);
-    auto output_base = ctx.builder->CreatePHI(lltype(loop.output_state.base->type), 2, loop.output_state.base->name);
-    sym(loop.output_state.base) = output_base;
-    output_base->addIncoming(output_base_init, preheader_bb);
-    for (const auto& [idx_base_sym, val]: idx_base_init) {
-        auto idx_base = ctx.builder->CreatePHI(lltype(idx_base_sym->type), 2, idx_base_sym->name);
-        sym(idx_base_sym) = idx_base;
-        idx_base->addIncoming(val, preheader_bb);
+    builder()->SetInsertPoint(header_bb);
+    for (const auto& [base_sym, val]: base_inits) {
+        auto base = builder()->CreatePHI(lltype(base_sym->type), 2, base_sym->name);
+        sym(base_sym) = base;
+        base->addIncoming(val, preheader_bb);
     }
 
     /* Update timer */
-    sym(loop.t) = eval(loop.t_state.update);
+    sym(loop.t) = eval(loop.states.at(loop.t).update);
     auto exit_cond = eval(loop.exit_cond);
-    ctx.builder->CreateCondBr(exit_cond, exit_bb, body_bb);
+    builder()->CreateCondBr(exit_cond, exit_bb, body_bb);
 
     loop_fn->getBasicBlockList().push_back(body_bb);
-    ctx.builder->SetInsertPoint(body_bb);
+    builder()->SetInsertPoint(body_bb);
     /* Update indices */
-    for (const auto& [idx, state]: loop.idx_states) {
-        sym(idx) = eval(state.update);
-    }
-
-    /* Set local variables */
-    for (const auto& [var, expr]: loop.vars) {
-        sym(var) = eval(expr);
+    for (const auto& idx: loop.idxs) {
+        sym(idx) = eval(loop.states.at(idx).update);
     }
 
     /* Loop body */
-    sym(loop.output) = eval(loop.output_state.update);
-    ctx.builder->CreateBr(end_bb);
+    sym(loop.output) = eval(loop.states.at(loop.output).update);
+    builder()->CreateBr(end_bb);
 
-    /* Loop back to header */
+    /* Update states and loop back to header */
     loop_fn->getBasicBlockList().push_back(end_bb);
-    ctx.builder->SetInsertPoint(end_bb);
-    t_base->addIncoming(sym(loop.t), end_bb);
-    output_base->addIncoming(sym(loop.output), end_bb);
-    for (const auto& [idx, state]: loop.idx_states) {
-        auto idx_base = dyn_cast<PHINode>(sym(state.base));
-        idx_base->addIncoming(sym(idx), end_bb);
+    builder()->SetInsertPoint(end_bb);
+    for (const auto& [state_sym, state]: loop.states) {
+        auto base = dyn_cast<PHINode>(sym(state.base));
+        base->addIncoming(sym(state_sym), end_bb);
     }
-    ctx.builder->CreateBr(header_bb);
+    builder()->CreateBr(header_bb);
 
     /* Exit the loop */
     loop_fn->getBasicBlockList().push_back(exit_bb);
-    ctx.builder->SetInsertPoint(exit_bb);
-    ctx.builder->CreateRet(sym(loop.output));
-    ctx.val = loop_fn;
-#endif
+    builder()->SetInsertPoint(exit_bb);
+    builder()->CreateRet(sym(loop.output));
+    return loop_fn;
 }
