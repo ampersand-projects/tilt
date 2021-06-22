@@ -38,7 +38,6 @@ namespace tilt
         IRGen(CtxTy ctx) : irctx(move(ctx)) {}
 
     protected:
-        virtual void build_loop() = 0;
         virtual OutExprTy visit(const Symbol&) = 0;
         virtual OutExprTy visit(const IfElse&) = 0;
         virtual OutExprTy visit(const Exists&) = 0;
@@ -119,8 +118,17 @@ namespace tilt
         void Visit(const Loop& expr) final { val() = visit(expr); }
 
         CtxTy& ctx() { return irctx; }
+
         OutExprTy& sym(const SymPtr& sym_ptr) { return ctx().out_sym_tbl[sym_ptr]; }
+
         SymPtr& map_sym(const SymPtr& in_sym) { return ctx().sym_map[in_sym]; }
+
+        SymPtr get_sym(const Symbol& symbol)
+        {
+            shared_ptr<Symbol> tmp_sym(const_cast<Symbol*>(&symbol), [](Symbol*) {});
+            return tmp_sym;
+        }
+
         OutExprTy& val() { return ctx().val; }
 
         OutExprTy eval(const InExprTy expr)
@@ -136,7 +144,7 @@ namespace tilt
 
         void Visit(const Symbol& symbol) final
         {
-            shared_ptr<Symbol> tmp_sym(const_cast<Symbol*>(&symbol), [](Symbol*) {});
+            auto tmp_sym = get_sym(symbol);
 
             if (ctx().sym_map.find(tmp_sym) == ctx().sym_map.end()) {
                 auto expr = ctx().in_sym_tbl.at(tmp_sym);

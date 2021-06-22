@@ -6,6 +6,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Verifier.h"
 
 #include <memory>
 
@@ -15,11 +16,15 @@ namespace tilt {
 
     class LLVMGenCtx : public IRGenCtx<ExprPtr, llvm::Value*> {
     public:
-        LLVMGenCtx(SymPtr sym, Looper loop, map<SymPtr, llvm::Value*>& sym_tbl) :
-            IRGenCtx(sym, loop->syms, sym_tbl),
+        LLVMGenCtx(Looper loop, map<SymPtr, llvm::Value*>& sym_tbl) :
+            IRGenCtx(nullptr, loop->syms, sym_tbl),
             llcontext(move(make_unique<llvm::LLVMContext>())),
-            llmodule(nullptr), builder(nullptr)
+            llmodule(move(make_unique<llvm::Module>(loop->name, *llcontext))),
+            builder(move(make_unique<llvm::IRBuilder<>>(*llcontext)))
         {}
+
+        unique_ptr<llvm::Module> llmod() { return move(llmodule); }
+        unique_ptr<llvm::LLVMContext> llctx() { return move(llcontext); }
 
     private:
         unique_ptr<llvm::LLVMContext> llcontext;
@@ -33,8 +38,17 @@ namespace tilt {
     public:
         LLVMGen(LLVMGenCtx ctx) : IRGen(move(ctx)) {}
 
+        static LLVMGenCtx Build(const Looper loop)
+        {
+            map<SymPtr, llvm::Value*> sym_tbl;
+            LLVMGenCtx ctx(loop, sym_tbl);
+            LLVMGen llgen(move(ctx));
+            loop->Accept(llgen);
+            auto llctx = move(llgen.ctx());
+            return llctx;
+        }
+
     private:
-        void build_loop() final;
         llvm::Value* visit(const Symbol&) final;
         llvm::Value* visit(const IfElse&) final;
         llvm::Value* visit(const Exists&) final;
@@ -74,6 +88,12 @@ namespace tilt {
         llvm::Value* visit(const MakeRegion&) final;
         llvm::Value* visit(const Call&) final;
         llvm::Value* visit(const Loop&) final;
+
+        llvm::Value*& sym(const SymPtr& sym_ptr)
+        {
+            map_sym(sym_ptr) = sym_ptr;
+            return ctx().out_sym_tbl[sym_ptr];
+        }
 
         llvm::Function* llfunc(const string, llvm::Type*, vector<llvm::Type*>);
         llvm::Value* llcall(const string, llvm::Type*, vector<llvm::Value*>);

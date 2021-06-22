@@ -68,17 +68,18 @@ llvm::Type* LLVMGen::lltype(const PrimitiveType& btype)
     case PrimitiveType::TIME:
         return llvm::Type::getInt64Ty(llctx());
     case PrimitiveType::INDEX:
-        return llvm::StructType::get(
+        static auto idx_type = llvm::StructType::create(
             llctx(),
             {
-                lltype(types::INT32),                           // index
                 lltype(types::TIME),                            // time
+                lltype(types::INT32),                           // index
             },
-            "Index"
+            "index_t"
         );
+        return idx_type;
     case PrimitiveType::UNKNOWN:
     default:
-        return nullptr;
+        throw std::runtime_error("Invalid type");
     }
 }
 
@@ -106,16 +107,15 @@ llvm::Type* LLVMGen::lltype(const vector<PrimitiveType>& btypes, const bool is_p
 llvm::Type* LLVMGen::lltype(const Type& type)
 {
     if (type.isLStream()) {
-        auto reg_type = StructType::get(
+        static auto reg_type = StructType::create(
             llctx(),
             {
                 lltype(types::INDEX),                           // start index
                 lltype(types::INDEX),                           // end index
-                lltype(types::INT32),                           // event type size
                 lltype(types::INDEX.ptypes, true),              // timeline array
                 lltype(types::INT8.ptypes, true),               // data buffer
             },
-            "Region"
+            "region_t"
         );
         return PointerType::get(reg_type, 0);
     } else {
@@ -125,9 +125,18 @@ llvm::Type* LLVMGen::lltype(const Type& type)
 
 Value* LLVMGen::visit(const Symbol& symbol)
 {
-    shared_ptr<Symbol> tmp_sym(const_cast<Symbol*>(&symbol), [](Symbol*) {});
+    auto tmp_sym = get_sym(symbol);
     return sym(map_sym(tmp_sym));
 }
+
+Value* LLVMGen::visit(const IfElse& ifelse)
+{
+    auto cond = eval(ifelse.cond);
+    auto true_body = eval(ifelse.true_body);
+    auto false_body = eval(ifelse.false_body);
+    return builder()->CreateSelect(cond, true_body, false_body);
+}
+
 
 Value* LLVMGen::visit(const IConst& iconst)
 {
@@ -166,35 +175,45 @@ Value* LLVMGen::visit(const Sub& sub)
 
 Value* LLVMGen::visit(const Max& max)
 {
-    return builder()->CreateMaximum(eval(max.Left()), eval(max.Right()));
+    auto left = eval(max.Left());
+    auto right = eval(max.Right());
+    auto ge = builder()->CreateICmpSGE(left, right);
+    return builder()->CreateSelect(ge, left, right);
 }
 
 Value* LLVMGen::visit(const Min& min)
 {
-    return builder()->CreateMinimum(eval(min.Left()), eval(min.Right()));
+    auto left = eval(min.Left());
+    auto right = eval(min.Right());
+    auto le = builder()->CreateICmpSLE(left, right);
+    return builder()->CreateSelect(le, left, right);
 }
 
 Value* LLVMGen::visit(const Now&) { throw std::runtime_error("Invalid expression"); }
-Value* LLVMGen::visit(const Exists&) { throw std::runtime_error("Invalid expression"); }
+
+Value* LLVMGen::visit(const Exists& exists)
+{
+    return builder()->CreateIsNull(eval(exists.sym));
+}
 
 Value* LLVMGen::visit(const Equals& equals)
 {
-    return builder()->CreateICmpEQ(eval(equals.a), eval(equals.b));
+    return builder()->CreateICmpEQ(eval(equals.Left()), eval(equals.Right()));
 }
 
 Value* LLVMGen::visit(const Not& not_expr)
 {
-    return builder()->CreateNot(eval(not_expr.a));
+    return builder()->CreateNot(eval(not_expr.Input()));
 }
 
 Value* LLVMGen::visit(const And& and_expr)
 {
-    return builder()->CreateAnd(eval(and_expr.a), eval(and_expr.b));
+    return builder()->CreateAnd(eval(and_expr.Left()), eval(and_expr.Right()));
 }
 
 Value* LLVMGen::visit(const Or& or_expr)
 {
-    return builder()->CreateOr(eval(or_expr.a), eval(or_expr.b));
+    return builder()->CreateOr(eval(or_expr.Left()), eval(or_expr.Right()));
 }
 
 Value* LLVMGen::visit(const True&)
@@ -209,31 +228,31 @@ Value* LLVMGen::visit(const False&)
 
 Value* LLVMGen::visit(const LessThan& lt)
 {
-    return builder()->CreateICmpSLT(eval(lt.a), eval(lt.b));
+    return builder()->CreateICmpSLT(eval(lt.Left()), eval(lt.Right()));
 }
 
 Value* LLVMGen::visit(const LessThanEqual& lte)
 {
-    return builder()->CreateICmpSLE(eval(lte.a), eval(lte.b));
+    return builder()->CreateICmpSLE(eval(lte.Left()), eval(lte.Right()));
 }
 
 Value* LLVMGen::visit(const GreaterThan& gt)
 {
-    return builder()->CreateICmpSGT(eval(gt.a), eval(gt.b));
+    return builder()->CreateICmpSGT(eval(gt.Left()), eval(gt.Right()));
 }
 
 Value* LLVMGen::visit(const AggExpr&) { throw std::runtime_error("Invalid expression"); }
 
 Value* LLVMGen::visit(const GetTime& get_time)
 {
-    return builder()->CreateExtractValue(eval(get_time.idx), 1);
+    return llcall("get_time", lltype(get_time), { eval(get_time.idx) });
 }
 
 Value* LLVMGen::visit(const Fetch& fetch)
 {
     auto ret_type = lltype({PrimitiveType::INT8}, true);
     auto addr = llcall("fetch", ret_type, { fetch.reg, fetch.idx });
-    return builder()->CreateBitCast(addr, lltype(fetch.reg->type.dtype));
+    return builder()->CreateBitCast(addr, lltype(fetch.reg->type.dtype.ptypes, true));
 }
 
 Value* LLVMGen::visit(const Advance& adv)
@@ -248,8 +267,7 @@ Value* LLVMGen::visit(const Next& next)
 
 Value* LLVMGen::visit(const GetStartIdx& start_idx)
 {
-    auto reg_val = eval(start_idx.reg);
-    return builder()->CreateExtractValue(reg_val, 0);
+    return builder()->CreateStructGEP(eval(start_idx.reg), 0);
 }
 
 Value* LLVMGen::visit(const CommitNull& commit)
@@ -272,25 +290,37 @@ Value* LLVMGen::visit(const CommitData& commit)
     return llcall("commit_data", lltype(commit), { reg_val, t_val, local_ptr, size_val });
 }
 
-Value* LLVMGen::visit(const IfElse& ifelse)
+
+Value* LLVMGen::visit(const AllocIndex& alloc_idx)
 {
-    auto cond = eval(ifelse.cond);
-    auto true_body = eval(ifelse.true_body);
-    auto false_body = eval(ifelse.false_body);
-    return builder()->CreateSelect(cond, true_body, false_body);
+    auto init_val = builder()->CreateLoad(eval(alloc_idx.init_idx));
+    auto idx_ptr = builder()->CreateAlloca(lltype(types::INDEX));
+    builder()->CreateStore(init_val, idx_ptr);
+    return idx_ptr;
+}
+
+Value* LLVMGen::visit(const Load& load)
+{
+    auto ptr_val = eval(load.ptr);
+    return builder()->CreateLoad(ptr_val);
+}
+
+Value* LLVMGen::visit(const AllocRegion&) { throw std::runtime_error("Invalid expression"); }
+Value* LLVMGen::visit(const MakeRegion&) { throw std::runtime_error("Invalid expression"); }
+
+Value* LLVMGen::visit(const Call& call)
+{
+    return llcall(call.loop->GetName(), lltype(call), call.args);
 }
 
 Value* LLVMGen::visit(const Loop& loop)
 {
-    ctx().llmodule = make_unique<Module>(loop.name, llctx());
-    ctx().builder = make_unique<IRBuilder<>>(llctx());
-
     vector<llvm::Type*> args_type;
     for (const auto& input: loop.inputs) {
         args_type.push_back(lltype(input->type));
     }
 
-    auto loop_fn = llfunc(loop.name, lltype(loop.output), args_type);
+    auto loop_fn = llfunc(loop.GetName(), lltype(loop.output), args_type);
 
     auto preheader_bb = BasicBlock::Create(llctx(), "preheader");
     auto header_bb = BasicBlock::Create(llctx(), "header");
@@ -299,8 +329,9 @@ Value* LLVMGen::visit(const Loop& loop)
     auto exit_bb = BasicBlock::Create(llctx(), "exit");
 
     for (size_t i = 0; i < loop.inputs.size(); i++) {
-        sym(loop.inputs[i]) = loop_fn->getArg(i);
-        sym(loop.inputs[i])->setName(loop.inputs[i]->name);
+        auto input = loop.inputs[i];
+        sym(input) = loop_fn->getArg(i);
+        sym(input)->setName(input->name);
     }
 
     /* Initial values of base states */
@@ -349,6 +380,7 @@ Value* LLVMGen::visit(const Loop& loop)
     /* Exit the loop */
     loop_fn->getBasicBlockList().push_back(exit_bb);
     builder()->SetInsertPoint(exit_bb);
-    builder()->CreateRet(sym(loop.output));
+    builder()->CreateRet(sym(loop.states.at(loop.output).base));
+
     return loop_fn;
 }

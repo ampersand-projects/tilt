@@ -5,8 +5,6 @@
 
 #include <sstream>
 #include <string>
-#include <any>
-#include <stack>
 
 using namespace std;
 
@@ -21,7 +19,6 @@ namespace tilt
         size_t indent;
         size_t nesting;
         ostringstream ostr;
-        stack<Looper> loops;
 
         friend class IRPrinter;
     };

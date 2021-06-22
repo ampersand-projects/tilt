@@ -69,87 +69,97 @@ namespace tilt {
     };
     typedef shared_ptr<Now> NowPtr;
 
-    struct Predicate : public ValExpr {
-        Predicate() : ValExpr(types::BOOL) {}
+    struct NaryExpr : public ValExpr {
+        vector<ExprPtr> inputs;
+
+        NaryExpr(DataType dtype, vector<ExprPtr> inputs)
+            : ValExpr(dtype), inputs(move(inputs))
+        {}
+
+        template<size_t i>
+        ExprPtr Get() const { return inputs[i]; }
+
+        size_t Size() const { return inputs.size(); }
+    };
+
+    struct Predicate : public NaryExpr {
+        Predicate(vector<ExprPtr> inputs) :
+            NaryExpr(types::BOOL, move(inputs))
+        {}
     };
     typedef shared_ptr<Predicate> PredPtr;
 
-    struct True : public Predicate {
-        void Accept(Visitor&) const final;
-    };
-    struct False : public Predicate {
-        void Accept(Visitor&) const final;
-    };
-
-    struct Exists : public Predicate {
-        SymPtr sym;
-
-        Exists(SymPtr sym) : sym(sym) {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct Equals : public Predicate {
-        ExprPtr a;
-        ExprPtr b;
-
-        Equals(ExprPtr a, ExprPtr b) : a(a), b(b) {}
-
-        void Accept(Visitor&) const final;
-    };
-
     struct UnaryPred : public Predicate {
-        PredPtr a;
+        UnaryPred(ExprPtr a) : Predicate({a}) {}
 
-        UnaryPred(PredPtr a) : a(a) {}
-    };
-
-    struct Not : public UnaryPred {
-        Not(PredPtr a) : UnaryPred(a) {}
-
-        void Accept(Visitor&) const final;
+        ExprPtr Input() const { return Get<0>(); }
     };
 
     struct BinaryPred : public Predicate {
-        PredPtr a;
-        PredPtr b;
+        BinaryPred(ExprPtr a, ExprPtr b) : Predicate({a, b}) {}
 
-        BinaryPred(PredPtr a, PredPtr b) : a(a), b(b) {}
+        ExprPtr Left() const { return Get<0>(); }
+        ExprPtr Right() const { return Get<1>(); }
+    };
+
+    struct True : public Predicate {
+        True() : Predicate({}) {}
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct False : public Predicate {
+        False() : Predicate({}) {}
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct Exists : public UnaryPred {
+        SymPtr sym;
+
+        Exists(SymPtr sym) : UnaryPred({(ExprPtr) sym}), sym(sym) {}
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct Not : public UnaryPred {
+        Not(ExprPtr a) : UnaryPred(a) {}
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct Equals : public BinaryPred {
+        Equals(ExprPtr a, ExprPtr b) : BinaryPred(a, b) {}
+
+        void Accept(Visitor&) const final;
     };
 
     struct And : public BinaryPred {
-        And(PredPtr a, PredPtr b) : BinaryPred(a, b) {}
+        And(ExprPtr a, ExprPtr b) : BinaryPred(a, b) {}
 
         void Accept(Visitor&) const final;
     };
 
     struct Or : public BinaryPred {
-        Or(PredPtr a, PredPtr b) : BinaryPred(a, b) {}
+        Or(ExprPtr a, ExprPtr b) : BinaryPred(a, b) {}
 
         void Accept(Visitor&) const final;
     };
 
-    struct Compare : public Predicate {
-        ExprPtr a;
-        ExprPtr b;
-
-        Compare(ExprPtr a, ExprPtr b) : a(a), b(b) {}
-    };
-
-    struct LessThan : public Compare {
-        LessThan(ExprPtr a, ExprPtr b) : Compare(a, b) {}
+    struct LessThan : public BinaryPred {
+        LessThan(ExprPtr a, ExprPtr b) : BinaryPred(a, b) {}
 
         void Accept(Visitor&) const final;
     };
 
-    struct GreaterThan : public Compare {
-        GreaterThan(ExprPtr a, ExprPtr b) : Compare(a, b) {}
+    struct GreaterThan : public BinaryPred {
+        GreaterThan(ExprPtr a, ExprPtr b) : BinaryPred(a, b) {}
 
         void Accept(Visitor&) const final;
     };
 
-    struct LessThanEqual : public Compare {
-        LessThanEqual(ExprPtr a, ExprPtr b) : Compare(a, b) {}
+    struct LessThanEqual : public BinaryPred {
+        LessThanEqual(ExprPtr a, ExprPtr b) : BinaryPred(a, b) {}
 
         void Accept(Visitor&) const final;
     };
@@ -226,17 +236,6 @@ namespace tilt {
         {}
 
         void Accept(Visitor&) const final;
-    };
-
-    struct NaryExpr : public ValExpr {
-        vector<ExprPtr> inputs;
-
-        NaryExpr(DataType dtype, vector<ExprPtr> inputs)
-            : ValExpr(dtype), inputs(move(inputs))
-        {}
-
-        template<size_t n>
-        ExprPtr Get() const { return inputs[n]; }
     };
 
     struct UnaryExpr : public NaryExpr {

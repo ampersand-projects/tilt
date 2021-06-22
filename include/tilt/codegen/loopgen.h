@@ -30,13 +30,23 @@ namespace tilt
     public:
         LoopGen(LoopGenCtx ctx) : IRGen(ctx) {}
 
-        static Looper Build(SymPtr sym, const Op* op);
+        static Looper Build(SymPtr sym, const Op* op)
+        {
+            auto loop = make_shared<Loop>(sym);
+            LoopGenCtx ctx(sym, op, loop);
+            LoopGen loopgen(ctx);
+            loopgen.build_loop();
+            return ctx.loop;
+        }
 
     private:
         Indexer& create_idx(const SymPtr, const Point);
-        void build_loop() final;
-        ExprPtr visit(const Symbol&);
-        ExprPtr visit(const IfElse&);
+        void build_loop();
+
+        SymPtr& sym_ref(const SymPtr& sym) { return ctx().sym_ref_map[sym]; }
+
+        ExprPtr visit(const Symbol&) final;
+        ExprPtr visit(const IfElse&) final;
         ExprPtr visit(const Exists&) final;
         ExprPtr visit(const Equals&) final;
         ExprPtr visit(const Not&) final;

@@ -35,12 +35,12 @@ namespace tilt
     typedef shared_ptr<Region> RegPtr;
 
     struct AllocIndex : public ValExpr {
-        ExprPtr idx;
+        ExprPtr init_idx;
 
-        AllocIndex(ExprPtr idx) :
-            ValExpr(types::INDEX_PTR), idx(idx)
+        AllocIndex(ExprPtr init_idx) :
+            ValExpr(types::INDEX_PTR), init_idx(init_idx)
         {
-            assert(idx->type == types::INDEX_PTR);
+            assert(init_idx->type == types::INDEX_PTR);
         }
 
         void Accept(Visitor&) const final;
@@ -159,13 +159,13 @@ namespace tilt
     };
 
     struct AllocRegion : public Expr {
-        ValExprPtr size;
+        ValExprPtr dur;
 
-        AllocRegion(Type type, ValExprPtr size) :
-            Expr(type), size(size)
+        AllocRegion(Type type, ValExprPtr dur) :
+            Expr(type), dur(dur)
         {
             assert(type.isLStream());
-            assert(size->type.dtype == types::TIME);
+            assert(dur->type.dtype == types::TIME);
         }
 
         void Accept(Visitor&) const final;
@@ -217,6 +217,9 @@ namespace tilt
 
         // Local symbols
         SymTable syms;
+
+        // Inner loops
+        vector<shared_ptr<Loop>> inner_loops;
 
         Loop(string name, Type type) : Expr(type), name(name) {}
         Loop(SymPtr sym) : Expr(sym->type), name(sym->name) {}

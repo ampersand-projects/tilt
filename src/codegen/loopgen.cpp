@@ -92,7 +92,7 @@ void LoopGen::build_loop()
 
 ExprPtr LoopGen::visit(const Symbol& symbol)
 {
-    shared_ptr<Symbol> tmp_sym(const_cast<Symbol*>(&symbol), [](Symbol*) {});
+    auto tmp_sym = get_sym(symbol);
     return map_sym(tmp_sym);
 }
 
@@ -107,28 +107,28 @@ ExprPtr LoopGen::visit(const IfElse& ifelse)
 ExprPtr LoopGen::visit(const Exists& exists)
 {
     eval(exists.sym);
-    auto& sym_ptr = ctx().sym_ref_map[exists.sym];
+    auto& sym_ptr = sym_ref(exists.sym);
     return make_shared<Exists>(sym_ptr);
 }
 
 ExprPtr LoopGen::visit(const Equals& equals)
 {
-    return make_shared<Equals>(eval(equals.a), eval(equals.b));
+    return make_shared<Equals>(eval(equals.Left()), eval(equals.Right()));
 }
 
 ExprPtr LoopGen::visit(const Not& not_expr)
 {
-    return make_shared<Not>(eval(not_expr.a));
+    return make_shared<Not>(eval(not_expr.Input()));
 }
 
 ExprPtr LoopGen::visit(const And& and_expr)
 {
-    return make_shared<And>(eval(and_expr.a), eval(and_expr.b));
+    return make_shared<And>(eval(and_expr.Left()), eval(and_expr.Right()));
 }
 
 ExprPtr LoopGen::visit(const Or& or_expr)
 {
-    return make_shared<And>(eval(or_expr.a), eval(or_expr.b));
+    return make_shared<And>(eval(or_expr.Left()), eval(or_expr.Right()));
 }
 
 ExprPtr LoopGen::visit(const IConst& iconst) { return make_shared<IConst>(iconst); }
@@ -162,17 +162,17 @@ ExprPtr LoopGen::visit(const True&) { return make_shared<True>(); }
 ExprPtr LoopGen::visit(const False&) { return make_shared<True>(); }
 ExprPtr LoopGen::visit(const LessThan& lt)
 {
-    return make_shared<LessThan>(eval(lt.a), eval(lt.b));
+    return make_shared<LessThan>(eval(lt.Left()), eval(lt.Right()));
 }
 
 ExprPtr LoopGen::visit(const LessThanEqual& lte)
 {
-    return make_shared<LessThanEqual>(eval(lte.a), eval(lte.b));
+    return make_shared<LessThanEqual>(eval(lte.Left()), eval(lte.Right()));
 }
 
 ExprPtr LoopGen::visit(const GreaterThan& gt)
 {
-    return make_shared<LessThanEqual>(eval(gt.a), eval(gt.b));
+    return make_shared<LessThanEqual>(eval(gt.Left()), eval(gt.Right()));
 }
 
 ExprPtr LoopGen::visit(const SubLStream& subls)
@@ -190,44 +190,37 @@ ExprPtr LoopGen::visit(const Element& elem)
     auto fetch = make_shared<Fetch>(reg, idx);
     auto ref_sym = fetch->GetSym(ctx().sym->name + "_ptr");
     sym(ref_sym) = fetch;
-    ctx().sym_ref_map[ctx().sym] = ref_sym;
+    sym_ref(ctx().sym) = ref_sym;
     return make_shared<Load>(ref_sym);
-}
-
-Looper LoopGen::Build(SymPtr sym, const Op* op)
-{
-    auto loop = make_shared<Loop>(sym);
-    LoopGenCtx ctx(sym, op, loop);
-    LoopGen loopgen(ctx);
-    loopgen.build_loop();
-    return ctx.loop;
 }
 
 ExprPtr LoopGen::visit(const Op& op)
 {
-    auto child_op = &op;
-    auto child_loop = LoopGen::Build(ctx().sym, child_op);
-    auto parent_op = ctx().op;
-    auto parent_loop = ctx().loop;
+    auto inner_op = &op;
+    auto inner_loop = LoopGen::Build(ctx().sym, inner_op);
+    auto outer_op = ctx().op;
+    auto outer_loop = ctx().loop;
 
-    auto t_start = parent_loop->states[parent_loop->t].base;
-    auto t_end = parent_loop->t;
+    outer_loop->inner_loops.push_back(inner_loop);
+
+    auto t_start = outer_loop->states[outer_loop->t].base;
+    auto t_end = outer_loop->t;
 
     SymPtr out_sym;
-    if (parent_op->output == ctx().sym) {
-        out_sym = parent_loop->states[parent_loop->output].base;
+    if (outer_op->output == ctx().sym) {
+        out_sym = outer_loop->states[outer_loop->output].base;
     } else {
         auto size = make_shared<Sub>(t_end, t_start);
         auto out_reg = make_shared<AllocRegion>(op.type, size);
         out_sym = out_reg->GetSym(ctx().sym->name);
-        parent_loop->syms[out_sym] = out_reg;
+        outer_loop->syms[out_sym] = out_reg;
     }
 
     vector<ExprPtr> args = {t_start, t_end, out_sym};
-    for (const auto& input: child_op->inputs) {
+    for (const auto& input: inner_op->inputs) {
         args.push_back(eval(input));
     }
-    return make_shared<Call>(child_loop, move(args));
+    return make_shared<Call>(inner_loop, move(args));
 }
 
 ExprPtr LoopGen::visit(const AggExpr&) { return nullptr; }

@@ -106,20 +106,18 @@ int main()
 
     cout << endl << "TiLT IR: " << endl;
     IRPrinter printer;
-    nest_sel_op->Accept(printer);
+    sel_op->Accept(printer);
     cout << printer.result() << endl;
 
     cout << endl << "Loop IR: " << endl;
     IRPrinter loop_printer;
-    auto loop = LoopGen::Build(nest_sel_op_sym, nest_sel_op.get());
+    auto loop = LoopGen::Build(sel_op_sym, sel_op.get());
     loop->Accept(loop_printer);
     cout << loop_printer.result() << endl;
 
     cout << endl << "LLVM IR: " << endl;
-    LLVMGenCtx llctx;
-    LLVMGen llgen(move(llctx));
-    loop->Accept(llgen);
-    auto llmod = llgen.result();
+    auto llctx = LLVMGen::Build(loop);
+    auto llmod = llctx.llmod();
     llvm::raw_fd_ostream r(fileno(stdout), false);
     if (!llvm::verifyModule(*llmod, &r)) { r << *llmod; }
 
