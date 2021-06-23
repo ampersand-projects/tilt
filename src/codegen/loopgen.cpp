@@ -68,8 +68,7 @@ void LoopGen::build_loop()
     ExprPtr delta = nullptr;
     for (const auto& [idx, reg]: edge_idxs) {
         const auto& base_idx = loop->states[idx].base;
-        auto next_idx_expr = make_shared<Next>(reg, base_idx);
-        auto next_time_expr = make_shared<GetTime>(next_idx_expr);
+        auto next_time_expr = make_shared<NextTime>(reg, base_idx);
         auto cur_time_expr = make_shared<GetTime>(base_idx);
         auto diff_expr = make_shared<Sub>(next_time_expr, cur_time_expr);
         if (delta) {

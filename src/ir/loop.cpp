@@ -8,7 +8,7 @@ void GetTime::Accept(Visitor& v) const { v.Visit(*this); }
 void Fetch::Accept(Visitor& v) const { v.Visit(*this); }
 void Load::Accept(Visitor& v) const { v.Visit(*this); }
 void Advance::Accept(Visitor& v) const { v.Visit(*this); }
-void Next::Accept(Visitor& v) const { v.Visit(*this); }
+void NextTime::Accept(Visitor& v) const { v.Visit(*this); }
 void GetStartIdx::Accept(Visitor& v) const { v.Visit(*this); }
 void CommitData::Accept(Visitor& v) const { v.Visit(*this); }
 void CommitNull::Accept(Visitor& v) const { v.Visit(*this); }

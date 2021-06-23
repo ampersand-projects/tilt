@@ -80,7 +80,7 @@ namespace tilt {
         llvm::Value* visit(const Fetch&) final;
         llvm::Value* visit(const Load&) final;
         llvm::Value* visit(const Advance&) final;
-        llvm::Value* visit(const Next&) final;
+        llvm::Value* visit(const NextTime&) final;
         llvm::Value* visit(const GetStartIdx&) final;
         llvm::Value* visit(const CommitData&) final;
         llvm::Value* visit(const CommitNull&) final;
@@ -89,10 +89,11 @@ namespace tilt {
         llvm::Value* visit(const Call&) final;
         llvm::Value* visit(const Loop&) final;
 
-        llvm::Value*& sym(const SymPtr& sym_ptr)
+        void assign(const SymPtr& sym_ptr, llvm::Value* val)
         {
             map_sym(sym_ptr) = sym_ptr;
-            return ctx().out_sym_tbl[sym_ptr];
+            val->setName(sym_ptr->name);
+            ctx().out_sym_tbl[sym_ptr] = val;
         }
 
         llvm::Function* llfunc(const string, llvm::Type*, vector<llvm::Type*>);

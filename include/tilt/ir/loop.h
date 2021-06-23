@@ -102,12 +102,12 @@ namespace tilt
         void Accept(Visitor&) const final;
     };
 
-    struct Next : public ValExpr {
+    struct NextTime : public ValExpr {
         ExprPtr reg;
         ExprPtr idx;
 
-        Next(ExprPtr reg, ExprPtr idx) :
-            ValExpr(types::INDEX_PTR), reg(reg), idx(idx)
+        NextTime(ExprPtr reg, ExprPtr idx) :
+            ValExpr(types::TIME), reg(reg), idx(idx)
         {
             assert(reg->type.isLStream());
             assert(idx->type == types::INDEX_PTR);

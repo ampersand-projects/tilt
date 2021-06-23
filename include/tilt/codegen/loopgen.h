@@ -76,7 +76,7 @@ namespace tilt
         ExprPtr visit(const Fetch&) final { throw std::runtime_error("Invalid expression"); };
         ExprPtr visit(const Load&) final { throw std::runtime_error("Invalid expression"); };
         ExprPtr visit(const Advance&) final { throw std::runtime_error("Invalid expression"); };
-        ExprPtr visit(const Next&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const NextTime&) final { throw std::runtime_error("Invalid expression"); };
         ExprPtr visit(const GetStartIdx&) final { throw std::runtime_error("Invalid expression"); };
         ExprPtr visit(const CommitData&) final { throw std::runtime_error("Invalid expression"); };
         ExprPtr visit(const CommitNull&) final { throw std::runtime_error("Invalid expression"); };

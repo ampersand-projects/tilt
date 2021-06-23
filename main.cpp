@@ -5,6 +5,7 @@
 #include "tilt/codegen/printer.h"
 #include "tilt/codegen/loopgen.h"
 #include "tilt/codegen/llvmgen.h"
+#include "tilt/engine/engine.h"
 
 #include <iostream>
 #include <memory>
@@ -120,6 +121,48 @@ int main()
     auto llmod = llctx.llmod();
     llvm::raw_fd_ostream r(fileno(stdout), false);
     if (!llvm::verifyModule(*llmod, &r)) { r << *llmod; }
+
+    cout << endl << endl << "Query execution: " << endl;
+    auto jit = ExecEngine::Get();
+    cantFail(jit->addModule(move(llmod)));
+
+    auto loop_sym = cantFail(jit->lookup(loop->GetName()));
+    auto* loop_addr = (region_t* (*)(long, long, region_t*, region_t*))
+        (intptr_t) loop_sym.getAddress();
+
+    int dlen = 100;
+
+    index_t in_tl[dlen];
+    int in_data[dlen];
+    region_t in_reg;
+    in_reg.si.i = 0;
+    in_reg.si.t = 0;
+    in_reg.ei.i = dlen-1;
+    in_reg.ei.t = dlen-1;
+    in_reg.tl = in_tl;
+    in_reg.data = (char*) in_data;
+
+    for (int i=0; i<dlen; i++) {
+        in_tl[i] = {i, 1};
+        in_data[i] = i;
+    }
+
+    index_t out_tl[dlen];
+    int out_data[dlen];
+    region_t out_reg;
+    out_reg.si.i = 0;
+    out_reg.si.t = 0;
+    out_reg.ei.i = 0;
+    out_reg.ei.t = 0;
+    out_reg.tl = out_tl;
+    out_reg.data = (char*) out_data;
+
+    auto* res_reg = loop_addr(0, dlen-1, &out_reg, &in_reg);
+
+    for (int i=0; i<dlen-1; i++) {
+        cout << "(" << in_tl[i+1].t << "," << in_tl[i+1].i << ") " << in_data[i+1] << " -> "
+             << "(" << out_tl[i].t << "," << out_tl[i].i << ") " << out_data[i] << endl;
+    }
 
     return 0;
 }

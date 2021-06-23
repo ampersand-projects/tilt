@@ -126,7 +126,9 @@ llvm::Type* LLVMGen::lltype(const Type& type)
 Value* LLVMGen::visit(const Symbol& symbol)
 {
     auto tmp_sym = get_sym(symbol);
-    return sym(map_sym(tmp_sym));
+    auto val = sym(map_sym(tmp_sym));
+    val->setName(symbol.name);
+    return val;
 }
 
 Value* LLVMGen::visit(const IfElse& ifelse)
@@ -136,7 +138,6 @@ Value* LLVMGen::visit(const IfElse& ifelse)
     auto false_body = eval(ifelse.false_body);
     return builder()->CreateSelect(cond, true_body, false_body);
 }
-
 
 Value* LLVMGen::visit(const IConst& iconst)
 {
@@ -193,7 +194,7 @@ Value* LLVMGen::visit(const Now&) { throw std::runtime_error("Invalid expression
 
 Value* LLVMGen::visit(const Exists& exists)
 {
-    return builder()->CreateIsNull(eval(exists.sym));
+    return builder()->CreateIsNotNull(eval(exists.sym));
 }
 
 Value* LLVMGen::visit(const Equals& equals)
@@ -250,8 +251,12 @@ Value* LLVMGen::visit(const GetTime& get_time)
 
 Value* LLVMGen::visit(const Fetch& fetch)
 {
+    auto data_type = lltype(fetch.reg->type.dtype);
+    auto data_size = llmod()->getDataLayout().getTypeSizeInBits(data_type).getFixedSize();
+    auto size_val = ConstantInt::get(lltype(types::UINT64), data_size/8);
+
     auto ret_type = lltype({PrimitiveType::INT8}, true);
-    auto addr = llcall("fetch", ret_type, { fetch.reg, fetch.idx });
+    auto addr = llcall("fetch", ret_type, { eval(fetch.reg), eval(fetch.idx), size_val });
     return builder()->CreateBitCast(addr, lltype(fetch.reg->type.dtype.ptypes, true));
 }
 
@@ -260,9 +265,9 @@ Value* LLVMGen::visit(const Advance& adv)
     return llcall("advance", lltype(adv), { adv.reg, adv.idx, adv.time });
 }
 
-Value* LLVMGen::visit(const Next& next)
+Value* LLVMGen::visit(const NextTime& next)
 {
-    return llcall("next", lltype(next), { next.reg, next.idx });
+    return llcall("next_time", lltype(next), { next.reg, next.idx });
 }
 
 Value* LLVMGen::visit(const GetStartIdx& start_idx)
@@ -286,10 +291,9 @@ Value* LLVMGen::visit(const CommitData& commit)
     builder()->CreateStore(data_val, data_ptr);
 
     auto data_size = llmod()->getDataLayout().getTypeSizeInBits(data_val->getType()).getFixedSize();
-    auto size_val = ConstantInt::get(lltype(types::UINT64), data_size);
+    auto size_val = ConstantInt::get(lltype(types::UINT64), data_size/8);
     return llcall("commit_data", lltype(commit), { reg_val, t_val, local_ptr, size_val });
 }
-
 
 Value* LLVMGen::visit(const AllocIndex& alloc_idx)
 {
@@ -330,8 +334,7 @@ Value* LLVMGen::visit(const Loop& loop)
 
     for (size_t i = 0; i < loop.inputs.size(); i++) {
         auto input = loop.inputs[i];
-        sym(input) = loop_fn->getArg(i);
-        sym(input)->setName(input->name);
+        assign(input, loop_fn->getArg(i));
     }
 
     /* Initial values of base states */
@@ -348,12 +351,12 @@ Value* LLVMGen::visit(const Loop& loop)
     builder()->SetInsertPoint(header_bb);
     for (const auto& [base_sym, val]: base_inits) {
         auto base = builder()->CreatePHI(lltype(base_sym->type), 2, base_sym->name);
-        sym(base_sym) = base;
+        assign(base_sym, base);
         base->addIncoming(val, preheader_bb);
     }
 
     /* Update timer */
-    sym(loop.t) = eval(loop.states.at(loop.t).update);
+    assign(loop.t, eval(loop.states.at(loop.t).update));
     auto exit_cond = eval(loop.exit_cond);
     builder()->CreateCondBr(exit_cond, exit_bb, body_bb);
 
@@ -361,11 +364,11 @@ Value* LLVMGen::visit(const Loop& loop)
     builder()->SetInsertPoint(body_bb);
     /* Update indices */
     for (const auto& idx: loop.idxs) {
-        sym(idx) = eval(loop.states.at(idx).update);
+        assign(idx, eval(loop.states.at(idx).update));
     }
 
     /* Loop body */
-    sym(loop.output) = eval(loop.states.at(loop.output).update);
+    assign(loop.output, eval(loop.states.at(loop.output).update));
     builder()->CreateBr(end_bb);
 
     /* Update states and loop back to header */

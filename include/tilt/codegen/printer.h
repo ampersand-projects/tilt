@@ -74,7 +74,7 @@ namespace tilt
         void Visit(const Fetch&) override;
         void Visit(const Load&) override;
         void Visit(const Advance&) override;
-        void Visit(const Next&) override;
+        void Visit(const NextTime&) override;
         void Visit(const GetStartIdx&) override;
         void Visit(const CommitData&) override;
         void Visit(const CommitNull&) override;

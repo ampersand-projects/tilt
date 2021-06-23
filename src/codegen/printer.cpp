@@ -193,9 +193,9 @@ void IRPrinter::Visit(const Advance& adv)
     emitfunc("advance", { adv.reg, adv.idx, adv.time });
 }
 
-void IRPrinter::Visit(const Next& next)
+void IRPrinter::Visit(const NextTime& next)
 {
-    emitfunc("next", { next.reg, next.idx });
+    emitfunc("next_time", { next.reg, next.idx });
 }
 
 void IRPrinter::Visit(const GetStartIdx& gsi)

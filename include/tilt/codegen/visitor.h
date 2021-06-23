@@ -50,7 +50,7 @@ namespace tilt
         virtual void Visit(const Fetch&) = 0;
         virtual void Visit(const Load&) = 0;
         virtual void Visit(const Advance&) = 0;
-        virtual void Visit(const Next&) = 0;
+        virtual void Visit(const NextTime&) = 0;
         virtual void Visit(const GetStartIdx&) = 0;
         virtual void Visit(const CommitData&) = 0;
         virtual void Visit(const CommitNull&) = 0;
