@@ -38,6 +38,11 @@ namespace tilt {
         char* data;
     };
 
+    index_t* get_start_idx(region_t* reg)
+    {
+        return &reg->si;
+    }
+
     long get_time(index_t* idx)
     {
         return idx->t;
@@ -129,6 +134,8 @@ namespace tilt {
         {
             SymbolMap symbols;
 
+            symbols[this->mangler("get_start_idx")] =
+                JITEvaluatedSymbol(pointerToJITTargetAddress(&get_start_idx), JITSymbolFlags());
             symbols[this->mangler("get_time")] =
                 JITEvaluatedSymbol(pointerToJITTargetAddress(&get_time), JITSymbolFlags());
             symbols[this->mangler("next_time")] =

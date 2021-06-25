@@ -272,7 +272,7 @@ Value* LLVMGen::visit(const NextTime& next)
 
 Value* LLVMGen::visit(const GetStartIdx& start_idx)
 {
-    return builder()->CreateStructGEP(eval(start_idx.reg), 0);
+    return llcall("get_start_idx", lltype(start_idx), { start_idx.reg });
 }
 
 Value* LLVMGen::visit(const CommitNull& commit)
