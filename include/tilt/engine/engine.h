@@ -148,8 +148,8 @@ namespace tilt {
         static Expected<ThreadSafeModule> optimize_module(ThreadSafeModule tsm, const MaterializationResponsibility &r) 
         {
             tsm.withModuleDo([](Module &m) {
-                int opt_level = 3;
-                int opt_size = 0;
+                unsigned opt_level = 3;
+                unsigned opt_size = 0;
 
                 llvm::PassManagerBuilder builder;
                 builder.OptLevel = opt_level;
@@ -157,13 +157,7 @@ namespace tilt {
 
                 llvm::legacy::PassManager mpm;
                 builder.populateModulePassManager(mpm);
-
-                llvm::raw_fd_ostream raw_stream(fileno(stdout), false);
-                if (!llvm::verifyModule(m, &raw_stream)) { raw_stream << m; }
-
                 mpm.run(m);
-
-                if (!llvm::verifyModule(m, &raw_stream)) { raw_stream << m; }
             });
 
             return std::move(tsm);
