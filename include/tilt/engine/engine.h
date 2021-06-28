@@ -17,10 +17,8 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Transforms/IPO.h"
-#include "llvm/IRReader/IRReader.h"
 
 #include <memory>
-#include <iostream>
 
 using namespace std;
 using namespace llvm;
@@ -87,7 +85,7 @@ namespace tilt {
         ExecEngine(JITTargetMachineBuilder jtmb, DataLayout dl) :
             linker(es, []() { return std::make_unique<SectionMemoryManager>(); }),
             compiler(es, linker, std::make_unique<ConcurrentIRCompiler>(std::move(jtmb))),
-            optimizer(es, compiler, optimizeModule),
+            optimizer(es, compiler, optimize_module),
             dl(std::move(dl)), mangler(es, this->dl),
             ctx(std::make_unique<LLVMContext>()),
             jd(es.createBareJITDylib("__tilt_dylib"))
@@ -147,29 +145,28 @@ namespace tilt {
             cantFail(jd.define(absoluteSymbols(symbols)));
         }
 
-        static void WriteOptimizedToFile(llvm::Module const &M, string fileName) {
-            std::error_code Error;
-            llvm::raw_fd_ostream Out(fileName, Error, llvm::sys::fs::F_None);
-            Out << M;
-        }
+        static Expected<ThreadSafeModule> optimize_module(ThreadSafeModule tsm, const MaterializationResponsibility &r) 
+        {
+            tsm.withModuleDo([](Module &m) {
+                int opt_level = 3;
+                int opt_size = 0;
 
-        static Expected<ThreadSafeModule>
-        optimizeModule(ThreadSafeModule TSM, const MaterializationResponsibility &R) {
-            TSM.withModuleDo([](Module &M) {
+                llvm::PassManagerBuilder builder;
+                builder.OptLevel = opt_level;
+                builder.Inliner = createFunctionInliningPass(opt_level, opt_size, false);
 
-                llvm::PassManagerBuilder Builder;
-                Builder.OptLevel = 3;
-                Builder.Inliner = createFunctionInliningPass(3, 0, false);
+                llvm::legacy::PassManager mpm;
+                builder.populateModulePassManager(mpm);
 
-                llvm::legacy::PassManager MPM;
-                Builder.populateModulePassManager(MPM);
+                llvm::raw_fd_ostream raw_stream(fileno(stdout), false);
+                if (!llvm::verifyModule(m, &raw_stream)) { raw_stream << m; }
 
-                //WriteOptimizedToFile(M, "unoptmized"); 
-                MPM.run(M);
-                //WriteOptimizedToFile(M, "optmized"); 
+                mpm.run(m);
+
+                if (!llvm::verifyModule(m, &raw_stream)) { raw_stream << m; }
             });
 
-            return std::move(TSM);
+            return std::move(tsm);
         }
 
         ExecutionSession es;
