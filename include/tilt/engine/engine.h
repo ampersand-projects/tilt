@@ -13,6 +13,10 @@
 #include "llvm/ExecutionEngine/JITSymbol.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/LLVMContext.h"
+#include "llvm/ExecutionEngine/Orc/IRTransformLayer.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/Transforms/IPO.h"
 
 #include <memory>
 
@@ -81,6 +85,7 @@ namespace tilt {
         ExecEngine(JITTargetMachineBuilder jtmb, DataLayout dl) :
             linker(es, []() { return std::make_unique<SectionMemoryManager>(); }),
             compiler(es, linker, std::make_unique<ConcurrentIRCompiler>(std::move(jtmb))),
+            optimizer(es, compiler, optimize_module),
             dl(std::move(dl)), mangler(es, this->dl),
             ctx(std::make_unique<LLVMContext>()),
             jd(es.createBareJITDylib("__tilt_dylib"))
@@ -111,7 +116,7 @@ namespace tilt {
 
         Error addModule(std::unique_ptr<Module> m)
         {
-            return compiler.add(jd, ThreadSafeModule(move(m), ctx));
+            return optimizer.add(jd, ThreadSafeModule(move(m), ctx));
         }
 
         Expected<JITEvaluatedSymbol> lookup(StringRef name)
@@ -140,9 +145,28 @@ namespace tilt {
             cantFail(jd.define(absoluteSymbols(symbols)));
         }
 
+        static Expected<ThreadSafeModule> optimize_module(ThreadSafeModule tsm, const MaterializationResponsibility &r) 
+        {
+            tsm.withModuleDo([](Module &m) {
+                unsigned opt_level = 3;
+                unsigned opt_size = 0;
+
+                llvm::PassManagerBuilder builder;
+                builder.OptLevel = opt_level;
+                builder.Inliner = createFunctionInliningPass(opt_level, opt_size, false);
+
+                llvm::legacy::PassManager mpm;
+                builder.populateModulePassManager(mpm);
+                mpm.run(m);
+            });
+
+            return std::move(tsm);
+        }
+
         ExecutionSession es;
         RTDyldObjectLinkingLayer linker;
         IRCompileLayer compiler;
+        IRTransformLayer optimizer;
 
         DataLayout dl;
         MangleAndInterner mangler;
