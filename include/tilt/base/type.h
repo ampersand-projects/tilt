@@ -40,7 +40,7 @@ namespace tilt {
             ptypes(ptypes), is_ptr(is_ptr)
         {}
         DataType(PrimitiveType ptype, bool is_ptr = false) :
-            DataType(move(vector<PrimitiveType>{ ptype }), is_ptr)
+            DataType(vector<PrimitiveType>{ ptype }, is_ptr)
         {}
 
         bool operator==(const DataType& o) const
@@ -84,7 +84,7 @@ namespace tilt {
 
         Timeline(vector<Iter> iters) : iters(move(iters)) {}
         Timeline(Iter iter) : Timeline({iter}) {}
-        Timeline(std::initializer_list<Iter> iters) : Timeline(move(vector<Iter>(iters))) {}
+        Timeline(std::initializer_list<Iter> iters) : Timeline(vector<Iter>(iters)) {}
         Timeline() {}
 
         bool operator==(const Timeline& o) const
@@ -162,7 +162,7 @@ namespace tilt {
         static constexpr void convert(vector<PrimitiveType>& btypes) {}
 
         template<typename... Ts>
-        constexpr DataType BuildType()
+        DataType BuildType()
         {
             vector<PrimitiveType> btypes(sizeof...(Ts));
             convert<sizeof...(Ts), Ts...>(btypes);

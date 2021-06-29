@@ -18,9 +18,9 @@ namespace tilt {
     public:
         LLVMGenCtx(Looper loop, map<SymPtr, llvm::Value*>& sym_tbl) :
             IRGenCtx(nullptr, loop->syms, sym_tbl),
-            llcontext(move(make_unique<llvm::LLVMContext>())),
-            llmodule(move(make_unique<llvm::Module>(loop->name, *llcontext))),
-            builder(move(make_unique<llvm::IRBuilder<>>(*llcontext)))
+            llcontext(make_unique<llvm::LLVMContext>()),
+            llmodule(make_unique<llvm::Module>(loop->name, *llcontext)),
+            builder(make_unique<llvm::IRBuilder<>>(*llcontext))
         {}
 
         unique_ptr<llvm::Module> llmod() { return move(llmodule); }

@@ -22,6 +22,8 @@ namespace tilt {
 
         Expr(Type type) : type(type) {}
 
+        virtual ~Expr() {}
+
         SymPtr GetSym(string name)
         {
             return make_shared<Symbol>(name, type);
@@ -58,7 +60,7 @@ namespace tilt {
     };
 
     struct ValExpr : public Expr {
-        ValExpr(DataType dtype) : Expr(move(Type(dtype))) {}
+        ValExpr(DataType dtype) : Expr(Type(dtype)) {}
     };
     typedef shared_ptr<ValExpr> ValExprPtr;
 

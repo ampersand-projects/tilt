@@ -19,7 +19,7 @@ namespace tilt
         SymPtr output;
 
         Op(Timeline tl, Iter iter, Params inputs, PredPtr pred, SymTable syms, SymPtr output) :
-            LStream(move(Type(output->type.dtype, move(tl)))), iter(iter),
+            LStream(Type(output->type.dtype, move(tl))), iter(iter),
             inputs(move(inputs)), syms(move(syms)), pred(pred), output(output)
         {}
 
