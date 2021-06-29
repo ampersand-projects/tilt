@@ -15,7 +15,7 @@ add_subdirectory(easy-just-in-time)
 
 include_directories(${LLVM_INCLUDE_DIRS} include)
 add_definitions(${LLVM_DEFINITIONS})
-llvm_map_components_to_libnames(llvm_libs core executionengine support native orcjit object)
+llvm_map_components_to_libnames(llvm_libs executionengine orcjit object)
 
 add_subdirectory(src)
 add_executable(main main.cpp)

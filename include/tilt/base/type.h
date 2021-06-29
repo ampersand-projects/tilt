@@ -37,7 +37,7 @@ namespace tilt {
         const bool is_ptr;
 
         DataType(vector<PrimitiveType> ptypes, bool is_ptr = false) :
-            ptypes(ptypes), is_ptr(is_ptr)
+            ptypes(move(ptypes)), is_ptr(is_ptr)
         {}
         DataType(PrimitiveType ptype, bool is_ptr = false) :
             DataType(vector<PrimitiveType>{ ptype }, is_ptr)
