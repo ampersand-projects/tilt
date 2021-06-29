@@ -162,7 +162,7 @@ namespace tilt {
         static constexpr void convert(vector<PrimitiveType>& btypes) {}
 
         template<typename... Ts>
-        const DataType BuildType()
+        DataType BuildType()
         {
             vector<PrimitiveType> btypes(sizeof...(Ts));
             convert<sizeof...(Ts), Ts...>(btypes);

@@ -18,11 +18,14 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Transforms/IPO.h"
 
+#include <easy/jit.h>
+
 #include <memory>
 
 using namespace std;
 using namespace llvm;
 using namespace llvm::orc;
+using namespace std::placeholders;
 
 namespace tilt {
 
@@ -78,6 +81,13 @@ namespace tilt {
     region_t* commit_null(region_t* reg, long t)
     {
         return nullptr;
+    }
+
+    template<class T, class ... Args> std::unique_ptr<easy::Function> EASY_JIT_COMPILER_INTERFACE jit(T &&Fun, Args&& ... args) 
+    {
+        auto easy_ctx = easy::get_context_for<T, Args...>(std::forward<Args>(args)...);
+        auto* func_ptr = easy::meta::get_as_pointer(Fun);
+        return easy::Function::Compile(reinterpret_cast<void*>(func_ptr), easy_ctx);
     }
 
     class ExecEngine {

@@ -22,6 +22,8 @@ namespace tilt {
 
         Expr(Type type) : type(type) {}
 
+        virtual ~Expr() {}
+
         SymPtr GetSym(string name)
         {
             return make_shared<Symbol>(name, type);

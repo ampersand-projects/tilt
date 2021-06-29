@@ -19,8 +19,8 @@ namespace tilt
         SymPtr output;
 
         Op(Timeline tl, Iter iter, Params inputs, PredPtr pred, SymTable syms, SymPtr output) :
-            LStream(Type(output->type.dtype, tl)), iter(iter),
-            inputs(inputs), syms(syms), pred(pred), output(output)
+            LStream(Type(output->type.dtype, move(tl))), iter(iter),
+            inputs(move(inputs)), syms(move(syms)), pred(pred), output(output)
         {}
 
         void Accept(Visitor&) const final;
