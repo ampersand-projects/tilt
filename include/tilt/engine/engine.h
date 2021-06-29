@@ -83,7 +83,7 @@ namespace tilt {
         return nullptr;
     }
 
-    template<class T, class ... Args> std::unique_ptr<easy::Function> EASY_JIT_COMPILER_INTERFACE jit(T &&Fun, Args&& ... args) 
+    template<class T, class ... Args> std::unique_ptr<easy::Function> EASY_JIT_COMPILER_INTERFACE easy_jit(T &&Fun, Args&& ... args) 
     {
         auto easy_ctx = easy::get_context_for<T, Args...>(std::forward<Args>(args)...);
         auto* func_ptr = easy::meta::get_as_pointer(Fun);
