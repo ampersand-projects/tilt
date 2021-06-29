@@ -75,7 +75,7 @@ namespace tilt {
         vector<ExprPtr> inputs;
 
         NaryExpr(DataType dtype, vector<ExprPtr> inputs)
-            : ValExpr(dtype), inputs(inputs)
+            : ValExpr(dtype), inputs(move(inputs))
         {}
 
         template<size_t i>
@@ -86,7 +86,7 @@ namespace tilt {
 
     struct Predicate : public NaryExpr {
         Predicate(vector<ExprPtr> inputs) :
-            NaryExpr(types::BOOL, inputs)
+            NaryExpr(types::BOOL, move(inputs))
         {}
     };
     typedef shared_ptr<Predicate> PredPtr;

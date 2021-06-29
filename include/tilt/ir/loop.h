@@ -27,7 +27,7 @@ namespace tilt
 
     struct Region : public Symbol {
         Region(string name, Type type) :
-            Symbol(name, type)
+            Symbol(name, move(type))
         {
             assert(type.isLStream());
         }
@@ -235,7 +235,7 @@ namespace tilt
         vector<ExprPtr> args;
 
         Call(Looper loop, vector<ExprPtr> args) :
-            Expr(loop->type), loop(loop), args(args)
+            Expr(loop->type), loop(loop), args(move(args))
         {}
 
         void Accept(Visitor&) const final;

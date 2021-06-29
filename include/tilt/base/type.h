@@ -37,7 +37,7 @@ namespace tilt {
         const bool is_ptr;
 
         DataType(vector<PrimitiveType> ptypes, bool is_ptr = false) :
-            ptypes(move(ptypes)), is_ptr(is_ptr)
+            ptypes(ptypes), is_ptr(is_ptr)
         {}
         DataType(PrimitiveType ptype, bool is_ptr = false) :
             DataType(vector<PrimitiveType>{ ptype }, is_ptr)
@@ -82,7 +82,7 @@ namespace tilt {
     struct Timeline {
         vector<Iter> iters;
 
-        Timeline(vector<Iter> iters) : iters(iters) {}
+        Timeline(vector<Iter> iters) : iters(move(iters)) {}
         Timeline(Iter iter) : Timeline({iter}) {}
         Timeline(std::initializer_list<Iter> iters) : Timeline(vector<Iter>(iters)) {}
         Timeline() {}
@@ -98,13 +98,13 @@ namespace tilt {
         const Timeline tl;
 
         Type(DataType dtype, Timeline tl) :
-            dtype(dtype), tl(tl)
+            dtype(move(dtype)), tl(move(tl))
         {}
 
-        Type(DataType dtype) : Type(dtype, Timeline()) {}
+        Type(DataType dtype) : Type(move(dtype), Timeline()) {}
 
         Type(DataType dtype, Iter iter) :
-            Type(dtype, Timeline(iter))
+            Type(move(dtype), Timeline(iter))
         {}
 
         bool isLStream() const { return tl.iters.size() > 0; }
