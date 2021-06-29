@@ -25,7 +25,7 @@ namespace tilt
 
     class IRPrinter : public Visitor {
     public:
-        IRPrinter() : IRPrinter(move(IRPrinterCtx())) {}
+        IRPrinter() : IRPrinter(IRPrinterCtx()) {}
         IRPrinter(IRPrinterCtx ctx) : IRPrinter(move(ctx), 2) {}
 
         IRPrinter(IRPrinterCtx ctx, size_t tabstop) :

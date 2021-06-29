@@ -11,6 +11,8 @@ namespace tilt {
 
     struct ASTNode {
         virtual void Accept(Visitor&) const = 0;
+
+        virtual ~ASTNode(){}
     };
     typedef shared_ptr<ASTNode> ASTPtr;
 

@@ -58,7 +58,7 @@ namespace tilt {
     };
 
     struct ValExpr : public Expr {
-        ValExpr(DataType dtype) : Expr(move(Type(dtype))) {}
+        ValExpr(DataType dtype) : Expr(Type(dtype)) {}
     };
     typedef shared_ptr<ValExpr> ValExprPtr;
 
@@ -73,7 +73,7 @@ namespace tilt {
         vector<ExprPtr> inputs;
 
         NaryExpr(DataType dtype, vector<ExprPtr> inputs)
-            : ValExpr(dtype), inputs(move(inputs))
+            : ValExpr(dtype), inputs(inputs)
         {}
 
         template<size_t i>
@@ -84,7 +84,7 @@ namespace tilt {
 
     struct Predicate : public NaryExpr {
         Predicate(vector<ExprPtr> inputs) :
-            NaryExpr(types::BOOL, move(inputs))
+            NaryExpr(types::BOOL, inputs)
         {}
     };
     typedef shared_ptr<Predicate> PredPtr;

@@ -40,7 +40,7 @@ namespace tilt {
             ptypes(ptypes), is_ptr(is_ptr)
         {}
         DataType(PrimitiveType ptype, bool is_ptr = false) :
-            DataType(move(vector<PrimitiveType>{ ptype }), is_ptr)
+            DataType(vector<PrimitiveType>{ ptype }, is_ptr)
         {}
 
         bool operator==(const DataType& o) const
@@ -82,9 +82,9 @@ namespace tilt {
     struct Timeline {
         vector<Iter> iters;
 
-        Timeline(vector<Iter> iters) : iters(move(iters)) {}
+        Timeline(vector<Iter> iters) : iters(iters) {}
         Timeline(Iter iter) : Timeline({iter}) {}
-        Timeline(std::initializer_list<Iter> iters) : Timeline(move(vector<Iter>(iters))) {}
+        Timeline(std::initializer_list<Iter> iters) : Timeline(vector<Iter>(iters)) {}
         Timeline() {}
 
         bool operator==(const Timeline& o) const
@@ -98,13 +98,13 @@ namespace tilt {
         const Timeline tl;
 
         Type(DataType dtype, Timeline tl) :
-            dtype(move(dtype)), tl(move(tl))
+            dtype(dtype), tl(tl)
         {}
 
-        Type(DataType dtype) : Type(move(dtype), Timeline()) {}
+        Type(DataType dtype) : Type(dtype, Timeline()) {}
 
         Type(DataType dtype, Iter iter) :
-            Type(move(dtype), Timeline(iter))
+            Type(dtype, Timeline(iter))
         {}
 
         bool isLStream() const { return tl.iters.size() > 0; }
@@ -162,7 +162,7 @@ namespace tilt {
         static constexpr void convert(vector<PrimitiveType>& btypes) {}
 
         template<typename... Ts>
-        constexpr DataType BuildType()
+        const DataType BuildType()
         {
             vector<PrimitiveType> btypes(sizeof...(Ts));
             convert<sizeof...(Ts), Ts...>(btypes);

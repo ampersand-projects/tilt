@@ -27,7 +27,7 @@ namespace tilt
 
     struct Region : public Symbol {
         Region(string name, Type type) :
-            Symbol(name, move(type))
+            Symbol(name, type)
         {
             assert(type.isLStream());
         }
@@ -63,7 +63,7 @@ namespace tilt
         ExprPtr idx;
 
         Fetch(ExprPtr reg, ExprPtr idx) :
-            ValExpr(move(DataType(reg->type.dtype.ptypes, true))),
+            ValExpr(DataType(reg->type.dtype.ptypes, true)),
             reg(reg), idx(idx)
         {
             assert(reg->type.isLStream());
@@ -77,7 +77,7 @@ namespace tilt
         ExprPtr ptr;
 
         Load(ExprPtr ptr) :
-            ValExpr(move(DataType(ptr->type.dtype.ptypes, false))),
+            ValExpr(DataType(ptr->type.dtype.ptypes, false)),
             ptr(ptr)
         {
             assert(ptr->type.dtype.is_ptr);
@@ -235,7 +235,7 @@ namespace tilt
         vector<ExprPtr> args;
 
         Call(Looper loop, vector<ExprPtr> args) :
-            Expr(loop->type), loop(loop), args(move(args))
+            Expr(loop->type), loop(loop), args(args)
         {}
 
         void Accept(Visitor&) const final;
