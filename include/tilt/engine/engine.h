@@ -23,7 +23,6 @@
 using namespace std;
 using namespace llvm;
 using namespace llvm::orc;
-using namespace std::placeholders;
 
 namespace tilt {
 
