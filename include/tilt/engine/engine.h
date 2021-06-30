@@ -50,39 +50,45 @@ namespace tilt {
 
     long next_time(region_t* reg, index_t* idx)
     {
-        return idx->t + 1;
+        auto e = reg->tl[idx->i];
+        auto et = e.t;
+        auto st = e.t - e.i;
+        return (idx->t < st) ? st : et;
     }
 
     index_t* advance(region_t* reg, index_t* idx, long t)
     {
-        idx->i++;
-        idx->t++;
+        auto i = idx->i;
+        while (reg->tl[i].t < t) { i++; }
+        idx->t = t;
+        idx->i = i;
         return idx;
     }
 
-    char* fetch(region_t* reg, index_t* idx, long size)
+    char* fetch(region_t* reg, index_t* idx, size_t size)
     {
         return reg->data + (idx->i * size);
     }
 
-    region_t* commit_data(region_t* reg, long t, char* data, long size)
+    index_t* commit_data(region_t* reg, long t)
     {
-        int i = reg->ei.i;
-        char* dptr = reg->data + (i * size);
-        for (int k=0; k<size; k++) {
-            dptr[k] = data[k];
-        }
-        reg->ei.i = i+1;
-        reg->ei.t = t;
-        reg->tl[i].i = 1;
-        reg->tl[i].t = t;
+        auto et = reg->ei.t;
+        auto dur = t - et;
+        auto i = reg->ei.i + 1;
 
-        return reg;
+        reg->tl[i].t = t;
+        reg->tl[i].i = dur;
+
+        reg->ei.t = t;
+        reg->ei.i = i;
+
+        return &reg->ei;
     }
 
-    region_t* commit_null(region_t* reg, long t)
+    index_t* commit_null(region_t* reg, long t)
     {
-        return nullptr;
+        reg->ei.t = t;
+        return &reg->ei;
     }
 
     class ExecEngine {

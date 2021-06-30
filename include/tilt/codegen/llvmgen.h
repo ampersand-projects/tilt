@@ -89,6 +89,8 @@ namespace tilt {
         llvm::Value* visit(const Call&) final;
         llvm::Value* visit(const Loop&) final;
 
+        llvm::Value* get_data_ptr(const DataType& dtype, llvm::Value* reg, llvm::Value* idx);
+
         void assign(const SymPtr& sym_ptr, llvm::Value* val)
         {
             map_sym(sym_ptr) = sym_ptr;
@@ -99,6 +101,8 @@ namespace tilt {
         llvm::Function* llfunc(const string, llvm::Type*, vector<llvm::Type*>);
         llvm::Value* llcall(const string, llvm::Type*, vector<llvm::Value*>);
         llvm::Value* llcall(const string, llvm::Type*, vector<ExprPtr>);
+
+        llvm::Value* llsizeof(llvm::Type*);
 
         llvm::Type* lltype(const PrimitiveType&);
         llvm::Type* lltype(const vector<PrimitiveType>&, const bool);

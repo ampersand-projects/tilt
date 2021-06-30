@@ -159,8 +159,8 @@ int main()
 
     auto* res_reg = loop_addr(0, dlen-1, &out_reg, &in_reg);
 
-    for (int i=0; i<dlen-1; i++) {
-        cout << "(" << in_tl[i+1].t << "," << in_tl[i+1].i << ") " << in_data[i+1] << " -> "
+    for (int i=0; i<dlen; i++) {
+        cout << "(" << in_tl[i+1].t << "," << in_tl[i].i << ") " << in_data[i] << " -> "
              << "(" << out_tl[i].t << "," << out_tl[i].i << ") " << out_data[i] << endl;
     }
 

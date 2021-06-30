@@ -39,6 +39,12 @@ Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<ExprPtr> 
     return llcall(name, ret_type, arg_vals);
 }
 
+Value* LLVMGen::llsizeof(llvm::Type* type)
+{
+    auto size = llmod()->getDataLayout().getTypeSizeInBits(type).getFixedSize();
+    return ConstantInt::get(lltype(types::UINT32), size/8);
+}
+
 llvm::Type* LLVMGen::lltype(const PrimitiveType& btype)
 {
     switch (btype)
@@ -249,15 +255,19 @@ Value* LLVMGen::visit(const GetTime& get_time)
     return llcall("get_time", lltype(get_time), { eval(get_time.idx) });
 }
 
+llvm::Value* LLVMGen::get_data_ptr(const DataType& dtype, llvm::Value* reg, llvm::Value* idx)
+{
+    auto size_val = llsizeof(lltype(dtype));
+    auto ret_type = lltype({PrimitiveType::INT8}, true);
+    auto addr = llcall("fetch", ret_type, { reg, idx, size_val });
+    return builder()->CreateBitCast(addr, lltype(dtype.ptypes, true));
+}
+
 Value* LLVMGen::visit(const Fetch& fetch)
 {
-    auto data_type = lltype(fetch.reg->type.dtype);
-    auto data_size = llmod()->getDataLayout().getTypeSizeInBits(data_type).getFixedSize();
-    auto size_val = ConstantInt::get(lltype(types::UINT64), data_size/8);
-
-    auto ret_type = lltype({PrimitiveType::INT8}, true);
-    auto addr = llcall("fetch", ret_type, { eval(fetch.reg), eval(fetch.idx), size_val });
-    return builder()->CreateBitCast(addr, lltype(fetch.reg->type.dtype.ptypes, true));
+    auto reg_val = eval(fetch.reg);
+    auto idx_val = eval(fetch.idx);
+    return get_data_ptr(fetch.reg->type.dtype, reg_val, idx_val);
 }
 
 Value* LLVMGen::visit(const Advance& adv)
@@ -277,22 +287,23 @@ Value* LLVMGen::visit(const GetStartIdx& start_idx)
 
 Value* LLVMGen::visit(const CommitNull& commit)
 {
-    return llcall("commit_null", lltype(commit), { commit.reg, commit.time });
+    auto reg_val = eval(commit.reg);
+    auto time_val = eval(commit.time);
+    llcall("commit_null", lltype(commit), vector<Value*>{ reg_val, time_val });
+    return reg_val;
 }
 
 Value* LLVMGen::visit(const CommitData& commit)
 {
     auto reg_val = eval(commit.reg);
     auto t_val = eval(commit.time);
+    auto idx_val = llcall("commit_data", lltype(types::INDEX_PTR), vector<Value*>{ reg_val, t_val });
 
+    auto data_ptr = get_data_ptr(commit.reg->type.dtype, reg_val, idx_val);
     auto data_val = eval(commit.data);
-    auto data_ptr = builder()->CreateAlloca(lltype(commit.data));
-    auto local_ptr = builder()->CreateBitCast(data_ptr, lltype(types::CHAR.ptypes, true));
     builder()->CreateStore(data_val, data_ptr);
 
-    auto data_size = llmod()->getDataLayout().getTypeSizeInBits(data_val->getType()).getFixedSize();
-    auto size_val = ConstantInt::get(lltype(types::UINT64), data_size/8);
-    return llcall("commit_data", lltype(commit), { reg_val, t_val, local_ptr, size_val });
+    return reg_val;
 }
 
 Value* LLVMGen::visit(const AllocIndex& alloc_idx)
