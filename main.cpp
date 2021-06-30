@@ -9,11 +9,14 @@
 
 #include <iostream>
 #include <memory>
+#include <cstdlib>
+#include <chrono>
 
 using namespace std;
+using namespace std::chrono;
 using namespace tilt;
 
-int main()
+int main(int argc, char** argv)
 {
     // input stream
     auto in_sym = make_shared<Symbol>("in", tilt::Type(types::INT32, FreeIter("in")));
@@ -130,10 +133,10 @@ int main()
     auto* loop_addr = (region_t* (*)(long, long, region_t*, region_t*))
         (intptr_t) loop_sym.getAddress();
 
-    int dlen = 100;
+    int dlen = (argc>1) ? atoi(argv[1]) : 10;
 
-    index_t in_tl[dlen];
-    int in_data[dlen];
+    auto in_tl = new index_t[dlen];
+    auto in_data = new int[dlen];
     region_t in_reg;
     in_reg.si.i = 0;
     in_reg.si.t = 0;
@@ -147,8 +150,8 @@ int main()
         in_data[i] = i;
     }
 
-    index_t out_tl[dlen];
-    int out_data[dlen];
+    auto out_tl = new index_t[dlen];
+    auto out_data = new int[dlen];
     region_t out_reg;
     out_reg.si.i = 0;
     out_reg.si.t = 0;
@@ -157,12 +160,21 @@ int main()
     out_reg.tl = out_tl;
     out_reg.data = (char*) out_data;
 
+    auto start_time = high_resolution_clock::now();
     auto* res_reg = loop_addr(0, dlen-1, &out_reg, &in_reg);
+    auto end_time = high_resolution_clock::now();
 
-    for (int i=0; i<dlen; i++) {
-        cout << "(" << in_tl[i+1].t << "," << in_tl[i].i << ") " << in_data[i] << " -> "
-             << "(" << out_tl[i].t << "," << out_tl[i].i << ") " << out_data[i] << endl;
+    int out_count = 0;
+    for (int i=1; i<dlen; i++) {
+        if (argc == 1) {
+            cout << "(" << in_tl[i].t << "," << in_tl[i].i << ") " << in_data[i] << " -> "
+                << "(" << out_tl[i].t << "," << out_tl[i].i << ") " << out_data[i] << endl;
+        }
+        out_count += (out_data[i] == in_data[i]+10);
     }
+
+    auto dur = duration_cast<microseconds>(end_time - start_time).count();
+    cout << "Data size: " << out_count << " Time: " << dur << endl;
 
     return 0;
 }
