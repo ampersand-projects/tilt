@@ -1,0 +1,3 @@
+[submodule "easy_jit"]
+	path = easy_jit
+	url = https://github.com/ampersand-projects/easy_jit.git
