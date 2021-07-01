@@ -34,10 +34,8 @@ namespace tilt
 
         string result() const { return ctx.ostr.str(); }
 
-        /**
-         * TiLT IR
-         */
         void Visit(const Symbol&) override;
+        void Visit(const Call&) override;
         void Visit(const IfElse&) override;
         void Visit(const Exists&) override;
         void Visit(const Equals&) override;
@@ -59,28 +57,23 @@ namespace tilt
         void Visit(const LessThan&) override;
         void Visit(const LessThanEqual&) override;
         void Visit(const GreaterThan&) override;
-
         void Visit(const SubLStream&) override;
         void Visit(const Element&) override;
-
         void Visit(const Op&) override;
         void Visit(const AggExpr&) override;
-
-        /**
-         * Loop IR
-         */
         void Visit(const AllocIndex&) override;
         void Visit(const GetTime&) override;
         void Visit(const Fetch&) override;
         void Visit(const Load&) override;
+        void Visit(const Store&) override;
         void Visit(const Advance&) override;
         void Visit(const NextTime&) override;
         void Visit(const GetStartIdx&) override;
+        void Visit(const GetEndIdx&) override;
         void Visit(const CommitData&) override;
         void Visit(const CommitNull&) override;
         void Visit(const AllocRegion&) override;
         void Visit(const MakeRegion&) override;
-        void Visit(const Call&) override;
         void Visit(const Loop&) override;
 
     private:

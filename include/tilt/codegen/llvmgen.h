@@ -79,17 +79,17 @@ namespace tilt {
         llvm::Value* visit(const GetTime&) final;
         llvm::Value* visit(const Fetch&) final;
         llvm::Value* visit(const Load&) final;
+        llvm::Value* visit(const Store&) final;
         llvm::Value* visit(const Advance&) final;
         llvm::Value* visit(const NextTime&) final;
         llvm::Value* visit(const GetStartIdx&) final;
+        llvm::Value* visit(const GetEndIdx&) final;
         llvm::Value* visit(const CommitData&) final;
         llvm::Value* visit(const CommitNull&) final;
         llvm::Value* visit(const AllocRegion&) final;
         llvm::Value* visit(const MakeRegion&) final;
         llvm::Value* visit(const Call&) final;
         llvm::Value* visit(const Loop&) final;
-
-        llvm::Value* get_data_ptr(const DataType& dtype, llvm::Value* reg, llvm::Value* idx);
 
         void assign(const SymPtr& sym_ptr, llvm::Value* val)
         {

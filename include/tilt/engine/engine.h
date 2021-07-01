@@ -43,6 +43,11 @@ namespace tilt {
         return &reg->si;
     }
 
+    index_t* get_end_idx(region_t* reg)
+    {
+        return &reg->ei;
+    }
+
     long get_time(index_t* idx)
     {
         return idx->t;
@@ -70,7 +75,7 @@ namespace tilt {
         return reg->data + (idx->i * size);
     }
 
-    index_t* commit_data(region_t* reg, long t)
+    region_t* commit_data(region_t* reg, long t)
     {
         auto et = reg->ei.t;
         auto dur = t - et;
@@ -82,13 +87,13 @@ namespace tilt {
         reg->ei.t = t;
         reg->ei.i = i;
 
-        return &reg->ei;
+        return reg;
     }
 
-    index_t* commit_null(region_t* reg, long t)
+    region_t* commit_null(region_t* reg, long t)
     {
         reg->ei.t = t;
-        return &reg->ei;
+        return reg;
     }
 
     class ExecEngine {
@@ -143,6 +148,8 @@ namespace tilt {
 
             symbols[this->mangler("get_start_idx")] =
                 JITEvaluatedSymbol(pointerToJITTargetAddress(&get_start_idx), JITSymbolFlags());
+            symbols[this->mangler("get_end_idx")] =
+                JITEvaluatedSymbol(pointerToJITTargetAddress(&get_end_idx), JITSymbolFlags());
             symbols[this->mangler("get_time")] =
                 JITEvaluatedSymbol(pointerToJITTargetAddress(&get_time), JITSymbolFlags());
             symbols[this->mangler("next_time")] =

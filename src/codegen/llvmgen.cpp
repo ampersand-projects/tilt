@@ -255,19 +255,16 @@ Value* LLVMGen::visit(const GetTime& get_time)
     return llcall("get_time", lltype(get_time), { eval(get_time.idx) });
 }
 
-llvm::Value* LLVMGen::get_data_ptr(const DataType& dtype, llvm::Value* reg, llvm::Value* idx)
-{
-    auto size_val = llsizeof(lltype(dtype));
-    auto ret_type = lltype({PrimitiveType::INT8}, true);
-    auto addr = llcall("fetch", ret_type, { reg, idx, size_val });
-    return builder()->CreateBitCast(addr, lltype(dtype.ptypes, true));
-}
-
 Value* LLVMGen::visit(const Fetch& fetch)
 {
+    auto& dtype = fetch.reg->type.dtype;
     auto reg_val = eval(fetch.reg);
     auto idx_val = eval(fetch.idx);
-    return get_data_ptr(fetch.reg->type.dtype, reg_val, idx_val);
+    auto size_val = llsizeof(lltype(dtype));
+    auto ret_type = lltype({PrimitiveType::INT8}, true);
+    auto addr = llcall("fetch", ret_type, { reg_val, idx_val, size_val });
+
+    return builder()->CreateBitCast(addr, lltype(dtype.ptypes, true));
 }
 
 Value* LLVMGen::visit(const Advance& adv)
@@ -285,25 +282,19 @@ Value* LLVMGen::visit(const GetStartIdx& start_idx)
     return llcall("get_start_idx", lltype(start_idx), { start_idx.reg });
 }
 
+Value* LLVMGen::visit(const GetEndIdx& end_idx)
+{
+    return llcall("get_end_idx", lltype(end_idx), { end_idx.reg });
+}
+
 Value* LLVMGen::visit(const CommitNull& commit)
 {
-    auto reg_val = eval(commit.reg);
-    auto time_val = eval(commit.time);
-    llcall("commit_null", lltype(commit), vector<Value*>{ reg_val, time_val });
-    return reg_val;
+    return llcall("commit_null", lltype(commit), { commit.reg, commit.time });
 }
 
 Value* LLVMGen::visit(const CommitData& commit)
 {
-    auto reg_val = eval(commit.reg);
-    auto t_val = eval(commit.time);
-    auto idx_val = llcall("commit_data", lltype(types::INDEX_PTR), vector<Value*>{ reg_val, t_val });
-
-    auto data_ptr = get_data_ptr(commit.reg->type.dtype, reg_val, idx_val);
-    auto data_val = eval(commit.data);
-    builder()->CreateStore(data_val, data_ptr);
-
-    return reg_val;
+    return llcall("commit_data", lltype(commit), { commit.reg, commit.time });
 }
 
 Value* LLVMGen::visit(const AllocIndex& alloc_idx)
@@ -318,6 +309,15 @@ Value* LLVMGen::visit(const Load& load)
 {
     auto ptr_val = eval(load.ptr);
     return builder()->CreateLoad(ptr_val);
+}
+
+Value* LLVMGen::visit(const Store& store)
+{
+    auto reg_val = eval(store.reg);
+    auto ptr_val = eval(store.ptr);
+    auto data_val = eval(store.data);
+    builder()->CreateStore(data_val, ptr_val);
+    return reg_val;
 }
 
 Value* LLVMGen::visit(const AllocRegion&) { throw std::runtime_error("Invalid expression"); }

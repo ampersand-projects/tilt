@@ -188,6 +188,11 @@ void IRPrinter::Visit(const Load& load)
     emitfunc("load", { load.ptr });
 }
 
+void IRPrinter::Visit(const Store& store)
+{
+    emitfunc("store", { store.reg, store.ptr, store.data });
+}
+
 void IRPrinter::Visit(const Advance& adv)
 {
     emitfunc("advance", { adv.reg, adv.idx, adv.time });
@@ -203,14 +208,19 @@ void IRPrinter::Visit(const GetStartIdx& gsi)
     emitfunc("get_start_idx", { gsi.reg });
 }
 
+void IRPrinter::Visit(const GetEndIdx& gei)
+{
+    emitfunc("get_end_idx", { gei.reg });
+}
+
 void IRPrinter::Visit(const CommitData& commit)
 {
-    emitfunc("commit", { commit.reg, commit.time, commit.data });
+    emitfunc("commit_data", { commit.reg, commit.time });
 }
 
 void IRPrinter::Visit(const CommitNull& commit)
 {
-    emitfunc("commit", { commit.reg, commit.time });
+    emitfunc("commit_null", { commit.reg, commit.time });
 }
 
 void IRPrinter::Visit(const AllocRegion& alloc_reg)

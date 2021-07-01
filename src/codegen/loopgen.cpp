@@ -91,7 +91,7 @@ void LoopGen::build_loop()
     loop->exit_cond = make_shared<GreaterThan>(loop->t, t_end);
 
     // Update loop output:
-    //      1. Outer loop returns the returned region of the inner loop
+    //      1. Outer loop returns the output region of the inner loop
     //      2. Inner loop updates the output region
     ExprPtr true_body = nullptr;
     if (out_expr->type.isLStream()) {

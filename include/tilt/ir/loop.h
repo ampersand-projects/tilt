@@ -86,6 +86,18 @@ namespace tilt
         void Accept(Visitor&) const final;
     };
 
+    struct Store : public Expr {
+        ExprPtr reg;
+        ExprPtr ptr;
+        ExprPtr data;
+
+        Store(ExprPtr reg, ExprPtr ptr, ExprPtr data) :
+            Expr(reg->type), reg(reg), ptr(ptr), data(data)
+        {}
+
+        void Accept(Visitor&) const final;
+    };
+
     struct Advance : public ValExpr {
         ExprPtr reg;
         ExprPtr idx;
@@ -128,17 +140,27 @@ namespace tilt
         void Accept(Visitor&) const final;
     };
 
+    struct GetEndIdx : public ValExpr {
+        ExprPtr reg;
+
+        GetEndIdx(ExprPtr reg) :
+            ValExpr(types::INDEX_PTR), reg(reg)
+        {
+            assert(reg->type.isLStream());
+        }
+
+        void Accept(Visitor&) const final;
+    };
+
     struct CommitData : public Expr {
         ExprPtr reg;
         ExprPtr time;
-        ExprPtr data;
 
-        CommitData(ExprPtr reg, ExprPtr time, ExprPtr data) :
-            Expr(reg->type), reg(reg), time(time), data(data)
+        CommitData(ExprPtr reg, ExprPtr time) :
+            Expr(reg->type), reg(reg), time(time)
         {
             assert(reg->type.isLStream());
             assert(time->type == types::TIME);
-            assert(data->type.dtype == reg->type.dtype);
         }
 
         void Accept(Visitor&) const final;
