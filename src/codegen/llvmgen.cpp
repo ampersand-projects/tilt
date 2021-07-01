@@ -139,10 +139,37 @@ Value* LLVMGen::visit(const Symbol& symbol)
 
 Value* LLVMGen::visit(const IfElse& ifelse)
 {
+    auto loop_fn = builder()->GetInsertBlock()->getParent();
+    auto then_bb = BasicBlock::Create(llctx(), "then");
+    auto else_bb = BasicBlock::Create(llctx(), "else");
+    auto merge_bb = BasicBlock::Create(llctx(), "merge");
+
+    // Condition check
     auto cond = eval(ifelse.cond);
-    auto true_body = eval(ifelse.true_body);
-    auto false_body = eval(ifelse.false_body);
-    return builder()->CreateSelect(cond, true_body, false_body);
+    builder()->CreateCondBr(cond, then_bb, else_bb);
+
+    // Then block
+    loop_fn->getBasicBlockList().push_back(then_bb);
+    builder()->SetInsertPoint(then_bb);
+    auto true_val = eval(ifelse.true_body);
+    then_bb = builder()->GetInsertBlock();
+    builder()->CreateBr(merge_bb);
+
+    // Else block
+    loop_fn->getBasicBlockList().push_back(else_bb);
+    builder()->SetInsertPoint(else_bb);
+    auto false_val = eval(ifelse.false_body);
+    else_bb = builder()->GetInsertBlock();
+    builder()->CreateBr(merge_bb);
+
+    // Merge block
+    loop_fn->getBasicBlockList().push_back(merge_bb);
+    builder()->SetInsertPoint(merge_bb);
+    auto merge_phi = builder()->CreatePHI(lltype(ifelse), 2);
+    merge_phi->addIncoming(true_val, then_bb);
+    merge_phi->addIncoming(false_val, else_bb);
+
+    return merge_phi;
 }
 
 Value* LLVMGen::visit(const IConst& iconst)
