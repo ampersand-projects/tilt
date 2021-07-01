@@ -127,11 +127,9 @@ int main(int argc, char** argv)
 
     cout << endl << endl << "Query execution: " << endl;
     auto jit = ExecEngine::Get();
-    cantFail(jit->addModule(move(llmod)));
+    jit->AddModule(move(llmod));
 
-    auto loop_sym = cantFail(jit->lookup(loop->GetName()));
-    auto* loop_addr = (region_t* (*)(long, long, region_t*, region_t*))
-        (intptr_t) loop_sym.getAddress();
+    auto loop_addr = (region_t* (*)(long, long, region_t*, region_t*)) jit->Lookup(loop->GetName());
 
     int dlen = (argc>1) ? atoi(argv[1]) : 10;
 

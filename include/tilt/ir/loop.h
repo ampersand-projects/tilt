@@ -187,18 +187,12 @@ namespace tilt
         void Accept(Visitor&) const final;
     };
 
-    struct Loop : public Expr {
+    struct Loop : public Func {
         struct LoopState {
             SymPtr base;
             ExprPtr init;
             ExprPtr update;
         };
-
-        // Identifier
-        string name;
-
-        // Arguments
-        vector<SymPtr> inputs;
 
         // Loop counter
         Timer t;
@@ -206,40 +200,23 @@ namespace tilt
         // Indices
         vector<Indexer> idxs;
 
-        // Output
-        RegPtr output;
-
         // States
         map<SymPtr, LoopState> states;
 
         // loop condition
         PredPtr exit_cond;
 
-        // Local symbols
-        SymTable syms;
-
         // Inner loops
         vector<shared_ptr<Loop>> inner_loops;
 
-        Loop(string name, Type type) : Expr(type), name(name) {}
-        Loop(SymPtr sym) : Expr(sym->type), name(sym->name) {}
+        Loop(string name, Type type) : Func(name, move(type)) {}
+        Loop(SymPtr sym) : Loop(sym->name, sym->type) {}
 
-        const string GetName() const { return "loop_" + this->name; }
+        const string GetName() const override { return "loop_" + this->name; }
 
         void Accept(Visitor&) const final;
     };
     typedef shared_ptr<Loop> Looper;
-
-    struct Call : public Expr {
-        Looper loop;
-        vector<ExprPtr> args;
-
-        Call(Looper loop, vector<ExprPtr> args) :
-            Expr(loop->type), loop(loop), args(move(args))
-        {}
-
-        void Accept(Visitor&) const final;
-    };
 
 } // namespace tilt
 

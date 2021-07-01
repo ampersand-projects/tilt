@@ -78,7 +78,7 @@ llvm::Type* LLVMGen::lltype(const PrimitiveType& btype)
             llctx(),
             {
                 lltype(types::TIME),                            // time
-                lltype(types::INT32),                           // index
+                lltype(types::UINT32),                          // index
             },
             "index_t"
         );
@@ -325,30 +325,29 @@ Value* LLVMGen::visit(const MakeRegion&) { throw std::runtime_error("Invalid exp
 
 Value* LLVMGen::visit(const Call& call)
 {
-    return llcall(call.loop->GetName(), lltype(call), call.args);
+    return llcall(call.fn->GetName(), lltype(call), call.args);
 }
 
 Value* LLVMGen::visit(const Loop& loop)
 {
-    vector<llvm::Type*> args_type;
-    for (const auto& input: loop.inputs) {
-        args_type.push_back(lltype(input->type));
-    }
-
-    auto loop_fn = llfunc(loop.GetName(), lltype(loop.output), args_type);
-
     auto preheader_bb = BasicBlock::Create(llctx(), "preheader");
     auto header_bb = BasicBlock::Create(llctx(), "header");
     auto body_bb = BasicBlock::Create(llctx(), "body");
     auto end_bb = BasicBlock::Create(llctx(), "end");
     auto exit_bb = BasicBlock::Create(llctx(), "exit");
 
+    // Define function signature
+    vector<llvm::Type*> args_type;
+    for (const auto& input: loop.inputs) {
+        args_type.push_back(lltype(input->type));
+    }
+    auto loop_fn = llfunc(loop.GetName(), lltype(loop.output), args_type);
     for (size_t i = 0; i < loop.inputs.size(); i++) {
         auto input = loop.inputs[i];
         assign(input, loop_fn->getArg(i));
     }
 
-    /* Initial values of base states */
+    // Initialization of loop states
     loop_fn->getBasicBlockList().push_back(preheader_bb);
     builder()->SetInsertPoint(preheader_bb);
     map<SymPtr, llvm::Value*> base_inits;
@@ -357,7 +356,7 @@ Value* LLVMGen::visit(const Loop& loop)
     }
     builder()->CreateBr(header_bb);
 
-    /* Phi nodes for base states */
+    // Phi nodes for loop states
     loop_fn->getBasicBlockList().push_back(header_bb);
     builder()->SetInsertPoint(header_bb);
     for (const auto& [base_sym, val]: base_inits) {
@@ -366,23 +365,23 @@ Value* LLVMGen::visit(const Loop& loop)
         base->addIncoming(val, preheader_bb);
     }
 
-    /* Update timer */
+    // Update loop counter and check exit condition
     assign(loop.t, eval(loop.states.at(loop.t).update));
     auto exit_cond = eval(loop.exit_cond);
     builder()->CreateCondBr(exit_cond, exit_bb, body_bb);
 
+    // Update indices
     loop_fn->getBasicBlockList().push_back(body_bb);
     builder()->SetInsertPoint(body_bb);
-    /* Update indices */
     for (const auto& idx: loop.idxs) {
         assign(idx, eval(loop.states.at(idx).update));
     }
 
-    /* Loop body */
+    // Loop body
     assign(loop.output, eval(loop.states.at(loop.output).update));
     builder()->CreateBr(end_bb);
 
-    /* Update states and loop back to header */
+    // Update loop states and jump back to loop header
     loop_fn->getBasicBlockList().push_back(end_bb);
     builder()->SetInsertPoint(end_bb);
     for (const auto& [state_sym, state]: loop.states) {
@@ -391,7 +390,7 @@ Value* LLVMGen::visit(const Loop& loop)
     }
     builder()->CreateBr(header_bb);
 
-    /* Exit the loop */
+    // Loop exit
     loop_fn->getBasicBlockList().push_back(exit_bb);
     builder()->SetInsertPoint(exit_bb);
     builder()->CreateRet(sym(loop.states.at(loop.output).base));

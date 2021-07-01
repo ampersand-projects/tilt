@@ -225,7 +225,7 @@ void IRPrinter::Visit(const MakeRegion& make_reg)
 
 void IRPrinter::Visit(const Call& call)
 {
-    emitfunc(call.loop->GetName(), call.args);
+    emitfunc(call.fn->GetName(), call.args);
 }
 
 void IRPrinter::Visit(const IfElse& ifelse)

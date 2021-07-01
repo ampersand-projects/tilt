@@ -31,7 +31,7 @@ void LoopGen::build_loop()
     auto loop = ctx().loop;
     auto name = loop->name;
 
-    /* Arguments */
+    // Loop function arguments
     auto t_start = make_shared<Time>("t_start");
     auto t_end = make_shared<Time>("t_end");
     auto out_reg_arg = make_shared<Region>(name, ctx().op->type);
@@ -44,19 +44,23 @@ void LoopGen::build_loop()
         map_sym(in) = in_reg;
     }
 
+    // Create loop counter
     loop->t = make_shared<Time>("t");
     auto t_base = make_shared<Time>("t_base");
     loop->states[loop->t].base = t_base;
     loop->states[loop->t].init = t_start;
 
+    // Create loop return value
     loop->output = make_shared<Region>("output", ctx().op->type);
     auto output_base = make_shared<Region>("output_base", ctx().op->type);
     loop->states[loop->output].base = output_base;
     loop->states[loop->output].init = out_reg_arg;
 
+    // Evaluate loop body
     auto pred_expr = eval(ctx().op->pred);
     auto out_expr = eval(ctx().op->output);
 
+    // Populate edge indices on the inputs
     map<Indexer, SymPtr> edge_idxs;
     for (const auto& [reg, pt_idx_map]: ctx().pt_idx_maps) {
         auto& tail_idx = pt_idx_map.begin()->second;
@@ -65,6 +69,7 @@ void LoopGen::build_loop()
         edge_idxs[head_idx] = reg;
     }
 
+    // Expression to calculate loop counter shift
     ExprPtr delta = nullptr;
     for (const auto& [idx, reg]: edge_idxs) {
         const auto& base_idx = loop->states[idx].base;
@@ -78,13 +83,28 @@ void LoopGen::build_loop()
         }
     }
 
+    // Loop counter update expression
     auto t_incr = make_shared<Max>(make_shared<TConst>(ctx().op->iter.period), delta);
     loop->states[loop->t].update = make_shared<Add>(t_base, t_incr);
 
+    // Loop exit condition
     loop->exit_cond = make_shared<GreaterThan>(loop->t, t_end);
 
-    auto true_body = out_expr->type.isLStream() ? out_expr :
-        make_shared<CommitData>(output_base, loop->t, out_expr);
+    // Update loop output:
+    //      1. Outer loop returns the returned region of the inner loop
+    //      2. Inner loop updates the output region
+    ExprPtr true_body = nullptr;
+    if (out_expr->type.isLStream()) {
+        true_body = out_expr;
+    } else {
+        auto new_reg = make_shared<CommitData>(output_base, loop->t);
+        auto new_reg_sym = new_reg->GetSym("new_reg");
+        sym(new_reg_sym) = new_reg;
+
+        auto idx = make_shared<GetEndIdx>(new_reg_sym);
+        auto dptr = make_shared<Fetch>(new_reg_sym, idx);
+        true_body = make_shared<Store>(new_reg_sym, dptr, out_expr);
+    }
     auto false_body = make_shared<CommitNull>(output_base, loop->t);
     loop->states[loop->output].update = make_shared<IfElse>(pred_expr, true_body, false_body);
 }

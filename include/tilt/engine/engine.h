@@ -28,7 +28,7 @@ namespace tilt {
 
     struct index_t {
         long t;
-        int i;
+        unsigned int i;
     };
 
     struct region_t {
@@ -94,11 +94,11 @@ namespace tilt {
     class ExecEngine {
     public:
         ExecEngine(JITTargetMachineBuilder jtmb, DataLayout dl) :
-            linker(es, []() { return std::make_unique<SectionMemoryManager>(); }),
-            compiler(es, linker, std::make_unique<ConcurrentIRCompiler>(std::move(jtmb))),
+            linker(es, []() { return make_unique<SectionMemoryManager>(); }),
+            compiler(es, linker, make_unique<ConcurrentIRCompiler>(move(jtmb))),
             optimizer(es, compiler, optimize_module),
-            dl(std::move(dl)), mangler(es, this->dl),
-            ctx(std::make_unique<LLVMContext>()),
+            dl(move(dl)), mangler(es, this->dl),
+            ctx(make_unique<LLVMContext>()),
             jd(es.createBareJITDylib("__tilt_dylib"))
         {
             jd.addGenerator(
@@ -125,14 +125,15 @@ namespace tilt {
             return engine.get();
         }
 
-        Error addModule(std::unique_ptr<Module> m)
+        void AddModule(unique_ptr<Module> m)
         {
-            return optimizer.add(jd, ThreadSafeModule(move(m), ctx));
+            cantFail(optimizer.add(jd, ThreadSafeModule(move(m), ctx)));
         }
 
-        Expected<JITEvaluatedSymbol> lookup(StringRef name)
+        intptr_t Lookup(StringRef name)
         {
-            return es.lookup({ &jd }, mangler(name.str()));
+            auto fn_sym = cantFail(es.lookup({ &jd }, mangler(name.str())));
+            return (intptr_t) fn_sym.getAddress();
         }
 
     private:
@@ -158,7 +159,7 @@ namespace tilt {
             cantFail(jd.define(absoluteSymbols(symbols)));
         }
 
-        static Expected<ThreadSafeModule> optimize_module(ThreadSafeModule tsm, const MaterializationResponsibility &r) 
+        static Expected<ThreadSafeModule> optimize_module(ThreadSafeModule tsm, const MaterializationResponsibility &r)
         {
             tsm.withModuleDo([](Module &m) {
                 unsigned opt_level = 3;
@@ -173,7 +174,7 @@ namespace tilt {
                 mpm.run(m);
             });
 
-            return std::move(tsm);
+            return move(tsm);
         }
 
         ExecutionSession es;

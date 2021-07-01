@@ -22,8 +22,6 @@ namespace tilt {
 
         Expr(Type type) : type(type) {}
 
-        virtual ~Expr() {}
-
         SymPtr GetSym(string name)
         {
             return make_shared<Symbol>(name, type);
@@ -43,6 +41,35 @@ namespace tilt {
 
     typedef vector<SymPtr> Params; // Input parameters to the Op
     typedef map<SymPtr, ExprPtr> SymTable;
+
+    struct Func : public Expr {
+        string name;
+        Params inputs;
+        SymPtr output;
+        SymTable syms;
+
+        Func(string name, Params inputs, SymPtr output, SymTable syms) :
+            Expr(output->type), name(name), inputs(move(inputs)), output(output), syms(move(syms))
+        {}
+
+        virtual const string GetName() const = 0;
+
+    protected:
+        Func(string name, Type type) : Expr(move(type)), name(name) {}
+    };
+    typedef shared_ptr<Func> FuncPtr;
+
+    struct Call : public Expr {
+        FuncPtr fn;
+        vector<ExprPtr> args;
+
+        Call(FuncPtr fn, vector<ExprPtr> args) :
+            Expr(fn->type), fn(fn), args(move(args))
+        {}
+
+        void Accept(Visitor&) const final;
+    };
+    typedef shared_ptr<Call> CallPtr;
 
     struct IfElse : public Expr {
         ExprPtr cond;

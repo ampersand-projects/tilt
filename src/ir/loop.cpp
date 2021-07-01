@@ -14,6 +14,5 @@ void CommitData::Accept(Visitor& v) const { v.Visit(*this); }
 void CommitNull::Accept(Visitor& v) const { v.Visit(*this); }
 void AllocRegion::Accept(Visitor& v) const { v.Visit(*this); }
 void MakeRegion::Accept(Visitor& v) const { v.Visit(*this); }
-void Call::Accept(Visitor& v) const { v.Visit(*this); }
 void Loop::Accept(Visitor& v) const { v.Visit(*this); }
 void TConst::Accept(Visitor& v) const { v.Visit(*this); }
