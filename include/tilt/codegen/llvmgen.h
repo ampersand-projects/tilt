@@ -16,37 +16,26 @@ namespace tilt {
 
     class LLVMGenCtx : public IRGenCtx<ExprPtr, llvm::Value*> {
     public:
-        LLVMGenCtx(Looper loop, map<SymPtr, llvm::Value*>& sym_tbl) :
+        LLVMGenCtx(Looper loop, map<SymPtr, llvm::Value*>& sym_tbl, llvm::LLVMContext& llctx) :
             IRGenCtx(nullptr, loop->syms, sym_tbl),
-            llcontext(make_unique<llvm::LLVMContext>()),
-            llmodule(make_unique<llvm::Module>(loop->name, *llcontext)),
-            builder(make_unique<llvm::IRBuilder<>>(*llcontext))
+            llcontext(llctx),
+            llmodule(make_unique<llvm::Module>(loop->name, llctx))
         {}
 
-        unique_ptr<llvm::Module> llmod() { return move(llmodule); }
-        unique_ptr<llvm::LLVMContext> llctx() { return move(llcontext); }
-
     private:
-        unique_ptr<llvm::LLVMContext> llcontext;
+        llvm::LLVMContext& llcontext;
         unique_ptr<llvm::Module> llmodule;
-        unique_ptr<llvm::IRBuilder<>> builder;
 
         friend class LLVMGen;
     };
 
     class LLVMGen : public IRGen<LLVMGenCtx, ExprPtr, llvm::Value*> {
     public:
-        LLVMGen(LLVMGenCtx ctx) : IRGen(move(ctx)) {}
+        LLVMGen(LLVMGenCtx llgenctx, llvm::IRBuilder<>& builder) :
+            IRGen(move(llgenctx)), _llctx(ctx().llcontext), _builder(builder)
+        {}
 
-        static LLVMGenCtx Build(const Looper loop)
-        {
-            map<SymPtr, llvm::Value*> sym_tbl;
-            LLVMGenCtx ctx(loop, sym_tbl);
-            LLVMGen llgen(move(ctx));
-            loop->Accept(llgen);
-            auto llctx = move(llgen.ctx());
-            return llctx;
-        }
+        static unique_ptr<llvm::Module> Build(const Looper, llvm::LLVMContext&, llvm::IRBuilder<>&);
 
     private:
         llvm::Value* visit(const Symbol&) final;
@@ -112,8 +101,11 @@ namespace tilt {
         llvm::Type* lltype(const ExprPtr& expr) { return lltype(expr->type); }
 
         llvm::Module* llmod() { return ctx().llmodule.get(); }
-        llvm::LLVMContext& llctx() { return *(ctx().llcontext); }
-        llvm::IRBuilder<>* builder() { return ctx().builder.get(); }
+        llvm::LLVMContext& llctx() { return _llctx; }
+        llvm::IRBuilder<>* builder() { return &_builder; }
+
+        llvm::LLVMContext& _llctx;
+        llvm::IRBuilder<>& _builder;
     };
 
 } // namespace tilt

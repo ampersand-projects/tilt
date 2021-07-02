@@ -232,7 +232,7 @@ ExprPtr LoopGen::visit(const Op& op)
         auto size = make_shared<Sub>(t_end, t_start);
         auto out_reg = make_shared<AllocRegion>(op.type, size);
         out_sym = out_reg->GetSym(ctx().sym->name);
-        outer_loop->syms[out_sym] = out_reg;
+        sym(out_sym) = out_reg;
     }
 
     vector<ExprPtr> args = {t_start, t_end, out_sym};

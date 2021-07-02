@@ -3,6 +3,7 @@
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/DataLayout.h"
+#include "llvm/Linker/Linker.h"
 
 using namespace std;
 using namespace tilt;
@@ -348,7 +349,16 @@ Value* LLVMGen::visit(const Store& store)
 }
 
 Value* LLVMGen::visit(const AllocRegion&) { throw std::runtime_error("Invalid expression"); }
-Value* LLVMGen::visit(const MakeRegion&) { throw std::runtime_error("Invalid expression"); }
+
+Value* LLVMGen::visit(const MakeRegion& make_reg)
+{
+    auto in_reg_val = eval(make_reg.reg);
+    auto start_idx_val = eval(make_reg.start_idx);
+    auto end_idx_val = eval(make_reg.end_idx);
+    auto reg_type = lltype(make_reg);
+    auto out_reg_val = builder()->CreateAlloca(reg_type->getPointerElementType());
+    return llcall("make_region", reg_type, { out_reg_val, in_reg_val, start_idx_val, end_idx_val });
+}
 
 Value* LLVMGen::visit(const Call& call)
 {
@@ -357,6 +367,13 @@ Value* LLVMGen::visit(const Call& call)
 
 Value* LLVMGen::visit(const Loop& loop)
 {
+    // Build inner loops
+    for (const auto& inner_loop: loop.inner_loops) {
+        auto inner_llmod = LLVMGen::Build(inner_loop, llctx(), *builder());
+        Linker::linkModules(*llmod(), move(inner_llmod));
+    }
+
+    // Build current loop
     auto preheader_bb = BasicBlock::Create(llctx(), "preheader");
     auto header_bb = BasicBlock::Create(llctx(), "header");
     auto body_bb = BasicBlock::Create(llctx(), "body");
@@ -423,4 +440,13 @@ Value* LLVMGen::visit(const Loop& loop)
     builder()->CreateRet(sym(loop.states.at(loop.output).base));
 
     return loop_fn;
+}
+
+unique_ptr<llvm::Module> LLVMGen::Build(const Looper loop, llvm::LLVMContext& llctx, llvm::IRBuilder<>& builder)
+{
+    map<SymPtr, llvm::Value*> sym_tbl;
+    LLVMGenCtx ctx(loop, sym_tbl, llctx);
+    LLVMGen llgen(move(ctx), builder);
+    loop->Accept(llgen);
+    return move(llgen.ctx().llmodule);
 }

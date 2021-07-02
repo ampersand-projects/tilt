@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     // input stream
     auto in_sym = make_shared<Symbol>("in", tilt::Type(types::INT32, FreeIter("in")));
 
-    unsigned long len = 500;
+    unsigned long len = 5;
     auto inwin = make_shared<SubLStream>(in_sym, Window(-len, 0));
     auto inwin_sym = inwin->GetSym("inwin");
 
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
         join_op_sym);
 
     auto nest_sel_op = make_shared<Op>(
-        Timeline{sel_op_sym->type.tl.iters[0], FreqIter(0, w)},
+        Timeline{sel_op_sym->type.tl.iters[0], FreqIter(0, len)},
         FreqIter(0, len),
         Params{in_sym},
         make_shared<True>(),
@@ -110,18 +110,19 @@ int main(int argc, char** argv)
 
     cout << endl << "TiLT IR: " << endl;
     IRPrinter printer;
-    sel_op->Accept(printer);
+    nest_sel_op->Accept(printer);
     cout << printer.result() << endl;
 
     cout << endl << "Loop IR: " << endl;
     IRPrinter loop_printer;
-    auto loop = LoopGen::Build(sel_op_sym, sel_op.get());
+    auto loop = LoopGen::Build(nest_sel_op_sym, nest_sel_op.get());
     loop->Accept(loop_printer);
     cout << loop_printer.result() << endl;
 
     cout << endl << "LLVM IR: " << endl;
-    auto llctx = LLVMGen::Build(loop);
-    auto llmod = llctx.llmod();
+    auto llctx = make_unique<llvm::LLVMContext>();
+    auto builder = make_unique<llvm::IRBuilder<>>(*llctx);
+    auto llmod = LLVMGen::Build(loop, *llctx, *builder);
     llvm::raw_fd_ostream r(fileno(stdout), false);
     if (!llvm::verifyModule(*llmod, &r)) { r << *llmod; }
 
@@ -131,7 +132,7 @@ int main(int argc, char** argv)
 
     auto loop_addr = (region_t* (*)(long, long, region_t*, region_t*)) jit->Lookup(loop->GetName());
 
-    int dlen = (argc>1) ? atoi(argv[1]) : 10;
+    int dlen = (argc>1) ? atoi(argv[1]) : 26;
 
     auto in_tl = new index_t[dlen];
     auto in_data = new int[dlen];

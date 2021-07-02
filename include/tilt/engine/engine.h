@@ -75,6 +75,16 @@ namespace tilt {
         return reg->data + (idx->i * size);
     }
 
+    region_t* make_region(region_t* out_reg, region_t* in_reg, index_t* si, index_t* ei)
+    {
+        out_reg->si = *si;
+        out_reg->ei = *ei;
+        out_reg->tl = in_reg->tl;
+        out_reg->data = in_reg->data;
+
+        return out_reg;
+    }
+
     region_t* commit_data(region_t* reg, long t)
     {
         auto et = reg->ei.t;
@@ -158,6 +168,8 @@ namespace tilt {
                 JITEvaluatedSymbol(pointerToJITTargetAddress(&advance), JITSymbolFlags());
             symbols[this->mangler("fetch")] =
                 JITEvaluatedSymbol(pointerToJITTargetAddress(&fetch), JITSymbolFlags());
+            symbols[this->mangler("make_region")] =
+                JITEvaluatedSymbol(pointerToJITTargetAddress(&make_region), JITSymbolFlags());
             symbols[this->mangler("commit_data")] =
                 JITEvaluatedSymbol(pointerToJITTargetAddress(&commit_data), JITSymbolFlags());
             symbols[this->mangler("commit_null")] =
