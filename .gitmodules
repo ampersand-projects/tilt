@@ -1,4 +1,3 @@
-[submodule "easy_jit"]
+[submodule "third_party/easy_jit"]
 	path = third_party/easy_jit
 	url = https://github.com/ampersand-projects/easy_jit.git
-	branch = master

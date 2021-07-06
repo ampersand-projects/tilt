@@ -13,11 +13,11 @@ find_package(LLVM 11.0.0 REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
-add_subdirectory(easy_jit)
+add_subdirectory(third_party/easy_jit)
 
 include_directories(${LLVM_INCLUDE_DIRS} include)
 add_definitions(${LLVM_DEFINITIONS})
-llvm_map_components_to_libnames(llvm_libs executionengine orcjit object)
+llvm_map_components_to_libnames(llvm_libs orcjit object)
 
 add_subdirectory(src)
 add_executable(main main.cpp)
