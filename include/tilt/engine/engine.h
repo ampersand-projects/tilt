@@ -42,12 +42,14 @@ namespace tilt {
 
     extern "C" {
         index_t* get_start_idx(region_t* reg);
+        index_t* get_end_idx(region_t* reg);
         long get_time(index_t* idx);
         long next_time(region_t* reg, index_t* idx);
         index_t* advance(region_t* reg, index_t* idx, long t);
         char* fetch(region_t* reg, index_t* idx, size_t size);
-        index_t* commit_data(region_t* reg, long t);
-        index_t* commit_null(region_t* reg, long t);
+        region_t* make_region(region_t* out_reg, region_t* in_reg, index_t* si, index_t* ei);
+        region_t* commit_data(region_t* reg, long t);;
+        region_t* commit_null(region_t* reg, long t);
     }
 
     class ExecEngine {

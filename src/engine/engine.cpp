@@ -9,6 +9,11 @@ extern "C" {
         return &reg->si;
     }
 
+    index_t* get_end_idx(region_t* reg)
+    {
+        return &reg->ei;
+    }
+
     long get_time(index_t* idx)
     {
         return idx->t;
@@ -36,7 +41,17 @@ extern "C" {
         return reg->data + (idx->i * size);
     }
 
-    index_t* commit_data(region_t* reg, long t)
+    region_t* make_region(region_t* out_reg, region_t* in_reg, index_t* si, index_t* ei)
+    {
+        out_reg->si = *si;
+        out_reg->ei = *ei;
+        out_reg->tl = in_reg->tl;
+        out_reg->data = in_reg->data;
+
+        return out_reg;
+    }
+
+    region_t* commit_data(region_t* reg, long t)
     {
         auto et = reg->ei.t;
         auto dur = t - et;
@@ -48,23 +63,25 @@ extern "C" {
         reg->ei.t = t;
         reg->ei.i = i;
 
-        return &reg->ei;
+        return reg;
     }
 
-    index_t* commit_null(region_t* reg, long t)
+    region_t* commit_null(region_t* reg, long t)
     {
         reg->ei.t = t;
-        return &reg->ei;
+        return reg;
     }
 }
 
 void ExecEngine::register_symbols()
 {
     this->AddModule(easy::easy_jit(get_start_idx, _1));
+    this->AddModule(easy::easy_jit(get_end_idx, _1));
     this->AddModule(easy::easy_jit(get_time, _1));
     this->AddModule(easy::easy_jit(next_time, _1, _2));
     this->AddModule(easy::easy_jit(advance, _1, _2, _3));
     this->AddModule(easy::easy_jit(fetch, _1, _2, _3));
+    this->AddModule(easy::easy_jit(make_region, _1, _2, _3, _4));
     this->AddModule(easy::easy_jit(commit_data, _1, _2));
     this->AddModule(easy::easy_jit(commit_null, _1, _2));
 }
