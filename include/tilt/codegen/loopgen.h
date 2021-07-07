@@ -13,7 +13,7 @@ namespace tilt
     class LoopGenCtx : public IRGenCtx<ExprPtr, ExprPtr> {
     public:
         LoopGenCtx(SymPtr sym, const Op* op, Looper loop) :
-            IRGenCtx(sym, op->syms, loop->syms), op(op), loop(loop)
+            IRGenCtx(sym, &op->syms, &loop->syms), op(op), loop(loop)
         {}
 
     private:

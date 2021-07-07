@@ -444,9 +444,8 @@ Value* LLVMGen::visit(const Loop& loop)
 
 unique_ptr<llvm::Module> LLVMGen::Build(const Looper loop, llvm::LLVMContext& llctx, llvm::IRBuilder<>& builder)
 {
-    map<SymPtr, llvm::Value*> sym_tbl;
-    LLVMGenCtx ctx(loop, sym_tbl, llctx);
-    LLVMGen llgen(move(ctx), builder);
+    LLVMGenCtx ctx(loop, llctx, builder);
+    LLVMGen llgen(move(ctx));
     loop->Accept(llgen);
-    return move(llgen.ctx().llmodule);
+    return move(llgen.ctx()._llmod);
 }

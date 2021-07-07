@@ -119,15 +119,17 @@ int main(int argc, char** argv)
     loop->Accept(loop_printer);
     cout << loop_printer.result() << endl;
 
+    auto jit = ExecEngine::Get();
+
     cout << endl << "LLVM IR: " << endl;
-    auto llctx = make_unique<llvm::LLVMContext>();
-    auto builder = make_unique<llvm::IRBuilder<>>(*llctx);
-    auto llmod = LLVMGen::Build(loop, *llctx, *builder);
+    auto& llctx = jit->GetCtx();
+    llvm::IRBuilder<> builder(llctx);
+    auto llmod = LLVMGen::Build(loop, llctx, builder);
     llvm::raw_fd_ostream r(fileno(stdout), false);
     if (!llvm::verifyModule(*llmod, &r)) { r << *llmod; }
 
     cout << endl << endl << "Query execution: " << endl;
-    auto jit = ExecEngine::Get();
+
     jit->AddModule(move(llmod));
 
     auto loop_addr = (region_t* (*)(long, long, region_t*, region_t*)) jit->Lookup(loop->GetName());

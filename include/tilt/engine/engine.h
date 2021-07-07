@@ -145,6 +145,8 @@ namespace tilt {
             cantFail(optimizer.add(jd, ThreadSafeModule(move(m), ctx)));
         }
 
+        LLVMContext& GetCtx() { return *ctx.getContext(); }
+
         intptr_t Lookup(StringRef name)
         {
             auto fn_sym = cantFail(es.lookup({ &jd }, mangler(name.str())));

@@ -15,16 +15,13 @@ namespace tilt
     template<typename InExprTy, typename OutExprTy>
     class IRGenCtx {
     protected:
-        IRGenCtx(
-            SymPtr sym,
-            const map<SymPtr, InExprTy>& in_sym_tbl,
-            map<SymPtr, OutExprTy>& out_sym_tbl) :
+        IRGenCtx(SymPtr sym, const map<SymPtr, InExprTy>* in_sym_tbl, map<SymPtr, OutExprTy>* out_sym_tbl) :
             sym(sym), in_sym_tbl(in_sym_tbl), out_sym_tbl(out_sym_tbl)
         {}
 
         SymPtr sym;
-        const map<SymPtr, InExprTy>& in_sym_tbl;
-        map<SymPtr, OutExprTy>& out_sym_tbl;
+        const map<SymPtr, InExprTy>* in_sym_tbl;
+        map<SymPtr, OutExprTy>* out_sym_tbl;
         map<SymPtr, SymPtr> sym_map;
         OutExprTy val;
 
@@ -123,7 +120,9 @@ namespace tilt
 
         CtxTy& ctx() { return irctx; }
 
-        OutExprTy& sym(const SymPtr& sym_ptr) { return ctx().out_sym_tbl[sym_ptr]; }
+        CtxTy& switch_ctx(CtxTy& new_ctx) { swap(new_ctx, irctx); return new_ctx; }
+
+        OutExprTy& sym(const SymPtr& sym_ptr) { auto& m = *(ctx().out_sym_tbl); return m[sym_ptr]; }
 
         SymPtr& map_sym(const SymPtr& in_sym) { return ctx().sym_map[in_sym]; }
 
@@ -151,7 +150,7 @@ namespace tilt
             auto tmp_sym = get_sym(symbol);
 
             if (ctx().sym_map.find(tmp_sym) == ctx().sym_map.end()) {
-                auto expr = ctx().in_sym_tbl.at(tmp_sym);
+                auto expr = ctx().in_sym_tbl->at(tmp_sym);
 
                 swap(ctx().sym, tmp_sym);
                 auto value = eval(expr);
