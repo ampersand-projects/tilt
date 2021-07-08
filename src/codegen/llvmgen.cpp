@@ -132,10 +132,9 @@ llvm::Type* LLVMGen::lltype(const Type& type)
 
 Value* LLVMGen::visit(const Symbol& symbol)
 {
-    auto tmp_sym = get_sym(symbol);
-    auto val = sym(map_sym(tmp_sym));
-    val->setName(symbol.name);
-    return val;
+    auto sym_ptr = sym(get_sym(symbol));
+    auto& m = *(ctx().out_sym_tbl);
+    return m[sym_ptr];
 }
 
 Value* LLVMGen::visit(const IfElse& ifelse)
@@ -429,15 +428,15 @@ Value* LLVMGen::visit(const Loop& loop)
     loop_fn->getBasicBlockList().push_back(end_bb);
     builder()->SetInsertPoint(end_bb);
     for (const auto& [state_sym, state]: loop.states) {
-        auto base = dyn_cast<PHINode>(sym(state.base));
-        base->addIncoming(sym(state_sym), end_bb);
+        auto base = dyn_cast<PHINode>(eval(state.base));
+        base->addIncoming(eval(state_sym), end_bb);
     }
     builder()->CreateBr(header_bb);
 
     // Loop exit
     loop_fn->getBasicBlockList().push_back(exit_bb);
     builder()->SetInsertPoint(exit_bb);
-    builder()->CreateRet(sym(loop.states.at(loop.output).base));
+    builder()->CreateRet(eval(loop.states.at(loop.output).base));
 
     return loop_fn;
 }

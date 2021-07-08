@@ -64,7 +64,9 @@ ExprPtr Count(SymPtr win)
         cur_exists,
         SymTable{ {cur_sym, cur}, { count_sel_sym, one } },
         count_sel_sym);
-    auto count_expr = make_shared<Sum>(count_op);
+    auto count_init = make_shared<IConst>(types::INT32, 0);
+    auto count_acc = [](ExprPtr a, ExprPtr b) { return make_shared<Add>(a, b); };
+    auto count_expr = make_shared<AggExpr>(count_op, count_init, count_acc);
     return count_expr;
 }
 
@@ -139,7 +141,7 @@ int main(int argc, char** argv)
     // input stream
     auto in_sym = make_shared<Symbol>("in", tilt::Type(types::INT32, FreeIter("in")));
 
-    auto query_op = NestedSelect(in_sym, 5);
+    auto query_op = WindowCount(in_sym, 5);
     auto query_op_sym = query_op->GetSym("query");
 
     cout << endl << "TiLT IR: " << endl;

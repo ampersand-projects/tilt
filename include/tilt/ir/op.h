@@ -5,6 +5,7 @@
 #include "tilt/ir/lstream.h"
 
 #include <map>
+#include <functional>
 
 using namespace std;
 
@@ -27,25 +28,20 @@ namespace tilt
     };
     typedef shared_ptr<Op> OpPtr;
 
-    enum AggType {
-        SUM,
-    };
+    typedef function<ExprPtr(ExprPtr, ExprPtr)> AccTy;
 
     struct AggExpr : public ValExpr {
-        AggType agg;
         OpPtr op;
+        ValExprPtr init;
+        AccTy acc;
 
-        AggExpr(DataType dtype, AggType agg, OpPtr op) :
-            ValExpr(dtype), agg(agg), op(op)
+        AggExpr(OpPtr op, ValExprPtr init, AccTy acc) :
+            ValExpr(init->type.dtype), op(op), init(init), acc(acc)
         {
-            assert(op->output->type.tl.iters.size() == 0);
+            assert(!op->output->type.isLStream());
         }
 
         void Accept(Visitor&) const final;
-    };
-
-    struct Sum : public AggExpr {
-        Sum(OpPtr op) : AggExpr(op->type.dtype, AggType::SUM, op) {}
     };
 
 } // namespace tilt

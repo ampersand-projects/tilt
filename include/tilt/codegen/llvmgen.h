@@ -62,9 +62,9 @@ namespace tilt {
         llvm::Value* visit(const LessThan&) final;
         llvm::Value* visit(const LessThanEqual&) final;
         llvm::Value* visit(const GreaterThan&) final;
-        llvm::Value* visit(const SubLStream&) { throw std::runtime_error("Invalid expression"); }
-        llvm::Value* visit(const Element&) { throw std::runtime_error("Invalid expression"); }
-        llvm::Value* visit(const Op&) { throw std::runtime_error("Invalid expression"); }
+        llvm::Value* visit(const SubLStream&) final { throw std::runtime_error("Invalid expression"); }
+        llvm::Value* visit(const Element&) final { throw std::runtime_error("Invalid expression"); }
+        llvm::Value* visit(const Op&) final { throw std::runtime_error("Invalid expression"); }
         llvm::Value* visit(const AggExpr&) final;
         llvm::Value* visit(const AllocIndex&) final;
         llvm::Value* visit(const GetTime&) final;
@@ -82,12 +82,10 @@ namespace tilt {
         llvm::Value* visit(const Call&) final;
         llvm::Value* visit(const Loop&) final;
 
-        void assign(const SymPtr& sym_ptr, llvm::Value* val)
+        void assign(const SymPtr& sym_ptr, llvm::Value* val) override
         {
-            map_sym(sym_ptr) = sym_ptr;
+            IRGen::assign(sym_ptr, val);
             val->setName(sym_ptr->name);
-            auto& m = *(ctx().out_sym_tbl);
-            m[sym_ptr] = val;
         }
 
         llvm::Function* llfunc(const string, llvm::Type*, vector<llvm::Type*>);

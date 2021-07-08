@@ -34,9 +34,9 @@ namespace tilt
         {
             auto loop = make_shared<Loop>(sym);
             LoopGenCtx ctx(sym, op, loop);
-            LoopGen loopgen(ctx);
+            LoopGen loopgen(move(ctx));
             loopgen.build_loop();
-            return ctx.loop;
+            return loopgen.ctx().loop;
         }
 
     private:

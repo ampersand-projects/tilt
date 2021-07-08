@@ -15,6 +15,8 @@ namespace tilt
          * TiLT IR
          */
         virtual void Visit(const Symbol&) = 0;
+        virtual void Visit(const Call&) = 0;
+        virtual void Visit(const IfElse&) = 0;
         virtual void Visit(const Exists&) = 0;
         virtual void Visit(const Equals&) = 0;
         virtual void Visit(const Not&) = 0;
@@ -58,8 +60,6 @@ namespace tilt
         virtual void Visit(const CommitNull&) = 0;
         virtual void Visit(const AllocRegion&) = 0;
         virtual void Visit(const MakeRegion&) = 0;
-        virtual void Visit(const Call&) = 0;
-        virtual void Visit(const IfElse&) = 0;
         virtual void Visit(const Loop&) = 0;
     };
 

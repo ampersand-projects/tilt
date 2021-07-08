@@ -34,14 +34,14 @@ void LoopGen::build_loop()
     // Loop function arguments
     auto t_start = make_shared<Time>("t_start");
     auto t_end = make_shared<Time>("t_end");
-    auto out_reg_arg = make_shared<Region>(name, ctx().op->type);
+    auto out_arg = make_shared<Region>(name, ctx().op->type);
     loop->inputs.push_back(t_start);
     loop->inputs.push_back(t_end);
-    loop->inputs.push_back(out_reg_arg);
+    loop->inputs.push_back(out_arg);
     for (auto& in : ctx().op->inputs) {
         SymPtr in_reg = make_shared<Region>(in->name, in->type);
         loop->inputs.push_back(in_reg);
-        map_sym(in) = in_reg;
+        sym(in) = in_reg;
     }
 
     // Create loop counter
@@ -54,7 +54,7 @@ void LoopGen::build_loop()
     loop->output = make_shared<Region>("output", ctx().op->type);
     auto output_base = make_shared<Region>("output_base", ctx().op->type);
     loop->states[loop->output].base = output_base;
-    loop->states[loop->output].init = out_reg_arg;
+    loop->states[loop->output].init = out_arg;
 
     // Evaluate loop body
     auto pred_expr = eval(ctx().op->pred);
@@ -99,7 +99,7 @@ void LoopGen::build_loop()
     } else {
         auto new_reg = make_shared<CommitData>(output_base, loop->t);
         auto new_reg_sym = new_reg->GetSym("new_reg");
-        sym(new_reg_sym) = new_reg;
+        assign(new_reg_sym, new_reg);
 
         auto idx = make_shared<GetEndIdx>(new_reg_sym);
         auto dptr = make_shared<Fetch>(new_reg_sym, idx);
@@ -111,8 +111,7 @@ void LoopGen::build_loop()
 
 ExprPtr LoopGen::visit(const Symbol& symbol)
 {
-    auto tmp_sym = get_sym(symbol);
-    return map_sym(tmp_sym);
+    return sym(get_sym(symbol));
 }
 
 ExprPtr LoopGen::visit(const IfElse& ifelse)
@@ -196,7 +195,7 @@ ExprPtr LoopGen::visit(const GreaterThan& gt)
 
 ExprPtr LoopGen::visit(const SubLStream& subls)
 {
-    auto& reg = map_sym(subls.lstream);
+    auto& reg = sym(subls.lstream);
     auto& start_idx = create_idx(reg, subls.win.start);
     auto& end_idx = create_idx(reg, subls.win.end);
     return make_shared<MakeRegion>(reg, start_idx, end_idx);
@@ -204,11 +203,11 @@ ExprPtr LoopGen::visit(const SubLStream& subls)
 
 ExprPtr LoopGen::visit(const Element& elem)
 {
-    auto& reg = map_sym(elem.lstream);
+    auto& reg = sym(elem.lstream);
     auto& idx = create_idx(reg, elem.pt);
     auto fetch = make_shared<Fetch>(reg, idx);
     auto ref_sym = fetch->GetSym(ctx().sym->name + "_ptr");
-    sym(ref_sym) = fetch;
+    assign(ref_sym, fetch);
     sym_ref(ctx().sym) = ref_sym;
     return make_shared<Load>(ref_sym);
 }
@@ -232,7 +231,7 @@ ExprPtr LoopGen::visit(const Op& op)
         auto size = make_shared<Sub>(t_end, t_start);
         auto out_reg = make_shared<AllocRegion>(op.type, size);
         out_sym = out_reg->GetSym(ctx().sym->name);
-        sym(out_sym) = out_reg;
+        assign(out_sym, out_reg);
     }
 
     vector<ExprPtr> args = {t_start, t_end, out_sym};
@@ -242,4 +241,36 @@ ExprPtr LoopGen::visit(const Op& op)
     return make_shared<Call>(inner_loop, move(args));
 }
 
-ExprPtr LoopGen::visit(const AggExpr&) { return nullptr; }
+ExprPtr LoopGen::visit(const AggExpr& aggexpr)
+{
+    auto agg_loop = make_shared<Loop>(ctx().sym);
+    LoopGenCtx new_ctx(ctx().sym, aggexpr.op.get(), agg_loop);
+
+    auto& old_ctx = switch_ctx(new_ctx);
+    build_loop();
+
+    // Redefine output state init and update
+    auto out_arg = make_shared<Symbol>(ctx().sym->name, aggexpr.type);
+    agg_loop->inputs[2] = out_arg;
+    agg_loop->states.erase(agg_loop->output);
+    agg_loop->output = make_shared<Symbol>("output", aggexpr.type);
+    auto& output_state = agg_loop->states[agg_loop->output];
+    output_state.base = make_shared<Symbol>("output_base", aggexpr.type);
+    output_state.init = out_arg;
+    auto acc_expr = aggexpr.acc(output_state.base, sym(aggexpr.op->output));
+    output_state.update = make_shared<IfElse>(eval(aggexpr.op->pred), acc_expr, output_state.base);
+    assert(output_state.update->type == aggexpr.type);
+
+    switch_ctx(old_ctx);
+
+    auto outer_loop = ctx().loop;
+    outer_loop->inner_loops.push_back(agg_loop);
+    auto t_start = outer_loop->states[outer_loop->t].base;
+    auto t_end = outer_loop->t;
+
+    vector<ExprPtr> args = { t_start, t_end, eval(aggexpr.init) };
+    for (const auto& input: aggexpr.op->inputs) {
+        args.push_back(eval(input));
+    }
+    return make_shared<Call>(agg_loop, args);
+}

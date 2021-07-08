@@ -122,9 +122,14 @@ namespace tilt
 
         CtxTy& switch_ctx(CtxTy& new_ctx) { swap(new_ctx, irctx); return new_ctx; }
 
-        OutExprTy& sym(const SymPtr& sym_ptr) { auto& m = *(ctx().out_sym_tbl); return m[sym_ptr]; }
+        virtual void assign(const SymPtr& sym_ptr, OutExprTy val)
+        {
+            sym(sym_ptr) = sym_ptr;
+            auto& m = *(ctx().out_sym_tbl);
+            m[sym_ptr] = val;
+        }
 
-        SymPtr& map_sym(const SymPtr& in_sym) { return ctx().sym_map[in_sym]; }
+        SymPtr& sym(const SymPtr& in_sym) { return ctx().sym_map[in_sym]; }
 
         SymPtr get_sym(const Symbol& symbol)
         {
@@ -157,8 +162,8 @@ namespace tilt
                 swap(tmp_sym, ctx().sym);
 
                 auto sym_clone = make_shared<Symbol>(symbol);
-                map_sym(tmp_sym) = sym_clone;
-                sym(sym_clone) = value;
+                sym(tmp_sym) = sym_clone;
+                this->assign(sym_clone, value);
             }
 
             val() = visit(symbol);

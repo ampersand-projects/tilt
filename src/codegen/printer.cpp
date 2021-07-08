@@ -127,16 +127,17 @@ void IRPrinter::Visit(const Op& op)
 
 void IRPrinter::Visit(const AggExpr& agg)
 {
-    switch (agg.agg)
-    {
-    case AggType::SUM:
-        ctx.ostr << "+";
-        break;
-    default:
-        ctx.ostr << "unk";
-        break;
-    }
-    ctx.ostr << "{";
+    ctx.ostr << "[init: s = ";
+    agg.init->Accept(*this);
+    ctx.ostr << "] ";
+
+    ctx.ostr << "[acc: s = ";
+    auto state_sym = agg.init->GetSym("s");
+    auto output_sym = agg.op->output->GetSym("o");
+    auto acc_expr = agg.acc(state_sym, output_sym);
+    acc_expr->Accept(*this);
+    ctx.ostr << "] {";
+
     enter_block();
     agg.op->Accept(*this);
     exit_block();
