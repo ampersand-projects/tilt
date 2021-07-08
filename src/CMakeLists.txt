@@ -12,7 +12,7 @@ set(SRC_FILES
 add_library(tilt STATIC ${SRC_FILES})
 add_dependencies(tilt easy-jit-core)
 
-target_compile_options(tilt PUBLIC "SHELL:-Xclang -load" "SHELL:-Xclang ${PROJECT_SOURCE_DIR}/build/third_party/easy_jit/bin/EasyJitPass.so" )
+target_compile_options(tilt PUBLIC "SHELL:-Xclang -load" "SHELL:-Xclang ${CMAKE_BINARY_DIR}/third_party/easy_jit/bin/EasyJitPass.so" )
 target_link_libraries(tilt EasyJitRuntime ${llvm_libs})
 
 target_include_directories(tilt PUBLIC "${PROJECT_SOURCE_DIR}/include" ${PROJECT_SOURCE_DIR}/third_party/easy_jit/include)
