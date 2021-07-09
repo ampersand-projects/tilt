@@ -10,17 +10,17 @@ Indexer& LoopGen::create_idx(const SymPtr reg, const Point pt)
 {
     auto& pt_idx_map = ctx().pt_idx_maps[reg];
     if (pt_idx_map.find(pt) == pt_idx_map.end()) {
+        auto idx_base = make_shared<Index>("i" + to_string(pt.offset) + "_base_" + reg->name);
+        assign(idx_base, make_shared<AllocIndex>(make_shared<GetStartIdx>(reg)));
+
         auto idx = make_shared<Index>("i" + to_string(pt.offset) + "_" + reg->name);
-        ctx().loop->idxs.push_back(idx);
-
-        auto& idx_state = ctx().loop->states[idx];
-        idx_state.base = make_shared<Index>("i" + to_string(pt.offset) + "_base_" + reg->name);
-        idx_state.init = make_shared<AllocIndex>(make_shared<GetStartIdx>(reg));
-
         auto time_expr = make_shared<Add>(ctx().loop->t, make_shared<TConst>(pt.offset));
-        auto adv_expr = make_shared<Advance>(reg, idx_state.base, time_expr);
-        idx_state.update = adv_expr;
+        auto adv_expr = make_shared<Advance>(reg, idx_base, time_expr);
+        assign(idx, adv_expr);
         pt_idx_map[pt] = idx;
+
+        ctx().loop->idxs.push_back(idx);
+        ctx().loop->state_bases[idx] = idx_base;
     }
 
     return pt_idx_map[pt];
@@ -45,16 +45,16 @@ void LoopGen::build_loop()
     }
 
     // Create loop counter
-    loop->t = make_shared<Time>("t");
     auto t_base = make_shared<Time>("t_base");
-    loop->states[loop->t].base = t_base;
-    loop->states[loop->t].init = t_start;
+    assign(t_base, t_start);
+    loop->t = make_shared<Time>("t");
+    loop->state_bases[loop->t] = t_base;
 
     // Create loop return value
-    loop->output = make_shared<Region>("output", ctx().op->type);
     auto output_base = make_shared<Region>("output_base", ctx().op->type);
-    loop->states[loop->output].base = output_base;
-    loop->states[loop->output].init = out_arg;
+    assign(output_base, out_arg);
+    loop->output = make_shared<Region>("output", ctx().op->type);
+    loop->state_bases[loop->output] = output_base;
 
     // Evaluate loop body
     auto pred_expr = eval(ctx().op->pred);
@@ -72,7 +72,7 @@ void LoopGen::build_loop()
     // Expression to calculate loop counter shift
     ExprPtr delta = nullptr;
     for (const auto& [idx, reg]: edge_idxs) {
-        const auto& base_idx = loop->states[idx].base;
+        const auto& base_idx = loop->state_bases[idx];
         auto next_time_expr = make_shared<NextTime>(reg, base_idx);
         auto cur_time_expr = make_shared<GetTime>(base_idx);
         auto diff_expr = make_shared<Sub>(next_time_expr, cur_time_expr);
@@ -85,7 +85,7 @@ void LoopGen::build_loop()
 
     // Loop counter update expression
     auto t_incr = make_shared<Max>(make_shared<TConst>(ctx().op->iter.period), delta);
-    loop->states[loop->t].update = make_shared<Add>(t_base, t_incr);
+    assign(loop->t, make_shared<Add>(t_base, t_incr));
 
     // Loop exit condition
     loop->exit_cond = make_shared<GreaterThan>(loop->t, t_end);
@@ -106,7 +106,7 @@ void LoopGen::build_loop()
         true_body = make_shared<Store>(new_reg_sym, dptr, out_expr);
     }
     auto false_body = make_shared<CommitNull>(output_base, loop->t);
-    loop->states[loop->output].update = make_shared<IfElse>(pred_expr, true_body, false_body);
+    assign(loop->output, make_shared<IfElse>(pred_expr, true_body, false_body));
 }
 
 ExprPtr LoopGen::visit(const Symbol& symbol)
@@ -221,12 +221,12 @@ ExprPtr LoopGen::visit(const Op& op)
 
     outer_loop->inner_loops.push_back(inner_loop);
 
-    auto t_start = outer_loop->states[outer_loop->t].base;
+    auto t_start = outer_loop->state_bases[outer_loop->t];
     auto t_end = outer_loop->t;
 
     SymPtr out_sym;
     if (outer_op->output == ctx().sym) {
-        out_sym = outer_loop->states[outer_loop->output].base;
+        out_sym = outer_loop->state_bases[outer_loop->output];
     } else {
         auto size = make_shared<Sub>(t_end, t_start);
         auto out_reg = make_shared<AllocRegion>(op.type, size);
@@ -249,23 +249,27 @@ ExprPtr LoopGen::visit(const AggExpr& aggexpr)
     auto& old_ctx = switch_ctx(new_ctx);
     build_loop();
 
-    // Redefine output state init and update
+    // Redefine output argument and states
     auto out_arg = make_shared<Symbol>(ctx().sym->name, aggexpr.type);
     agg_loop->inputs[2] = out_arg;
-    agg_loop->states.erase(agg_loop->output);
+    agg_loop->syms.erase(agg_loop->state_bases[agg_loop->output]);
+    agg_loop->syms.erase(agg_loop->output);
+    agg_loop->state_bases.erase(agg_loop->output);
+
+    auto output_base = make_shared<Symbol>("output_base", aggexpr.type);
+    assign(output_base, out_arg);
     agg_loop->output = make_shared<Symbol>("output", aggexpr.type);
-    auto& output_state = agg_loop->states[agg_loop->output];
-    output_state.base = make_shared<Symbol>("output_base", aggexpr.type);
-    output_state.init = out_arg;
-    auto acc_expr = aggexpr.acc(output_state.base, sym(aggexpr.op->output));
-    output_state.update = make_shared<IfElse>(eval(aggexpr.op->pred), acc_expr, output_state.base);
-    assert(output_state.update->type == aggexpr.type);
+    agg_loop->state_bases[agg_loop->output] = output_base;
+    auto acc_expr = eval(aggexpr.acc(output_base, sym(aggexpr.op->output)));
+    auto output_update = make_shared<IfElse>(eval(aggexpr.op->pred), acc_expr, output_base);
+    assert(output_update->type == aggexpr.type);
+    assign(agg_loop->output, output_update);
 
     switch_ctx(old_ctx);
 
     auto outer_loop = ctx().loop;
     outer_loop->inner_loops.push_back(agg_loop);
-    auto t_start = outer_loop->states[outer_loop->t].base;
+    auto t_start = outer_loop->state_bases[outer_loop->t];
     auto t_end = outer_loop->t;
 
     vector<ExprPtr> args = { t_start, t_end, eval(aggexpr.init) };

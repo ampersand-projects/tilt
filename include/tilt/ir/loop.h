@@ -210,12 +210,6 @@ namespace tilt
     };
 
     struct Loop : public Func {
-        struct LoopState {
-            SymPtr base;
-            ExprPtr init;
-            ExprPtr update;
-        };
-
         // Loop counter
         Timer t;
 
@@ -223,7 +217,7 @@ namespace tilt
         vector<Indexer> idxs;
 
         // States
-        map<SymPtr, LoopState> states;
+        map<SymPtr, SymPtr> state_bases;
 
         // loop condition
         PredPtr exit_cond;

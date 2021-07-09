@@ -1,5 +1,7 @@
 #include "tilt/codegen/printer.h"
 
+#include <unordered_set>
+
 using namespace tilt;
 using namespace std;
 
@@ -265,8 +267,10 @@ void IRPrinter::Visit(const Loop& loop)
 
     emitcomment("initialization");
     emitnewline();
-    for (const auto& [sym, state]: loop.states) {
-        emitassign(state.base, state.init);
+    unordered_set<SymPtr> bases;
+    for (const auto& [_, base]: loop.state_bases) {
+        emitassign(base, loop.syms.at(base));
+        bases.insert(base);
         emitnewline();
     }
     emitnewline();
@@ -276,7 +280,7 @@ void IRPrinter::Visit(const Loop& loop)
 
     emitcomment("update timer");
     emitnewline();
-    emitassign(loop.t, loop.states.at(loop.t).update);
+    emitassign(loop.t, loop.syms.at(loop.t));
     emitnewline();
     emitnewline();
 
@@ -291,7 +295,7 @@ void IRPrinter::Visit(const Loop& loop)
     emitcomment("update indices");
     emitnewline();
     for (const auto& idx: loop.idxs) {
-        emitassign(idx, loop.states.at(idx).update);
+        emitassign(idx, loop.syms.at(idx));
         emitnewline();
     }
     emitnewline();
@@ -299,21 +303,24 @@ void IRPrinter::Visit(const Loop& loop)
     emitcomment("set local variables");
     emitnewline();
     for (const auto& [sym, expr]: loop.syms) {
-        emitassign(sym, expr);
-        emitnewline();
+        if (bases.find(sym) == bases.end() &&
+            loop.state_bases.find(sym) == loop.state_bases.end()) {
+            emitassign(sym, expr);
+            emitnewline();
+        }
     }
     emitnewline();
 
     emitcomment("loop body");
     emitnewline();
-    emitassign(loop.output, loop.states.at(loop.output).update);
+    emitassign(loop.output, loop.syms.at(loop.output));
     emitnewline();
     emitnewline();
 
     emitcomment("Update states");
-    for (const auto& [sym, state]: loop.states) {
+    for (const auto& [var, base]: loop.state_bases) {
         emitnewline();
-        emitassign(state.base, sym);
+        emitassign(base, var);
     }
 
     exit_block();
