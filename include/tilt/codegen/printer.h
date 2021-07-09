@@ -1,6 +1,7 @@
 #ifndef TILT_IRPRINTER
 #define TILT_IRPRINTER
 
+#include "llvm/IR/Module.h"
 #include "tilt/codegen/visitor.h"
 
 #include <sstream>
@@ -18,7 +19,6 @@ namespace tilt
     private:
         size_t indent;
         size_t nesting;
-        ostringstream ostr;
 
         friend class IRPrinter;
     };
@@ -83,45 +83,46 @@ namespace tilt
         void enter_block() { ctx.indent++; emitnewline(); }
         void exit_block() { ctx.indent--; emitnewline(); }
 
-        void emittab() { ctx.ostr << string(1 << tabstop, ' '); }
-        void emitnewline() { ctx.ostr << endl << string(ctx.indent << tabstop, ' '); }
-        void emit(string str) { ctx.ostr << str; }
-        void emitcomment(string comment) { ctx.ostr << "/* " << comment << " */"; }
+        void emittab() { ostr << string(1 << tabstop, ' '); }
+        void emitnewline() { ostr << endl << string(ctx.indent << tabstop, ' '); }
+        void emit(string str) { ostr << str; }
+        void emitcomment(string comment) { ostr << "/* " << comment << " */"; }
 
         void emitunary(const string op, const ExprPtr a)
         {
-            ctx.ostr << op;
+            ostr << op;
             a->Accept(*this);
         }
 
         void emitbinary(const ExprPtr a, const string op, const ExprPtr b)
         {
             a->Accept(*this);
-            ctx.ostr << " " << op << " ";
+            ostr << " " << op << " ";
             b->Accept(*this);
         }
 
         void emitassign(const ExprPtr lhs, const ExprPtr rhs)
         {
             lhs->Accept(*this);
-            ctx.ostr << " = ";
+            ostr << " = ";
             rhs->Accept(*this);
-            ctx.ostr << ";";
+            ostr << ";";
         }
 
         void emitfunc(const string name, const vector<ExprPtr> args)
         {
-            ctx.ostr << name << "(";
+            ostr << name << "(";
             for (size_t i = 0; i < args.size()-1; i++) {
                 args[i]->Accept(*this);
-                ctx.ostr << ", ";
+                ostr << ", ";
             }
             args.back()->Accept(*this);
-            ctx.ostr << ")";
+            ostr << ")";
         }
 
         IRPrinterCtx ctx;
         size_t tabstop;
+        ostringstream ostr;
     };
 
 } // namespace tilt

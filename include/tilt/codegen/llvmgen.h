@@ -34,7 +34,9 @@ namespace tilt {
             IRGen(move(llgenctx)), _llctx(*llgenctx.llctx),
             _llmod(make_unique<llvm::Module>(llgenctx.loop->name, _llctx)),
             _builder(make_unique<llvm::IRBuilder<>>(_llctx))
-        {}
+        {
+            register_vinstrs();
+        }
 
         static unique_ptr<llvm::Module> Build(const Looper, llvm::LLVMContext&);
 
@@ -86,6 +88,8 @@ namespace tilt {
             IRGen::assign(sym_ptr, val);
             val->setName(sym_ptr->name);
         }
+
+        void register_vinstrs();
 
         llvm::Function* llfunc(const string, llvm::Type*, vector<llvm::Type*>);
         llvm::Value* llcall(const string, llvm::Type*, vector<llvm::Value*>);

@@ -145,15 +145,11 @@ int main(int argc, char** argv)
     auto query_op_sym = query_op->GetSym("query");
 
     cout << endl << "TiLT IR: " << endl;
-    IRPrinter printer;
-    query_op->Accept(printer);
-    cout << printer.result() << endl;
+    cout << IRPrinter::Build(query_op) << endl;
 
     cout << endl << "Loop IR: " << endl;
-    IRPrinter loop_printer;
     auto loop = LoopGen::Build(query_op_sym, query_op.get());
-    loop->Accept(loop_printer);
-    cout << loop_printer.result() << endl;
+    cout << IRPrinter::Build(loop) << endl;
 
     auto jit = ExecEngine::Get();
 

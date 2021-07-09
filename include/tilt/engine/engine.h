@@ -18,8 +18,6 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Transforms/IPO.h"
 
-#include "easy/jit.h"
-
 #include <memory>
 
 using namespace std;
@@ -27,30 +25,6 @@ using namespace llvm;
 using namespace llvm::orc;
 
 namespace tilt {
-
-    struct index_t {
-        long t;
-        unsigned int i;
-    };
-
-    struct region_t {
-        index_t si;
-        index_t ei;
-        index_t* tl;
-        char* data;
-    };
-
-    extern "C" {
-        index_t* get_start_idx(region_t* reg);
-        index_t* get_end_idx(region_t* reg);
-        long get_time(index_t* idx);
-        long next_time(region_t* reg, index_t* idx);
-        index_t* advance(region_t* reg, index_t* idx, long t);
-        char* fetch(region_t* reg, index_t* idx, size_t size);
-        region_t* make_region(region_t* out_reg, region_t* in_reg, index_t* si, index_t* ei);
-        region_t* commit_data(region_t* reg, long t);;
-        region_t* commit_null(region_t* reg, long t);
-    }
 
     class ExecEngine {
     public:
@@ -65,60 +39,15 @@ namespace tilt {
             jd.addGenerator(
                 cantFail(DynamicLibrarySearchGenerator::GetForCurrentProcess(dl.getGlobalPrefix()))
             );
-
-            register_symbols();
         }
 
-        static ExecEngine* Get()
-        {
-            static unique_ptr<ExecEngine> engine;
-
-            if (!engine) {
-                InitializeNativeTarget();
-                InitializeNativeTargetAsmPrinter();
-
-                auto jtmb = cantFail(JITTargetMachineBuilder::detectHost());
-                auto dl = cantFail(jtmb.getDefaultDataLayoutForTarget());
-
-                engine = make_unique<ExecEngine>(move(jtmb), move(dl));
-            }
-
-            return engine.get();
-        }
-
-        void AddModule(unique_ptr<Module> m)
-        {
-            cantFail(optimizer.add(jd, ThreadSafeModule(move(m), ctx)));
-        }
-
-        LLVMContext& GetCtx() { return *ctx.getContext(); }
-
-        intptr_t Lookup(StringRef name)
-        {
-            auto fn_sym = cantFail(es.lookup({ &jd }, mangler(name.str())));
-            return (intptr_t) fn_sym.getAddress();
-        }
+        static ExecEngine* Get();
+        void AddModule(unique_ptr<Module>);
+        LLVMContext& GetCtx();
+        intptr_t Lookup(StringRef);
 
     private:
-        void register_symbols();
-
-        static Expected<ThreadSafeModule> optimize_module(ThreadSafeModule tsm, const MaterializationResponsibility &r)
-        {
-            tsm.withModuleDo([](Module &m) {
-                unsigned opt_level = 3;
-                unsigned opt_size = 0;
-
-                llvm::PassManagerBuilder builder;
-                builder.OptLevel = opt_level;
-                builder.Inliner = createFunctionInliningPass(opt_level, opt_size, false);
-
-                llvm::legacy::PassManager mpm;
-                builder.populateModulePassManager(mpm);
-                mpm.run(m);
-            });
-
-            return move(tsm);
-        }
+        static Expected<ThreadSafeModule> optimize_module(ThreadSafeModule, const MaterializationResponsibility&);
 
         ExecutionSession es;
         RTDyldObjectLinkingLayer linker;

@@ -172,4 +172,18 @@ namespace tilt {
 
 } // namespace tilt
 
+extern "C" {
+    struct index_t {
+        long t;
+        unsigned int i;
+    };
+
+    struct region_t {
+        index_t si;
+        index_t ei;
+        index_t* tl;
+        char* data;
+    };
+}
+
 #endif // TILT_TYPE

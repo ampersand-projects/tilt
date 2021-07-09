@@ -18,16 +18,16 @@ string idx_str(long idx)
 
 void IRPrinter::Visit(const Symbol& sym)
 {
-    if (sym.type.tl.iters.size()) ctx.ostr << "~";
-    if (sym.type.dtype.is_ptr) ctx.ostr << "*";
-    ctx.ostr << sym.name;
+    if (sym.type.tl.iters.size()) ostr << "~";
+    if (sym.type.dtype.is_ptr) ostr << "*";
+    ostr << sym.name;
 }
 
-void IRPrinter::Visit(const IConst& iconst) { ctx.ostr << iconst.val; }
-void IRPrinter::Visit(const UConst& uconst) { ctx.ostr << uconst.val; }
-void IRPrinter::Visit(const FConst& fconst) { ctx.ostr << fconst.val; }
-void IRPrinter::Visit(const CConst& cconst) { ctx.ostr << cconst.val; }
-void IRPrinter::Visit(const TConst& tconst) { ctx.ostr << tconst.val; }
+void IRPrinter::Visit(const IConst& iconst) { ostr << iconst.val; }
+void IRPrinter::Visit(const UConst& uconst) { ostr << uconst.val; }
+void IRPrinter::Visit(const FConst& fconst) { ostr << fconst.val; }
+void IRPrinter::Visit(const CConst& cconst) { ostr << cconst.val; }
+void IRPrinter::Visit(const TConst& tconst) { ostr << tconst.val; }
 void IRPrinter::Visit(const Add& add)
 {
     emitbinary(add.Left(), "+", add.Right());
@@ -46,7 +46,7 @@ void IRPrinter::Visit(const Min& min)
 }
 void IRPrinter::Visit(const Now&)
 {
-    ctx.ostr << "t" << ctx.nesting;
+    ostr << "t" << ctx.nesting;
 }
 
 void IRPrinter::Visit(const Exists& exists)
@@ -77,81 +77,81 @@ void IRPrinter::Visit(const Or& or_pred)
 void IRPrinter::Visit(const SubLStream& subls)
 {
     subls.lstream->Accept(*this);
-    ctx.ostr << "[t" << ctx.nesting << idx_str(subls.win.start.offset)
+    ostr << "[t" << ctx.nesting << idx_str(subls.win.start.offset)
         << " : t" << ctx.nesting << idx_str(subls.win.end.offset) << "]";
 }
 
 void IRPrinter::Visit(const Element& elem)
 {
     elem.lstream->Accept(*this);
-    ctx.ostr << "[t" << ctx.nesting;
-    ctx.ostr << idx_str(elem.pt.offset);
-    ctx.ostr << "]";
+    ostr << "[t" << ctx.nesting;
+    ostr << idx_str(elem.pt.offset);
+    ostr << "]";
 }
 
 void IRPrinter::Visit(const Op& op)
 {
     enter_op();
-    ctx.ostr << FORALL << "t" << ctx.nesting << " " << IN << " " << op.iter.name << " ";
+    ostr << FORALL << "t" << ctx.nesting << " " << IN << " " << op.iter.name << " ";
 
-    ctx.ostr << "[";
+    ostr << "[";
     for (auto in : op.inputs) {
         in->Accept(*this);
-        ctx.ostr << "; ";
+        ostr << "; ";
     }
-    ctx.ostr << "] ";
+    ostr << "] ";
 
-    ctx.ostr << "[";
+    ostr << "[";
     for (auto it : op.type.tl.iters) {
-        ctx.ostr << it.name << "; ";
+        ostr << it.name << "; ";
     }
-    ctx.ostr << "] {";
+    ostr << "] {";
 
     enter_block();
     for (auto& it : op.syms) {
         it.first->Accept(*this);
-        ctx.ostr << " = ";
+        ostr << " = ";
         it.second->Accept(*this);
         emitnewline();
     }
-    ctx.ostr << "return ";
+    ostr << "return ";
     op.pred->Accept(*this);
-    ctx.ostr << " ? ";
+    ostr << " ? ";
     op.output->Accept(*this);
-    ctx.ostr << " : " << PHI;
+    ostr << " : " << PHI;
     exit_block();
     
-    ctx.ostr << "}";
+    ostr << "}";
     exit_op();
 }
 
 void IRPrinter::Visit(const AggExpr& agg)
 {
-    ctx.ostr << "[init: s = ";
+    ostr << "[init: s = ";
     agg.init->Accept(*this);
-    ctx.ostr << "] ";
+    ostr << "] ";
 
-    ctx.ostr << "[acc: s = ";
+    ostr << "[acc: s = ";
     auto state_sym = agg.init->GetSym("s");
     auto output_sym = agg.op->output->GetSym("o");
     auto acc_expr = agg.acc(state_sym, output_sym);
     acc_expr->Accept(*this);
-    ctx.ostr << "] {";
+    ostr << "] {";
 
     enter_block();
     agg.op->Accept(*this);
     exit_block();
-    ctx.ostr << "}";
+    ostr << "}";
 }
 
 void IRPrinter::Visit(const True&)
 {
-    ctx.ostr << "True";
+    ostr << "True";
 }
 
 void IRPrinter::Visit(const False&)
 {
-    ctx.ostr << "False";
+    ostr << "False";
 }
 
 void IRPrinter::Visit(const LessThan& lt)
@@ -242,9 +242,9 @@ void IRPrinter::Visit(const Call& call)
 void IRPrinter::Visit(const IfElse& ifelse)
 {
     ifelse.cond->Accept(*this);
-    ctx.ostr << " ? ";
+    ostr << " ? ";
     ifelse.true_body->Accept(*this);
-    ctx.ostr << " : ";
+    ostr << " : ";
     ifelse.false_body->Accept(*this);
 }
 
@@ -260,7 +260,7 @@ void IRPrinter::Visit(const Loop& loop)
     emitfunc(loop.GetName(), args);
     emitnewline();
 
-    ctx.ostr << "{";
+    ostr << "{";
     enter_block();
 
     emitcomment("initialization");
@@ -271,7 +271,7 @@ void IRPrinter::Visit(const Loop& loop)
     }
     emitnewline();
 
-    ctx.ostr << "while(1) {";
+    ostr << "while(1) {";
     enter_block();
 
     emitcomment("update timer");
@@ -282,9 +282,9 @@ void IRPrinter::Visit(const Loop& loop)
 
     emitcomment("loop condition check");
     emitnewline();
-    ctx.ostr << "if (";
+    ostr << "if (";
     loop.exit_cond->Accept(*this);
-    ctx.ostr << ") break;";
+    ostr << ") break;";
     emitnewline();
     emitnewline();
 
@@ -317,10 +317,10 @@ void IRPrinter::Visit(const Loop& loop)
     }
 
     exit_block();
-    ctx.ostr << "}";
+    ostr << "}";
 
     exit_block();
-    ctx.ostr << "}";
+    ostr << "}";
     emitnewline();
     emitnewline();
 }
