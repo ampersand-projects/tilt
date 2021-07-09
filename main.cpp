@@ -40,13 +40,15 @@ OpPtr NestedSelect(SymPtr in, long w)
     auto inwin_sym = inwin->GetSym("inwin");
     auto sel = Select(inwin_sym);
     auto sel_sym = sel->GetSym("sel");
+    auto sel2 = Select(sel_sym);
+    auto sel2_sym = sel2->GetSym("sel2");
     auto sel_op = make_shared<Op>(
         in->type.tl,
         FreqIter(0, w),
         Params{ in },
         make_shared<True>(),
-        SymTable{ {inwin_sym, inwin}, { sel_sym, sel } },
-        sel_sym);
+        SymTable{ {inwin_sym, inwin}, {sel_sym, sel}, {sel2_sym, sel2} },
+        sel2_sym);
     return sel_op;
 }
 
@@ -141,7 +143,7 @@ int main(int argc, char** argv)
     // input stream
     auto in_sym = make_shared<Symbol>("in", tilt::Type(types::INT32, FreeIter("in")));
 
-    auto query_op = Select(in_sym);
+    auto query_op = Query(in_sym, 10, 5);
     auto query_op_sym = query_op->GetSym("query");
 
     cout << endl << "TiLT IR: " << endl;
@@ -176,8 +178,8 @@ int main(int argc, char** argv)
     in_reg.ei.t = dlen-1;
     in_reg.tl = in_tl;
     in_reg.data = (char*) in_data;
-
-    for (int i=0; i<dlen; i++) {
+    in_tl[0] = STARTER_CKPT;
+    for (int i=1; i<dlen; i++) {
         in_tl[i] = {i, 1};
         in_data[i] = i;
     }
@@ -191,6 +193,7 @@ int main(int argc, char** argv)
     out_reg.ei.t = 0;
     out_reg.tl = out_tl;
     out_reg.data = (char*) out_data;
+    out_tl[0] = STARTER_CKPT;
 
     auto start_time = high_resolution_clock::now();
     auto* res_reg = loop_addr(0, dlen-1, &out_reg, &in_reg);
@@ -202,7 +205,7 @@ int main(int argc, char** argv)
             cout << "(" << in_tl[i].t << "," << in_tl[i].i << ") " << in_data[i] << " -> "
                 << "(" << out_tl[i].t << "," << out_tl[i].i << ") " << out_data[i] << endl;
         }
-        out_count += (out_data[i] == in_data[i]+10);
+        out_count += (out_data[i] == in_data[i]+15);
     }
 
     auto dur = duration_cast<microseconds>(end_time - start_time).count();

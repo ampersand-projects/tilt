@@ -181,6 +181,11 @@ void IRPrinter::Visit(const GetTime& get_time)
     emitfunc("get_time", { get_time.idx });
 }
 
+void IRPrinter::Visit(const GetIndex& get_index)
+{
+    emitfunc("get_index", { get_index.idx });
+}
+
 void IRPrinter::Visit(const Fetch& fetch)
 {
     emitfunc("fetch", { fetch.reg, fetch.idx });
@@ -228,7 +233,7 @@ void IRPrinter::Visit(const CommitNull& commit)
 
 void IRPrinter::Visit(const AllocRegion& alloc_reg)
 {
-    emitfunc("alloc_region", { alloc_reg.dur });
+    emitfunc("alloc_region", { alloc_reg.size });
 }
 
 void IRPrinter::Visit(const MakeRegion& make_reg)

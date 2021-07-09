@@ -26,6 +26,12 @@ namespace tilt { extern "C" {
     }
 
     TILT_VINSTR_ATTR
+    unsigned int get_index(index_t* idx)
+    {
+        return idx->i;
+    }
+
+    TILT_VINSTR_ATTR
     long next_time(region_t* reg, index_t* idx)
     {
         auto e = reg->tl[idx->i];
@@ -59,6 +65,19 @@ namespace tilt { extern "C" {
         out_reg->data = in_reg->data;
 
         return out_reg;
+    }
+
+    TILT_VINSTR_ATTR
+    region_t* alloc_region(region_t* reg, long t, index_t* tl, char* data)
+    {
+        reg->si.t = t;
+        reg->si.i = 0;
+        reg->ei.t = t;
+        reg->ei.i = 0;
+        reg->tl = tl;
+        reg->tl[0] = STARTER_CKPT;
+        reg->data = data;
+        return reg;
     }
 
     TILT_VINSTR_ATTR

@@ -64,6 +64,7 @@ namespace tilt
         void Visit(const AggExpr&) override;
         void Visit(const AllocIndex&) override;
         void Visit(const GetTime&) override;
+        void Visit(const GetIndex&) override;
         void Visit(const Fetch&) override;
         void Visit(const Load&) override;
         void Visit(const Store&) override;

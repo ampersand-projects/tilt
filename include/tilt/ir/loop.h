@@ -58,6 +58,18 @@ namespace tilt
         void Accept(Visitor&) const final;
     };
 
+    struct GetIndex : public ValExpr {
+        ExprPtr idx;
+
+        GetIndex(ExprPtr idx) :
+            ValExpr(types::UINT32), idx(idx)
+        {
+            assert(idx->type == types::INDEX_PTR);
+        }
+
+        void Accept(Visitor&) const final;
+    };
+
     struct Fetch : public ValExpr {
         ExprPtr reg;
         ExprPtr idx;
@@ -181,13 +193,15 @@ namespace tilt
     };
 
     struct AllocRegion : public Expr {
-        ValExprPtr dur;
+        ValExprPtr size;
+        ExprPtr start_time;
 
-        AllocRegion(Type type, ValExprPtr dur) :
-            Expr(type), dur(dur)
+        AllocRegion(Type type, ValExprPtr size, ExprPtr start_time) :
+            Expr(type), size(size), start_time(start_time)
         {
             assert(type.isLStream());
-            assert(dur->type.dtype == types::TIME);
+            assert(size->type.dtype == types::UINT32);
+            assert(start_time->type.dtype == types::TIME);
         }
 
         void Accept(Visitor&) const final;

@@ -49,6 +49,7 @@ namespace tilt
          */
         virtual void Visit(const AllocIndex&) = 0;
         virtual void Visit(const GetTime&) = 0;
+        virtual void Visit(const GetIndex&) = 0;
         virtual void Visit(const Fetch&) = 0;
         virtual void Visit(const Load&) = 0;
         virtual void Visit(const Store&) = 0;

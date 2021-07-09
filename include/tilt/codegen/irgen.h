@@ -63,6 +63,7 @@ namespace tilt
         virtual OutExprTy visit(const AggExpr&) = 0;
         virtual OutExprTy visit(const AllocIndex&) = 0;
         virtual OutExprTy visit(const GetTime&) = 0;
+        virtual OutExprTy visit(const GetIndex&) = 0;
         virtual OutExprTy visit(const Fetch&) = 0;
         virtual OutExprTy visit(const Load&) = 0;
         virtual OutExprTy visit(const Store&) = 0;
@@ -104,6 +105,7 @@ namespace tilt
         void Visit(const AggExpr& expr) final { val() = visit(expr); }
         void Visit(const AllocIndex& expr) final { val() = visit(expr); }
         void Visit(const GetTime& expr) final { val() = visit(expr); }
+        void Visit(const GetIndex& expr) final { val() = visit(expr); }
         void Visit(const Fetch& expr) final { val() = visit(expr); }
         void Visit(const Load& expr) final { val() = visit(expr); }
         void Visit(const Store& expr) final { val() = visit(expr); }

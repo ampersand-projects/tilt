@@ -18,10 +18,12 @@ void LLVMGen::register_vinstrs()
     Linker::linkModules(*llmod(), easy::get_module(llctx(), get_start_idx, _1));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), get_end_idx, _1));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), get_time, _1));
+    Linker::linkModules(*llmod(), easy::get_module(llctx(), get_index, _1));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), next_time, _1, _2));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), advance, _1, _2, _3));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), fetch, _1, _2, _3));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), make_region, _1, _2, _3, _4));
+    Linker::linkModules(*llmod(), easy::get_module(llctx(), alloc_region, _1, _2, _3, _4));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), commit_data, _1, _2));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), commit_null, _1, _2));
 }
@@ -275,11 +277,14 @@ Value* LLVMGen::visit(const GreaterThan& gt)
     return builder()->CreateICmpSGT(eval(gt.Left()), eval(gt.Right()));
 }
 
-Value* LLVMGen::visit(const AggExpr&) { throw std::runtime_error("Invalid expression"); }
-
 Value* LLVMGen::visit(const GetTime& get_time)
 {
     return llcall("get_time", lltype(get_time), { eval(get_time.idx) });
+}
+
+Value* LLVMGen::visit(const GetIndex& get_idx)
+{
+    return llcall("get_index", lltype(get_idx), { eval(get_idx.idx) });
 }
 
 Value* LLVMGen::visit(const Fetch& fetch)
@@ -347,7 +352,18 @@ Value* LLVMGen::visit(const Store& store)
     return reg_val;
 }
 
-Value* LLVMGen::visit(const AllocRegion&) { throw std::runtime_error("Invalid expression"); }
+Value* LLVMGen::visit(const AllocRegion& alloc)
+{
+    auto time_val = eval(alloc.start_time);
+    auto size_val = eval(alloc.size);
+    auto tl_arr = builder()->CreateAlloca(lltype(types::INDEX), size_val);
+    auto data_arr = builder()->CreateAlloca(lltype(alloc.type.dtype), size_val);
+    auto char_arr = builder()->CreateBitCast(data_arr, lltype(types::CHAR.ptypes, true));
+
+    auto reg_type = lltype(alloc);
+    auto reg_val = builder()->CreateAlloca(reg_type->getPointerElementType());
+    return llcall("alloc_region", lltype(alloc), { reg_val, time_val, tl_arr, char_arr });
+}
 
 Value* LLVMGen::visit(const MakeRegion& make_reg)
 {
@@ -418,21 +434,23 @@ Value* LLVMGen::visit(const Loop& loop)
     // Update indices
     loop_fn->getBasicBlockList().push_back(body_bb);
     builder()->SetInsertPoint(body_bb);
+    auto stack_val = builder()->CreateIntrinsic(Intrinsic::stacksave, {}, {});
     for (const auto& idx: loop.idxs) {
         eval(idx);
     }
 
     // Loop body
     eval(loop.output);
+    for (const auto& [var, base]: loop.state_bases) {
+        auto base_phi = dyn_cast<PHINode>(eval(base));
+        base_phi->addIncoming(eval(var), end_bb);
+    }
     builder()->CreateBr(end_bb);
 
     // Update loop states and jump back to loop header
     loop_fn->getBasicBlockList().push_back(end_bb);
     builder()->SetInsertPoint(end_bb);
-    for (const auto& [var, base]: loop.state_bases) {
-        auto base_phi = dyn_cast<PHINode>(eval(base));
-        base_phi->addIncoming(eval(var), end_bb);
-    }
+    builder()->CreateIntrinsic(Intrinsic::stackrestore, {}, {stack_val});
     builder()->CreateBr(header_bb);
 
     // Loop exit

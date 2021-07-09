@@ -224,19 +224,28 @@ ExprPtr LoopGen::visit(const Op& op)
     auto t_start = outer_loop->state_bases[outer_loop->t];
     auto t_end = outer_loop->t;
 
+    vector<ExprPtr> inputs;
+    ValExprPtr size_expr = make_shared<UConst>(types::UINT32, 1);
+    for (const auto& input: inner_op->inputs) {
+        auto input_val = eval(input);
+        inputs.push_back(input_val);
+        auto start = make_shared<GetIndex>(make_shared<GetStartIdx>(input_val));
+        auto end = make_shared<GetIndex>(make_shared<GetEndIdx>(input_val));
+        size_expr = make_shared<Add>(size_expr, make_shared<Sub>(end, start));
+    }
+
     SymPtr out_sym;
     if (outer_op->output == ctx().sym) {
         out_sym = outer_loop->state_bases[outer_loop->output];
     } else {
-        auto size = make_shared<Sub>(t_end, t_start);
-        auto out_reg = make_shared<AllocRegion>(op.type, size);
-        out_sym = out_reg->GetSym(ctx().sym->name);
+        auto out_reg = make_shared<AllocRegion>(op.type, size_expr, t_start);
+        out_sym = out_reg->GetSym(ctx().sym->name + "_reg");
         assign(out_sym, out_reg);
     }
 
     vector<ExprPtr> args = {t_start, t_end, out_sym};
-    for (const auto& input: inner_op->inputs) {
-        args.push_back(eval(input));
+    for (const auto& input: inputs) {
+        args.push_back(input);
     }
     return make_shared<Call>(inner_loop, move(args));
 }

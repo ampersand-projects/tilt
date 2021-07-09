@@ -184,6 +184,8 @@ extern "C" {
         index_t* tl;
         char* data;
     };
+
+#define STARTER_CKPT {0, 0};
 }
 
 #endif // TILT_TYPE

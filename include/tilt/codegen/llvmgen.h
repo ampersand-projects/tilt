@@ -66,9 +66,10 @@ namespace tilt {
         llvm::Value* visit(const SubLStream&) final { throw std::runtime_error("Invalid expression"); }
         llvm::Value* visit(const Element&) final { throw std::runtime_error("Invalid expression"); }
         llvm::Value* visit(const Op&) final { throw std::runtime_error("Invalid expression"); }
-        llvm::Value* visit(const AggExpr&) final;
+        llvm::Value* visit(const AggExpr&) final { throw std::runtime_error("Invalid expression"); }
         llvm::Value* visit(const AllocIndex&) final;
         llvm::Value* visit(const GetTime&) final;
+        llvm::Value* visit(const GetIndex&) final;
         llvm::Value* visit(const Fetch&) final;
         llvm::Value* visit(const Load&) final;
         llvm::Value* visit(const Store&) final;

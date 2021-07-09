@@ -5,6 +5,7 @@ using namespace tilt;
 
 void AllocIndex::Accept(Visitor& v) const { v.Visit(*this); }
 void GetTime::Accept(Visitor& v) const { v.Visit(*this); }
+void GetIndex::Accept(Visitor& v) const { v.Visit(*this); }
 void Fetch::Accept(Visitor& v) const { v.Visit(*this); }
 void Load::Accept(Visitor& v) const { v.Visit(*this); }
 void Store::Accept(Visitor& v) const { v.Visit(*this); }

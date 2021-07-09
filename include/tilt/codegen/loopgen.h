@@ -73,6 +73,7 @@ namespace tilt
         ExprPtr visit(const AggExpr&) final;
         ExprPtr visit(const AllocIndex&) final { throw std::runtime_error("Invalid expression"); };
         ExprPtr visit(const GetTime&) final { throw std::runtime_error("Invalid expression"); };
+        ExprPtr visit(const GetIndex&) final { throw std::runtime_error("Invalid expression"); };
         ExprPtr visit(const Fetch&) final { throw std::runtime_error("Invalid expression"); };
         ExprPtr visit(const Load&) final { throw std::runtime_error("Invalid expression"); };
         ExprPtr visit(const Store&) final { throw std::runtime_error("Invalid expression"); };
