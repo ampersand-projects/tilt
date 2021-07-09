@@ -32,7 +32,8 @@ namespace tilt
             ctx(move(ctx)), tabstop(tabstop)
         {}
 
-        string result() const { return ctx.ostr.str(); }
+        static string Build(const ExprPtr);
+        static string Build(const llvm::Module*);
 
         void Visit(const Symbol&) override;
         void Visit(const Call&) override;

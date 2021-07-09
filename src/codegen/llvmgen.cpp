@@ -368,8 +368,10 @@ Value* LLVMGen::visit(const Loop& loop)
 {
     // Build inner loops
     for (const auto& inner_loop: loop.inner_loops) {
-        auto inner_llmod = LLVMGen::Build(inner_loop, llctx(), *builder());
-        Linker::linkModules(*llmod(), move(inner_llmod));
+        LLVMGenCtx new_ctx(inner_loop.get(), &llctx());
+        auto& old_ctx = switch_ctx(new_ctx);
+        inner_loop->Accept(*this);
+        switch_ctx(old_ctx);
     }
 
     // Build current loop
@@ -441,10 +443,10 @@ Value* LLVMGen::visit(const Loop& loop)
     return loop_fn;
 }
 
-unique_ptr<llvm::Module> LLVMGen::Build(const Looper loop, llvm::LLVMContext& llctx, llvm::IRBuilder<>& builder)
+unique_ptr<llvm::Module> LLVMGen::Build(const Looper loop, llvm::LLVMContext& llctx)
 {
-    LLVMGenCtx ctx(loop, llctx, builder);
+    LLVMGenCtx ctx(loop.get(), &llctx);
     LLVMGen llgen(move(ctx));
     loop->Accept(llgen);
-    return move(llgen.ctx()._llmod);
+    return move(llgen._llmod);
 }

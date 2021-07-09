@@ -141,7 +141,7 @@ int main(int argc, char** argv)
     // input stream
     auto in_sym = make_shared<Symbol>("in", tilt::Type(types::INT32, FreeIter("in")));
 
-    auto query_op = WindowCount(in_sym, 5);
+    auto query_op = Select(in_sym);
     auto query_op_sym = query_op->GetSym("query");
 
     cout << endl << "TiLT IR: " << endl;
@@ -159,8 +159,7 @@ int main(int argc, char** argv)
 
     cout << endl << "LLVM IR: " << endl;
     auto& llctx = jit->GetCtx();
-    llvm::IRBuilder<> builder(llctx);
-    auto llmod = LLVMGen::Build(loop, llctx, builder);
+    auto llmod = LLVMGen::Build(loop, llctx);
     llvm::raw_fd_ostream r(fileno(stdout), false);
     if (!llvm::verifyModule(*llmod, &r)) { r << *llmod; }
 

@@ -324,3 +324,19 @@ void IRPrinter::Visit(const Loop& loop)
     emitnewline();
     emitnewline();
 }
+
+string IRPrinter::Build(const ExprPtr expr)
+{
+    IRPrinter printer;
+    expr->Accept(printer);
+    return printer.ostr.str();
+}
+
+string IRPrinter::Build(const llvm::Module* mod)
+{
+    std::string str;
+    llvm::raw_string_ostream ostr(str);
+    ostr << *mod;
+    ostr.flush();
+    return ostr.str();
+}
