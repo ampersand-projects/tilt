@@ -33,7 +33,6 @@ intptr_t ExecEngine::Lookup(StringRef name)
     return (intptr_t) fn_sym.getAddress();
 }
 
-
 Expected<ThreadSafeModule> ExecEngine::optimize_module(ThreadSafeModule tsm, const MaterializationResponsibility &r)
 {
     tsm.withModuleDo([](Module &m) {

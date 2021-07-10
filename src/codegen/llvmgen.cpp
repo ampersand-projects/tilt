@@ -24,10 +24,6 @@ void LLVMGen::register_vinstrs()
     Linker::linkModules(*llmod(), easy::get_module(llctx(), make_region, _1, _2, _3, _4));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), commit_data, _1, _2));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), commit_null, _1, _2));
-
-    for (auto& fn: *llmod()) {
-        fn.removeFnAttr(Attribute::OptimizeNone);
-    }
 }
 
 Function* LLVMGen::llfunc(const string name, llvm::Type* ret_type, vector<llvm::Type*> arg_types)
