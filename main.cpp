@@ -6,6 +6,7 @@
 #include "tilt/codegen/loopgen.h"
 #include "tilt/codegen/llvmgen.h"
 #include "tilt/engine/engine.h"
+#include "tilt/builder/tilder.h"
 
 #include <iostream>
 #include <memory>
@@ -18,12 +19,12 @@ using namespace tilt;
 
 OpPtr Select(SymPtr in)
 {
-    auto elem = make_shared<Element>(in, Point());
-    auto elem_sym = elem->GetSym("e");
-    auto ten = make_shared<IConst>(types::INT32, 10);
-    auto add = make_shared<Add>(elem_sym, ten);
-    auto elem_exists = make_shared<Exists>(elem_sym);
-    auto sel_sym = add->GetSym("selector");
+    auto elem = _elem(in, _pt(0));
+    auto elem_sym = elem->sym("e");
+    auto ten = _i32(10);
+    auto add = _add(elem_sym, ten);
+    auto elem_exists = _exists(elem_sym);
+    auto sel_sym = add->sym("selector");
     auto sel_op = make_shared<Op>(
         in->type.tl,
         FreqIter(0, 1),
@@ -36,12 +37,12 @@ OpPtr Select(SymPtr in)
 
 OpPtr NestedSelect(SymPtr in, long w)
 {
-    auto inwin = make_shared<SubLStream>(in, Window(-w, 0));
-    auto inwin_sym = inwin->GetSym("inwin");
+    auto inwin = _subls(in, _win(-w, 0));
+    auto inwin_sym = inwin->sym("inwin");
     auto sel = Select(inwin_sym);
-    auto sel_sym = sel->GetSym("sel");
+    auto sel_sym = sel->sym("sel");
     auto sel2 = Select(sel_sym);
-    auto sel2_sym = sel2->GetSym("sel2");
+    auto sel2_sym = sel2->sym("sel2");
     auto sel_op = make_shared<Op>(
         in->type.tl,
         FreqIter(0, w),
@@ -54,11 +55,11 @@ OpPtr NestedSelect(SymPtr in, long w)
 
 ExprPtr Count(SymPtr win)
 {
-    auto cur = make_shared<Element>(win, Point());
-    auto cur_sym = cur->GetSym("cur");
-    auto cur_exists = make_shared<Exists>(cur_sym);
-    auto one = make_shared<IConst>(types::INT32, 1);
-    auto count_sel_sym = one->GetSym("count_sel");
+    auto cur = _elem(win, _pt(0));
+    auto cur_sym = cur->sym("cur");
+    auto cur_exists = _exists(cur_sym);
+    auto one = _i32(1);
+    auto count_sel_sym = one->sym("count_sel");
     auto count_op = make_shared<Op>(
         win->type.tl,
         FreqIter(0, 1),
@@ -66,18 +67,18 @@ ExprPtr Count(SymPtr win)
         cur_exists,
         SymTable{ {cur_sym, cur}, { count_sel_sym, one } },
         count_sel_sym);
-    auto count_init = make_shared<IConst>(types::INT32, 0);
-    auto count_acc = [](ExprPtr a, ExprPtr b) { return make_shared<Add>(a, b); };
+    auto count_init = _i32(0);
+    auto count_acc = [](ExprPtr a, ExprPtr b) { return _add(a, b); };
     auto count_expr = make_shared<AggExpr>(count_op, count_init, count_acc);
     return count_expr;
 }
 
 OpPtr WindowCount(SymPtr in, long w)
 {
-    auto win = make_shared<SubLStream>(in, Window(-w, 0));
-    auto win_sym = win->GetSym("win");
+    auto win = _subls(in, _win(-w, 0));
+    auto win_sym = win->sym("win");
     auto count = Count(win_sym);
-    auto count_sym = count->GetSym("count");
+    auto count_sym = count->sym("count");
     auto wc_op = make_shared<Op>(
         Timeline(FreqIter(0, w)),
         FreqIter(0, w),
@@ -90,15 +91,15 @@ OpPtr WindowCount(SymPtr in, long w)
 
 OpPtr Join(SymPtr left, SymPtr right)
 {
-    auto e_left = make_shared<Element>(left, Point());
-    auto e_left_sym = e_left->GetSym("left");
-    auto e_right = make_shared<Element>(right, Point());
-    auto e_right_sym = e_right->GetSym("right");
-    auto accum = make_shared<Add>(e_left_sym, e_right_sym);
-    auto accum_sym = accum->GetSym("accum");
-    auto left_exist = make_shared<Exists>(e_left_sym);
-    auto right_exist = make_shared<Exists>(e_right_sym);
-    auto join_cond = make_shared<And>(left_exist, right_exist);
+    auto e_left = _elem(left, _pt(0));
+    auto e_left_sym = e_left->sym("left");
+    auto e_right = _elem(right, _pt(0));
+    auto e_right_sym = e_right->sym("right");
+    auto accum = _add(e_left_sym, e_right_sym);
+    auto accum_sym = accum->sym("accum");
+    auto left_exist = _exists(e_left_sym);
+    auto right_exist = _exists(e_right_sym);
+    auto join_cond = _and(left_exist, right_exist);
     auto join_op = make_shared<Op>(
         Timeline{left->type.tl.iters[0], right->type.tl.iters[0]},
         FreqIter(0, 1),
@@ -111,20 +112,20 @@ OpPtr Join(SymPtr left, SymPtr right)
 
 OpPtr Query(SymPtr in, long len, long w)
 {
-    auto inwin = make_shared<SubLStream>(in, Window(-len, 0));
-    auto inwin_sym = inwin->GetSym("inwin");
+    auto inwin = _subls(in, _win(-len, 0));
+    auto inwin_sym = inwin->sym("inwin");
 
     // select operation
     auto sel_op = Select(inwin_sym);
-    auto sel_op_sym = sel_op->GetSym("sel");
+    auto sel_op_sym = sel_op->sym("sel");
 
     // count aggregate operation
     auto wc_op = WindowCount(inwin_sym, w);
-    auto wc_op_sym = wc_op->GetSym("wc");
+    auto wc_op_sym = wc_op->sym("wc");
 
     // join operation
     auto join_op = Join(sel_op_sym, wc_op_sym);
-    auto join_op_sym = join_op->GetSym("join");
+    auto join_op_sym = join_op->sym("join");
 
     // query operation
     auto query_op = make_shared<Op>(
@@ -141,10 +142,10 @@ OpPtr Query(SymPtr in, long len, long w)
 int main(int argc, char** argv)
 {
     // input stream
-    auto in_sym = make_shared<Symbol>("in", tilt::Type(types::INT32, FreeIter("in")));
+    auto in_sym = _ls("in", types::INT32);
 
     auto query_op = Query(in_sym, 10, 5);
-    auto query_op_sym = query_op->GetSym("query");
+    auto query_op_sym = query_op->sym("query");
 
     cout << endl << "TiLT IR: " << endl;
     cout << IRPrinter::Build(query_op) << endl;

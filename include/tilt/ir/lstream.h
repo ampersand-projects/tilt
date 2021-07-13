@@ -1,7 +1,7 @@
 #ifndef TILT_LSTREAM
 #define TILT_LSTREAM
 
-#include "tilt/ir/expr.h"
+#include "tilt/ir/node.h"
 
 #include <cassert>
 
@@ -10,8 +10,7 @@ using namespace std;
 namespace tilt {
 
     struct LStream : public Expr {
-        LStream(Type type) : Expr(move(type))
-        {}
+        LStream(Type type) : Expr(move(type)) {}
     };
     typedef shared_ptr<LStream> LSPtr;
 
@@ -22,6 +21,7 @@ namespace tilt {
         {
             assert(offset <= 0);
         }
+
         Point() : Point(0) {}
 
         bool operator<(const Point& o) const

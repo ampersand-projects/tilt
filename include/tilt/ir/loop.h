@@ -1,9 +1,8 @@
 #ifndef TILT_LOOP
 #define TILT_LOOP
 
-#include "tilt/codegen/node.h"
+#include "tilt/ir/node.h"
 #include "tilt/ir/expr.h"
-#include "tilt/ir/lstream.h"
 
 #include <map>
 #include <memory>

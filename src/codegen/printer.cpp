@@ -134,8 +134,8 @@ void IRPrinter::Visit(const AggExpr& agg)
     ostr << "] ";
 
     ostr << "[acc: s = ";
-    auto state_sym = agg.init->GetSym("s");
-    auto output_sym = agg.op->output->GetSym("o");
+    auto state_sym = agg.init->sym("s");
+    auto output_sym = agg.op->output->sym("o");
     auto acc_expr = agg.acc(state_sym, output_sym);
     acc_expr->Accept(*this);
     ostr << "] {";

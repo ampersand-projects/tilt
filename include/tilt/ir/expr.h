@@ -2,7 +2,7 @@
 #define TILT_EXPR
 
 #include "tilt/base/type.h"
-#include "tilt/codegen/node.h"
+#include "tilt/ir/node.h"
 
 #include <string>
 #include <memory>
@@ -13,51 +13,6 @@
 using namespace std;
 
 namespace tilt {
-
-    struct Symbol;
-    typedef shared_ptr<Symbol> SymPtr;
-
-    struct Expr : public ASTNode {
-        const Type type;
-
-        Expr(Type type) : type(type) {}
-
-        SymPtr GetSym(string name)
-        {
-            return make_shared<Symbol>(name, type);
-        }
-    };
-    typedef shared_ptr<Expr> ExprPtr;
-
-    struct Symbol : public Expr {
-        const string name;
-
-        Symbol(string name, Type type) :
-            Expr(type), name(name)
-        {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    typedef vector<SymPtr> Params; // Input parameters to the Op
-    typedef map<SymPtr, ExprPtr> SymTable;
-
-    struct Func : public Expr {
-        string name;
-        Params inputs;
-        SymPtr output;
-        SymTable syms;
-
-        Func(string name, Params inputs, SymPtr output, SymTable syms) :
-            Expr(output->type), name(name), inputs(move(inputs)), output(output), syms(move(syms))
-        {}
-
-        virtual const string GetName() const = 0;
-
-    protected:
-        Func(string name, Type type) : Expr(move(type)), name(name) {}
-    };
-    typedef shared_ptr<Func> FuncPtr;
 
     struct Call : public Expr {
         FuncPtr fn;
@@ -86,37 +41,12 @@ namespace tilt {
         void Accept(Visitor&) const final;
     };
 
-    struct ValExpr : public Expr {
-        ValExpr(DataType dtype) : Expr(Type(dtype)) {}
-    };
-    typedef shared_ptr<ValExpr> ValExprPtr;
-
     struct Now : public ValExpr {
         Now() : ValExpr(types::TIMESTAMP) {}
 
         void Accept(Visitor&) const final;
     };
     typedef shared_ptr<Now> NowPtr;
-
-    struct NaryExpr : public ValExpr {
-        vector<ExprPtr> inputs;
-
-        NaryExpr(DataType dtype, vector<ExprPtr> inputs)
-            : ValExpr(dtype), inputs(move(inputs))
-        {}
-
-        template<size_t i>
-        ExprPtr Get() const { return inputs[i]; }
-
-        size_t Size() const { return inputs.size(); }
-    };
-
-    struct Predicate : public NaryExpr {
-        Predicate(vector<ExprPtr> inputs) :
-            NaryExpr(types::BOOL, move(inputs))
-        {}
-    };
-    typedef shared_ptr<Predicate> PredPtr;
 
     struct UnaryPred : public Predicate {
         UnaryPred(ExprPtr a) : Predicate({a}) {}
@@ -192,11 +122,6 @@ namespace tilt {
 
         void Accept(Visitor&) const final;
     };
-
-    struct Const : public ValExpr {
-        Const(DataType dtype) : ValExpr(dtype) {}
-    };
-    typedef shared_ptr<Const> ConstPtr;
 
     struct IConst : public Const {
         const int64_t val;

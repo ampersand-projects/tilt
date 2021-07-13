@@ -98,7 +98,7 @@ void LoopGen::build_loop()
         true_body = out_expr;
     } else {
         auto new_reg = make_shared<CommitData>(output_base, loop->t);
-        auto new_reg_sym = new_reg->GetSym("new_reg");
+        auto new_reg_sym = new_reg->sym("new_reg");
         assign(new_reg_sym, new_reg);
 
         auto idx = make_shared<GetEndIdx>(new_reg_sym);
@@ -206,7 +206,7 @@ ExprPtr LoopGen::visit(const Element& elem)
     auto& reg = sym(elem.lstream);
     auto& idx = create_idx(reg, elem.pt);
     auto fetch = make_shared<Fetch>(reg, idx);
-    auto ref_sym = fetch->GetSym(ctx().sym->name + "_ptr");
+    auto ref_sym = fetch->sym(ctx().sym->name + "_ptr");
     assign(ref_sym, fetch);
     sym_ref(ctx().sym) = ref_sym;
     return make_shared<Load>(ref_sym);
@@ -239,7 +239,7 @@ ExprPtr LoopGen::visit(const Op& op)
         out_sym = outer_loop->state_bases[outer_loop->output];
     } else {
         auto out_reg = make_shared<AllocRegion>(op.type, size_expr, t_start);
-        out_sym = out_reg->GetSym(ctx().sym->name + "_reg");
+        out_sym = out_reg->sym(ctx().sym->name + "_reg");
         assign(out_sym, out_reg);
     }
 
