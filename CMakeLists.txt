@@ -17,7 +17,7 @@ add_subdirectory(third_party/easy_jit)
 
 include_directories(${LLVM_INCLUDE_DIRS} include)
 
-include_directories(src)
+#include_directories(src)
 add_subdirectory(tst) ######
 add_subdirectory(third_party/googletest)  ########
 
