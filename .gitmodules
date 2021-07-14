@@ -2,6 +2,6 @@
 	path = third_party/easy_jit
 	url = https://github.com/ampersand-projects/easy_jit.git
 
-[submodule "googletest"]
+[submodule "third_party/googletest"]
 	path = third_party/googletest
 	url = https://github.com/google/googletest.git
