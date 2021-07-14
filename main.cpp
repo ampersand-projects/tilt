@@ -12,10 +12,20 @@
 #include <cstdlib>
 #include <chrono>
 
+//TESTING FOR GTEST INTEGRATION
+#include "src/Formula.h"
+
 using namespace std;
 using namespace std::chrono;
 using namespace tilt;
 
+int main() {
+    std::cout << "Bla: " << Formula::bla(2) << std::endl;
+    return 0;
+}
+
+
+/*
 OpPtr Select(SymPtr in)
 {
     auto elem = make_shared<Element>(in, Point());
@@ -136,6 +146,7 @@ OpPtr Query(SymPtr in, long len, long w)
     return query_op;
 }
 
+
 int main(int argc, char** argv)
 {
     // input stream
@@ -210,3 +221,5 @@ int main(int argc, char** argv)
 
     return 0;
 }
+/*
+

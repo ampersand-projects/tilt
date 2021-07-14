@@ -12,6 +12,9 @@ set(SRC_FILES
 add_library(tilt STATIC ${SRC_FILES})
 add_dependencies(tilt easy-jit-core)
 
+add_executable(tilt main.cpp Formula.cpp Formula.h)  #######
+add_executable(tilt_run ${SRC_FILES}))
+
 target_compile_options(tilt PUBLIC "SHELL:-Xclang -load" "SHELL:-Xclang ${CMAKE_BINARY_DIR}/third_party/easy_jit/bin/EasyJitPass.so" )
 target_link_libraries(tilt EasyJitRuntime ${llvm_libs})
 
