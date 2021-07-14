@@ -15,6 +15,7 @@
 //TESTING FOR GTEST INTEGRATION
 #include "src/Formula.h"
 
+
 using namespace std;
 using namespace std::chrono;
 using namespace tilt;
@@ -221,5 +222,5 @@ int main(int argc, char** argv)
 
     return 0;
 }
-/*
+*/
 
