@@ -11,81 +11,54 @@ using namespace std;
 namespace tilt {
 
     class Visitor;
-    struct Expr;
-    typedef shared_ptr<Expr> ExprPtr;
+    struct ExprNode;
+    typedef shared_ptr<ExprNode> Expr;
     struct Symbol;
-    typedef shared_ptr<Symbol> SymPtr;
-    typedef vector<SymPtr> Params;
-    typedef map<SymPtr, ExprPtr> SymTable;
+    typedef shared_ptr<Symbol> Sym;
+    typedef vector<Sym> Params;
+    typedef map<Sym, Expr> SymTable;
 
-    struct Expr {
+    struct ExprNode {
         const Type type;
 
-        Expr(Type type) : type(type) {}
+        ExprNode(Type type) : type(type) {}
 
-        virtual ~Expr() {}
+        virtual ~ExprNode() {}
 
-        SymPtr sym(string name);
+        Sym sym(string name) { return make_shared<Symbol>(name, type); }
 
         virtual void Accept(Visitor&) const = 0;
     };
 
-    struct Symbol : public Expr {
+    struct Symbol : public ExprNode {
         const string name;
 
-        Symbol(string name, Type type) :
-            Expr(type), name(name)
-        {}
+        Symbol(string name, Type type) : ExprNode(type), name(name) {}
 
         void Accept(Visitor&) const final;
     };
 
-    struct Func : public Expr {
+    struct FuncNode : public ExprNode {
         string name;
         Params inputs;
-        SymPtr output;
+        Sym output;
         SymTable syms;
 
-        Func(string name, Params inputs, SymPtr output, SymTable syms) :
-            Expr(output->type), name(name), inputs(move(inputs)), output(output), syms(move(syms))
+        FuncNode(string name, Params inputs, Sym output, SymTable syms) :
+            ExprNode(output->type), name(name), inputs(move(inputs)), output(output), syms(move(syms))
         {}
 
         virtual const string GetName() const = 0;
 
     protected:
-        Func(string name, Type type) : Expr(move(type)), name(name) {}
+        FuncNode(string name, Type type) : ExprNode(move(type)), name(name) {}
     };
-    typedef shared_ptr<Func> FuncPtr;
+    typedef shared_ptr<FuncNode> Func;
 
-    struct ValExpr : public Expr {
-        ValExpr(DataType dtype) : Expr(Type(dtype)) {}
+    struct ValNode : public ExprNode {
+        ValNode(DataType dtype) : ExprNode(Type(dtype)) {}
     };
-    typedef shared_ptr<ValExpr> ValExprPtr;
-
-    struct NaryExpr : public ValExpr {
-        vector<ExprPtr> inputs;
-
-        NaryExpr(DataType dtype, vector<ExprPtr> inputs)
-            : ValExpr(dtype), inputs(move(inputs))
-        {}
-
-        template<size_t i>
-        ExprPtr Get() const { return inputs[i]; }
-
-        size_t Size() const { return inputs.size(); }
-    };
-
-    struct Predicate : public NaryExpr {
-        Predicate(vector<ExprPtr> inputs) :
-            NaryExpr(types::BOOL, move(inputs))
-        {}
-    };
-    typedef shared_ptr<Predicate> PredPtr;
-
-    struct Const : public ValExpr {
-        Const(DataType dtype) : ValExpr(dtype) {}
-    };
-    typedef shared_ptr<Const> ConstPtr;
+    typedef shared_ptr<ValNode> Val;
 
 } // namespace tilt
 

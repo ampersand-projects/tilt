@@ -3,5 +3,5 @@
 
 using namespace tilt;
 
-void Op::Accept(Visitor& v) const { v.Visit(*this); }
-void AggExpr::Accept(Visitor& v) const { v.Visit(*this); }
+void OpNode::Accept(Visitor& v) const { v.Visit(*this); }
+void AggNode::Accept(Visitor& v) const { v.Visit(*this); }

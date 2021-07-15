@@ -28,16 +28,15 @@ namespace tilt
         Region(string name, Type type) :
             Symbol(name, move(type))
         {
-            assert(type.isLStream());
+            assert(!type.is_valtype());
         }
     };
-    typedef shared_ptr<Region> RegPtr;
 
-    struct AllocIndex : public ValExpr {
-        ExprPtr init_idx;
+    struct AllocIndex : public ValNode {
+        Expr init_idx;
 
-        AllocIndex(ExprPtr init_idx) :
-            ValExpr(types::INDEX_PTR), init_idx(init_idx)
+        AllocIndex(Expr init_idx) :
+            ValNode(types::INDEX_PTR), init_idx(init_idx)
         {
             assert(init_idx->type == types::INDEX_PTR);
         }
@@ -45,11 +44,11 @@ namespace tilt
         void Accept(Visitor&) const final;
     };
 
-    struct GetTime : public ValExpr {
-        ExprPtr idx;
+    struct GetTime : public ValNode {
+        Expr idx;
 
-        GetTime(ExprPtr idx) :
-            ValExpr(types::TIME), idx(idx)
+        GetTime(Expr idx) :
+            ValNode(types::TIME), idx(idx)
         {
             assert(idx->type == types::INDEX_PTR);
         }
@@ -57,11 +56,11 @@ namespace tilt
         void Accept(Visitor&) const final;
     };
 
-    struct GetIndex : public ValExpr {
-        ExprPtr idx;
+    struct GetIndex : public ValNode {
+        Expr idx;
 
-        GetIndex(ExprPtr idx) :
-            ValExpr(types::UINT32), idx(idx)
+        GetIndex(Expr idx) :
+            ValNode(types::UINT32), idx(idx)
         {
             assert(idx->type == types::INDEX_PTR);
         }
@@ -69,26 +68,26 @@ namespace tilt
         void Accept(Visitor&) const final;
     };
 
-    struct Fetch : public ValExpr {
-        ExprPtr reg;
-        ExprPtr idx;
+    struct Fetch : public ValNode {
+        Expr reg;
+        Expr idx;
 
-        Fetch(ExprPtr reg, ExprPtr idx) :
-            ValExpr(DataType(reg->type.dtype.ptypes, true)),
+        Fetch(Expr reg, Expr idx) :
+            ValNode(DataType(reg->type.dtype.ptypes, true)),
             reg(reg), idx(idx)
         {
-            assert(reg->type.isLStream());
+            assert(!reg->type.is_valtype());
             assert(idx->type == types::INDEX_PTR);
         }
 
         void Accept(Visitor&) const final;
     };
 
-    struct Load : public ValExpr {
-        ExprPtr ptr;
+    struct Load : public ValNode {
+        Expr ptr;
 
-        Load(ExprPtr ptr) :
-            ValExpr(DataType(ptr->type.dtype.ptypes, false)),
+        Load(Expr ptr) :
+            ValNode(DataType(ptr->type.dtype.ptypes, false)),
             ptr(ptr)
         {
             assert(ptr->type.dtype.is_ptr);
@@ -97,27 +96,27 @@ namespace tilt
         void Accept(Visitor&) const final;
     };
 
-    struct Store : public Expr {
-        ExprPtr reg;
-        ExprPtr ptr;
-        ExprPtr data;
+    struct Store : public ExprNode {
+        Expr reg;
+        Expr ptr;
+        Expr data;
 
-        Store(ExprPtr reg, ExprPtr ptr, ExprPtr data) :
-            Expr(reg->type), reg(reg), ptr(ptr), data(data)
+        Store(Expr reg, Expr ptr, Expr data) :
+            ExprNode(reg->type), reg(reg), ptr(ptr), data(data)
         {}
 
         void Accept(Visitor&) const final;
     };
 
-    struct Advance : public ValExpr {
-        ExprPtr reg;
-        ExprPtr idx;
-        ExprPtr time;
+    struct Advance : public ValNode {
+        Expr reg;
+        Expr idx;
+        Expr time;
 
-        Advance(ExprPtr reg, ExprPtr idx, ExprPtr time) :
-            ValExpr(types::INDEX_PTR), reg(reg), idx(idx), time(time)
+        Advance(Expr reg, Expr idx, Expr time) :
+            ValNode(types::INDEX_PTR), reg(reg), idx(idx), time(time)
         {
-            assert(reg->type.isLStream());
+            assert(!reg->type.is_valtype());
             assert(idx->type == types::INDEX_PTR);
             assert(time->type == types::TIME);
         }
@@ -125,80 +124,80 @@ namespace tilt
         void Accept(Visitor&) const final;
     };
 
-    struct NextTime : public ValExpr {
-        ExprPtr reg;
-        ExprPtr idx;
+    struct NextTime : public ValNode {
+        Expr reg;
+        Expr idx;
 
-        NextTime(ExprPtr reg, ExprPtr idx) :
-            ValExpr(types::TIME), reg(reg), idx(idx)
+        NextTime(Expr reg, Expr idx) :
+            ValNode(types::TIME), reg(reg), idx(idx)
         {
-            assert(reg->type.isLStream());
+            assert(!reg->type.is_valtype());
             assert(idx->type == types::INDEX_PTR);
         }
 
         void Accept(Visitor&) const final;
     };
 
-    struct GetStartIdx : public ValExpr {
-        ExprPtr reg;
+    struct GetStartIdx : public ValNode {
+        Expr reg;
 
-        GetStartIdx(ExprPtr reg) :
-            ValExpr(types::INDEX_PTR), reg(reg)
+        GetStartIdx(Expr reg) :
+            ValNode(types::INDEX_PTR), reg(reg)
         {
-            assert(reg->type.isLStream());
+            assert(!reg->type.is_valtype());
         }
 
         void Accept(Visitor&) const final;
     };
 
-    struct GetEndIdx : public ValExpr {
-        ExprPtr reg;
+    struct GetEndIdx : public ValNode {
+        Expr reg;
 
-        GetEndIdx(ExprPtr reg) :
-            ValExpr(types::INDEX_PTR), reg(reg)
+        GetEndIdx(Expr reg) :
+            ValNode(types::INDEX_PTR), reg(reg)
         {
-            assert(reg->type.isLStream());
+            assert(!reg->type.is_valtype());
         }
 
         void Accept(Visitor&) const final;
     };
 
-    struct CommitData : public Expr {
-        ExprPtr reg;
-        ExprPtr time;
+    struct CommitData : public ExprNode {
+        Expr reg;
+        Expr time;
 
-        CommitData(ExprPtr reg, ExprPtr time) :
-            Expr(reg->type), reg(reg), time(time)
+        CommitData(Expr reg, Expr time) :
+            ExprNode(reg->type), reg(reg), time(time)
         {
-            assert(reg->type.isLStream());
+            assert(!reg->type.is_valtype());
             assert(time->type == types::TIME);
         }
 
         void Accept(Visitor&) const final;
     };
 
-    struct CommitNull : public Expr {
-        ExprPtr reg;
-        ExprPtr time;
+    struct CommitNull : public ExprNode {
+        Expr reg;
+        Expr time;
 
-        CommitNull(ExprPtr reg, ExprPtr time) :
-            Expr(reg->type), reg(reg), time(time)
+        CommitNull(Expr reg, Expr time) :
+            ExprNode(reg->type), reg(reg), time(time)
         {
-            assert(reg->type.isLStream());
+            assert(!reg->type.is_valtype());
             assert(time->type == types::TIME);
         }
 
         void Accept(Visitor&) const final;
     };
 
-    struct AllocRegion : public Expr {
-        ValExprPtr size;
-        ExprPtr start_time;
+    struct AllocRegion : public ExprNode {
+        Val size;
+        Expr start_time;
 
-        AllocRegion(Type type, ValExprPtr size, ExprPtr start_time) :
-            Expr(type), size(size), start_time(start_time)
+        AllocRegion(Type type, Val size, Expr start_time) :
+            ExprNode(type), size(size), start_time(start_time)
         {
-            assert(type.isLStream());
+            assert(!type.is_valtype());
             assert(size->type.dtype == types::UINT32);
             assert(start_time->type.dtype == types::TIME);
         }
@@ -206,15 +205,15 @@ namespace tilt
         void Accept(Visitor&) const final;
     };
 
-    struct MakeRegion : public Expr {
-        ExprPtr reg;
-        ExprPtr start_idx;
-        ExprPtr end_idx;
+    struct MakeRegion : public ExprNode {
+        Expr reg;
+        Expr start_idx;
+        Expr end_idx;
 
-        MakeRegion(ExprPtr reg, ExprPtr start_idx, ExprPtr end_idx) :
-            Expr(reg->type), reg(reg), start_idx(start_idx), end_idx(end_idx)
+        MakeRegion(Expr reg, Expr start_idx, Expr end_idx) :
+            ExprNode(reg->type), reg(reg), start_idx(start_idx), end_idx(end_idx)
         {
-            assert(reg->type.isLStream());
+            assert(!reg->type.is_valtype());
             assert(start_idx->type == types::INDEX_PTR);
             assert(end_idx->type == types::INDEX_PTR);
         }
@@ -222,7 +221,7 @@ namespace tilt
         void Accept(Visitor&) const final;
     };
 
-    struct Loop : public Func {
+    struct Loop : public FuncNode {
         // Loop counter
         Timer t;
 
@@ -230,16 +229,16 @@ namespace tilt
         vector<Indexer> idxs;
 
         // States
-        map<SymPtr, SymPtr> state_bases;
+        map<Sym, Sym> state_bases;
 
         // loop condition
-        PredPtr exit_cond;
+        Pred exit_cond;
 
         // Inner loops
         vector<shared_ptr<Loop>> inner_loops;
 
-        Loop(string name, Type type) : Func(name, move(type)) {}
-        Loop(SymPtr sym) : Loop(sym->name, sym->type) {}
+        Loop(string name, Type type) : FuncNode(name, move(type)) {}
+        Loop(Sym sym) : Loop(sym->name, sym->type) {}
 
         const string GetName() const override { return "loop_" + this->name; }
 

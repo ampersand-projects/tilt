@@ -1,41 +1,19 @@
+#include "tilt/base/type.h"
 #include "tilt/builder/tilder.h"
 
-namespace tilt {
+namespace tilt::tilder {
 
-    ValExprPtr _add(ExprPtr a, ExprPtr b) { return make_shared<Add>(a, b); }
-    ValExprPtr _sub(ExprPtr a, ExprPtr b) { return make_shared<Sub>(a, b); }
-    ValExprPtr _max(ExprPtr a, ExprPtr b) { return make_shared<Max>(a, b); }
-    ValExprPtr _min(ExprPtr a, ExprPtr b) { return make_shared<Min>(a, b); }
-    PredPtr _true() { return make_shared<True>(); }
-    PredPtr _false() { return make_shared<False>(); }
-    PredPtr _exists(SymPtr a) { return make_shared<Exists>(a); }
-    PredPtr _not(ExprPtr a) { return make_shared<Not>(a); }
-    PredPtr _eq(ExprPtr a, ExprPtr b) { return make_shared<Equals>(a, b); }
-    PredPtr _and(ExprPtr a, ExprPtr b) { return make_shared<And>(a, b); }
-    PredPtr _or(ExprPtr a, ExprPtr b) { return make_shared<Or>(a, b); }
-    PredPtr _lt(ExprPtr a, ExprPtr b) { return make_shared<LessThan>(a, b); }
-    PredPtr _lte(ExprPtr a, ExprPtr b) { return make_shared<LessThanEqual>(a, b); }
-    PredPtr _gt(ExprPtr a, ExprPtr b) { return make_shared<GreaterThan>(a, b); }
-    ConstPtr _i8(int64_t a) { return make_shared<IConst>(types::INT8, a); }
-    ConstPtr _i16(int64_t a) { return make_shared<IConst>(types::INT16, a); }
-    ConstPtr _i32(int64_t a) { return make_shared<IConst>(types::INT32, a); }
-    ConstPtr _i64(int64_t a) { return make_shared<IConst>(types::INT64, a); }
-    ConstPtr _u8(int64_t a) { return make_shared<IConst>(types::UINT8, a); }
-    ConstPtr _u16(int64_t a) { return make_shared<IConst>(types::UINT16, a); }
-    ConstPtr _u32(int64_t a) { return make_shared<IConst>(types::UINT32, a); }
-    ConstPtr _u64(int64_t a) { return make_shared<IConst>(types::UINT64, a); }
-    ConstPtr _f32(double a) { return make_shared<IConst>(types::FLOAT32, a); }
-    ConstPtr _f64(double a) { return make_shared<IConst>(types::FLOAT64, a); }
-    ConstPtr _ch(char a) { return make_shared<IConst>(types::CHAR, a); }
-    ConstPtr _time(long a) { return make_shared<IConst>(types::TIME, a); }
-    ExprPtr _call(FuncPtr fn, vector<ExprPtr> args) { return make_shared<Call>(fn, args); }
-    ExprPtr _sel(ExprPtr c, ExprPtr a, ExprPtr b) { return make_shared<IfElse>(c, a, b); }
-    ExprPtr _now() { return make_shared<Now>(); }
-    SymPtr _ls(string n, DataType d, Iter i) { return make_shared<Symbol>(n, Type(d, i)); }
-    SymPtr _ls(string n, DataType d) { return _ls(n, d, FreeIter(n)); }
-    Point _pt(long o) { return Point(o); }
-    Window _win(long s, long e) { return Window(s, e); }
-    ElemPtr _elem(SymPtr s, Point p) { return make_shared<Element>(s, p); }
-    SubLSPtr _subls(SymPtr s, Window w) { return make_shared<SubLStream>(s, w); }
+    Const _i8(int8_t v) { return _iconst(types::INT8, v); }
+    Const _i16(int16_t v) { return _iconst(types::INT16, v); }
+    Const _i32(int32_t v) { return _iconst(types::INT32, v); }
+    Const _i64(int64_t v) { return _iconst(types::INT64, v); }
+    Const _u8(uint8_t v) { return _uconst(types::UINT8, v); }
+    Const _u16(uint16_t v) { return _uconst(types::UINT16, v); }
+    Const _u32(uint32_t v) { return _uconst(types::UINT32, v); }
+    Const _u64(uint64_t v) { return _uconst(types::UINT64, v); }
+    Const _f32(float v) { return _fconst(types::FLOAT32, v); }
+    Const _f64(double v) { return _fconst(types::FLOAT64, v); }
+    Const _ch(char v) { return _cconst(v); }
+    Const _ts(long v) { return _tconst(v); }
 
-} // namespace tilt
+} // namespace tilt::tilder

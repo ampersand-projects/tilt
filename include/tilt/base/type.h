@@ -55,13 +55,13 @@ namespace tilt {
         long period;
         string name;
 
-        Iter(long offset, long period, string name) :
-            offset(offset), period(period), name("~" + name)
-        {}
-
         Iter(long offset, long period) :
             Iter(offset, period, "(" + to_string(offset) + "," + to_string(period) + ")")
         {}
+
+        Iter(string name) : Iter(0, -1, name) {}
+
+        Iter() : offset(0), period(0), name("") {}
 
         bool operator==(const Iter& o) const
         {
@@ -69,50 +69,29 @@ namespace tilt {
                 && (this->period == o.period)
                 && (this->name == o.name);
         }
-    };
 
-    struct FreqIter : public Iter {
-        FreqIter(long offset, long period) : Iter(offset, period) {}
-    };
-
-    struct FreeIter : public Iter {
-        FreeIter(string name) : Iter(0, -1, name) {}
-    };
-
-    struct Timeline {
-        vector<Iter> iters;
-
-        Timeline(vector<Iter> iters) : iters(move(iters)) {}
-        Timeline(Iter iter) : Timeline({iter}) {}
-        Timeline(std::initializer_list<Iter> iters) : Timeline(vector<Iter>(iters)) {}
-        Timeline() {}
-
-        bool operator==(const Timeline& o) const
-        {
-            return this->iters == o.iters;
-        }
+    private:
+        Iter(long offset, long period, string name) :
+            offset(offset), period(period), name("~" + name)
+        {}
     };
 
     struct Type {
         const DataType dtype;
-        const Timeline tl;
-
-        Type(DataType dtype, Timeline tl) :
-            dtype(move(dtype)), tl(move(tl))
-        {}
-
-        Type(DataType dtype) : Type(move(dtype), Timeline()) {}
+        const Iter iter;
 
         Type(DataType dtype, Iter iter) :
-            Type(move(dtype), Timeline(iter))
+            dtype(move(dtype)), iter(iter)
         {}
 
-        bool isLStream() const { return tl.iters.size() > 0; }
+        Type(DataType dtype) : Type(move(dtype), Iter()) {}
+
+        bool is_valtype() const { return iter.period == 0; }
 
         bool operator==(const Type& o) const
         {
             return (this->dtype == o.dtype)
-                && (this->tl == o.tl);
+                && (this->iter == o.iter);
         }
     };
 

@@ -14,21 +14,21 @@ using namespace std;
 
 namespace tilt {
 
-    class LLVMGenCtx : public IRGenCtx<ExprPtr, llvm::Value*> {
+    class LLVMGenCtx : public IRGenCtx<Expr, llvm::Value*> {
     public:
         LLVMGenCtx(const Loop* loop, llvm::LLVMContext* llctx) :
-            IRGenCtx(nullptr, &loop->syms, new map<SymPtr, llvm::Value*>()),
-            loop(loop), llctx(llctx), map_backup(unique_ptr<map<SymPtr, llvm::Value*>>(out_sym_tbl))
+            IRGenCtx(nullptr, &loop->syms, new map<Sym, llvm::Value*>()),
+            loop(loop), llctx(llctx), map_backup(unique_ptr<map<Sym, llvm::Value*>>(out_sym_tbl))
         {}
 
     private:
         const Loop* loop;
         llvm::LLVMContext* llctx;
-        unique_ptr<map<SymPtr, llvm::Value*>> map_backup;
+        unique_ptr<map<Sym, llvm::Value*>> map_backup;
         friend class LLVMGen;
     };
 
-    class LLVMGen : public IRGen<LLVMGenCtx, ExprPtr, llvm::Value*> {
+    class LLVMGen : public IRGen<LLVMGenCtx, Expr, llvm::Value*> {
     public:
         LLVMGen(LLVMGenCtx llgenctx) :
             IRGen(move(llgenctx)), _llctx(*llgenctx.llctx),
@@ -65,8 +65,8 @@ namespace tilt {
         llvm::Value* visit(const GreaterThan&) final;
         llvm::Value* visit(const SubLStream&) final { throw std::runtime_error("Invalid expression"); }
         llvm::Value* visit(const Element&) final { throw std::runtime_error("Invalid expression"); }
-        llvm::Value* visit(const Op&) final { throw std::runtime_error("Invalid expression"); }
-        llvm::Value* visit(const AggExpr&) final { throw std::runtime_error("Invalid expression"); }
+        llvm::Value* visit(const OpNode&) final { throw std::runtime_error("Invalid expression"); }
+        llvm::Value* visit(const AggNode&) final { throw std::runtime_error("Invalid expression"); }
         llvm::Value* visit(const AllocIndex&) final;
         llvm::Value* visit(const GetTime&) final;
         llvm::Value* visit(const GetIndex&) final;
@@ -84,7 +84,7 @@ namespace tilt {
         llvm::Value* visit(const Call&) final;
         llvm::Value* visit(const Loop&) final;
 
-        void assign(const SymPtr& sym_ptr, llvm::Value* val) override
+        void assign(const Sym& sym_ptr, llvm::Value* val) override
         {
             IRGen::assign(sym_ptr, val);
             val->setName(sym_ptr->name);
@@ -94,7 +94,7 @@ namespace tilt {
 
         llvm::Function* llfunc(const string, llvm::Type*, vector<llvm::Type*>);
         llvm::Value* llcall(const string, llvm::Type*, vector<llvm::Value*>);
-        llvm::Value* llcall(const string, llvm::Type*, vector<ExprPtr>);
+        llvm::Value* llcall(const string, llvm::Type*, vector<Expr>);
 
         llvm::Value* llsizeof(llvm::Type*);
 
@@ -102,8 +102,8 @@ namespace tilt {
         llvm::Type* lltype(const vector<PrimitiveType>&, const bool);
         llvm::Type* lltype(const DataType& dtype) { return lltype(dtype.ptypes, dtype.is_ptr); }
         llvm::Type* lltype(const Type&);
-        llvm::Type* lltype(const Expr& expr) { return lltype(expr.type); }
-        llvm::Type* lltype(const ExprPtr& expr) { return lltype(expr->type); }
+        llvm::Type* lltype(const ExprNode& expr) { return lltype(expr.type); }
+        llvm::Type* lltype(const Expr& expr) { return lltype(expr->type); }
 
         llvm::Module* llmod() { return _llmod.get(); }
         llvm::LLVMContext& llctx() { return _llctx; }

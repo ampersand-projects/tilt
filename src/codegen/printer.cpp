@@ -20,7 +20,7 @@ string idx_str(long idx)
 
 void IRPrinter::Visit(const Symbol& sym)
 {
-    if (sym.type.tl.iters.size()) ostr << "~";
+    if (!sym.type.is_valtype()) ostr << "~";
     if (sym.type.dtype.is_ptr) ostr << "*";
     ostr << sym.name;
 }
@@ -91,7 +91,7 @@ void IRPrinter::Visit(const Element& elem)
     ostr << "]";
 }
 
-void IRPrinter::Visit(const Op& op)
+void IRPrinter::Visit(const OpNode& op)
 {
     enter_op();
     ostr << FORALL << "t" << ctx.nesting << " " << IN << " " << op.iter.name << " ";
@@ -100,12 +100,6 @@ void IRPrinter::Visit(const Op& op)
     for (auto in : op.inputs) {
         in->Accept(*this);
         ostr << "; ";
-    }
-    ostr << "] ";
-
-    ostr << "[";
-    for (auto it : op.type.tl.iters) {
-        ostr << it.name << "; ";
     }
     ostr << "] {";
 
@@ -127,7 +121,7 @@ void IRPrinter::Visit(const Op& op)
     exit_op();
 }
 
-void IRPrinter::Visit(const AggExpr& agg)
+void IRPrinter::Visit(const AggNode& agg)
 {
     ostr << "[init: s = ";
     agg.init->Accept(*this);
@@ -262,7 +256,7 @@ void IRPrinter::Visit(const Loop& loop)
         inner_loop->Accept(*this);
     }
 
-    vector<ExprPtr> args;
+    vector<Expr> args;
     args.insert(args.end(), loop.inputs.begin(), loop.inputs.end());
     emitfunc(loop.GetName(), args);
     emitnewline();
@@ -272,7 +266,7 @@ void IRPrinter::Visit(const Loop& loop)
 
     emitcomment("initialization");
     emitnewline();
-    unordered_set<SymPtr> bases;
+    unordered_set<Sym> bases;
     for (const auto& [_, base]: loop.state_bases) {
         emitassign(base, loop.syms.at(base));
         bases.insert(base);
@@ -337,7 +331,7 @@ void IRPrinter::Visit(const Loop& loop)
     emitnewline();
 }
 
-string IRPrinter::Build(const ExprPtr expr)
+string IRPrinter::Build(const Expr expr)
 {
     IRPrinter printer;
     expr->Accept(printer);

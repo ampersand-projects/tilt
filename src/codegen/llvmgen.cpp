@@ -49,7 +49,7 @@ Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<Value*> a
     return builder()->CreateCall(fn, arg_vals);
 }
 
-Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<ExprPtr> args)
+Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<Expr> args)
 {
     vector<Value*> arg_vals;
     for (const auto& arg: args) {
@@ -124,11 +124,11 @@ llvm::Type* LLVMGen::lltype(const vector<PrimitiveType>& btypes, const bool is_p
 
 llvm::Type* LLVMGen::lltype(const Type& type)
 {
-    if (type.isLStream()) {
+    if (type.is_valtype()) {
+        return lltype(type.dtype);
+    } else {
         auto reg_type = llmod()->getTypeByName("struct.region_t");
         return PointerType::get(reg_type, 0);
-    } else {
-        return lltype(type.dtype);
     }
 }
 
@@ -411,7 +411,7 @@ Value* LLVMGen::visit(const Loop& loop)
     // Initialization of loop states
     loop_fn->getBasicBlockList().push_back(preheader_bb);
     builder()->SetInsertPoint(preheader_bb);
-    map<SymPtr, llvm::Value*> base_inits;
+    map<Sym, llvm::Value*> base_inits;
     for (const auto& [_, base]: loop.state_bases) {
         base_inits[base] = eval(loop.syms.at(base));
     }

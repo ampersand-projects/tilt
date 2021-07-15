@@ -41,8 +41,8 @@ namespace tilt
         virtual void Visit(const SubLStream&) = 0;
         virtual void Visit(const Element&) = 0;
 
-        virtual void Visit(const Op&) = 0;
-        virtual void Visit(const AggExpr&) = 0;
+        virtual void Visit(const OpNode&) = 0;
+        virtual void Visit(const AggNode&) = 0;
 
         /**
          * Loop IR

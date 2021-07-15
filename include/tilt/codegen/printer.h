@@ -32,7 +32,7 @@ namespace tilt
             ctx(move(ctx)), tabstop(tabstop)
         {}
 
-        static string Build(const ExprPtr);
+        static string Build(const Expr);
         static string Build(const llvm::Module*);
 
         void Visit(const Symbol&) override;
@@ -60,8 +60,8 @@ namespace tilt
         void Visit(const GreaterThan&) override;
         void Visit(const SubLStream&) override;
         void Visit(const Element&) override;
-        void Visit(const Op&) override;
-        void Visit(const AggExpr&) override;
+        void Visit(const OpNode&) override;
+        void Visit(const AggNode&) override;
         void Visit(const AllocIndex&) override;
         void Visit(const GetTime&) override;
         void Visit(const GetIndex&) override;
@@ -89,20 +89,20 @@ namespace tilt
         void emit(string str) { ostr << str; }
         void emitcomment(string comment) { ostr << "/* " << comment << " */"; }
 
-        void emitunary(const string op, const ExprPtr a)
+        void emitunary(const string op, const Expr a)
         {
             ostr << op;
             a->Accept(*this);
         }
 
-        void emitbinary(const ExprPtr a, const string op, const ExprPtr b)
+        void emitbinary(const Expr a, const string op, const Expr b)
         {
             a->Accept(*this);
             ostr << " " << op << " ";
             b->Accept(*this);
         }
 
-        void emitassign(const ExprPtr lhs, const ExprPtr rhs)
+        void emitassign(const Expr lhs, const Expr rhs)
         {
             lhs->Accept(*this);
             ostr << " = ";
@@ -110,7 +110,7 @@ namespace tilt
             ostr << ";";
         }
 
-        void emitfunc(const string name, const vector<ExprPtr> args)
+        void emitfunc(const string name, const vector<Expr> args)
         {
             ostr << name << "(";
             for (size_t i = 0; i < args.size()-1; i++) {

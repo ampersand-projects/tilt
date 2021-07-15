@@ -2,6 +2,7 @@
 #define TILT_IRGEN
 
 #include "tilt/codegen/visitor.h"
+#include "tilt/builder/tilder.h"
 
 #include <map>
 
@@ -15,14 +16,14 @@ namespace tilt
     template<typename InExprTy, typename OutExprTy>
     class IRGenCtx {
     protected:
-        IRGenCtx(SymPtr sym, const map<SymPtr, InExprTy>* in_sym_tbl, map<SymPtr, OutExprTy>* out_sym_tbl) :
+        IRGenCtx(Sym sym, const map<Sym, InExprTy>* in_sym_tbl, map<Sym, OutExprTy>* out_sym_tbl) :
             sym(sym), in_sym_tbl(in_sym_tbl), out_sym_tbl(out_sym_tbl)
         {}
 
-        SymPtr sym;
-        const map<SymPtr, InExprTy>* in_sym_tbl;
-        map<SymPtr, OutExprTy>* out_sym_tbl;
-        map<SymPtr, SymPtr> sym_map;
+        Sym sym;
+        const map<Sym, InExprTy>* in_sym_tbl;
+        map<Sym, OutExprTy>* out_sym_tbl;
+        map<Sym, Sym> sym_map;
         OutExprTy val;
 
         template<typename CtxTy, typename InTy, typename OutTy>
@@ -59,8 +60,8 @@ namespace tilt
         virtual OutExprTy visit(const GreaterThan&) = 0;
         virtual OutExprTy visit(const SubLStream&) = 0;
         virtual OutExprTy visit(const Element&) = 0;
-        virtual OutExprTy visit(const Op&) = 0;
-        virtual OutExprTy visit(const AggExpr&) = 0;
+        virtual OutExprTy visit(const OpNode&) = 0;
+        virtual OutExprTy visit(const AggNode&) = 0;
         virtual OutExprTy visit(const AllocIndex&) = 0;
         virtual OutExprTy visit(const GetTime&) = 0;
         virtual OutExprTy visit(const GetIndex&) = 0;
@@ -101,8 +102,8 @@ namespace tilt
         void Visit(const GreaterThan& expr) final { val() = visit(expr); }
         void Visit(const SubLStream& expr) final { val() = visit(expr); }
         void Visit(const Element& expr) final { val() = visit(expr); }
-        void Visit(const Op& expr) final { val() = visit(expr); }
-        void Visit(const AggExpr& expr) final { val() = visit(expr); }
+        void Visit(const OpNode& expr) final { val() = visit(expr); }
+        void Visit(const AggNode& expr) final { val() = visit(expr); }
         void Visit(const AllocIndex& expr) final { val() = visit(expr); }
         void Visit(const GetTime& expr) final { val() = visit(expr); }
         void Visit(const GetIndex& expr) final { val() = visit(expr); }
@@ -124,16 +125,16 @@ namespace tilt
 
         CtxTy& switch_ctx(CtxTy& new_ctx) { swap(new_ctx, irctx); return new_ctx; }
 
-        virtual void assign(const SymPtr& sym_ptr, OutExprTy val)
+        virtual void assign(const Sym& sym_ptr, OutExprTy val)
         {
             sym(sym_ptr) = sym_ptr;
             auto& m = *(ctx().out_sym_tbl);
             m[sym_ptr] = val;
         }
 
-        SymPtr& sym(const SymPtr& in_sym) { return ctx().sym_map[in_sym]; }
+        Sym& sym(const Sym& in_sym) { return ctx().sym_map[in_sym]; }
 
-        SymPtr get_sym(const Symbol& symbol)
+        Sym get_sym(const Symbol& symbol)
         {
             shared_ptr<Symbol> tmp_sym(const_cast<Symbol*>(&symbol), [](Symbol*) {});
             return tmp_sym;
@@ -163,7 +164,7 @@ namespace tilt
                 auto value = eval(expr);
                 swap(tmp_sym, ctx().sym);
 
-                auto sym_clone = make_shared<Symbol>(symbol);
+                auto sym_clone = tilder::_sym(symbol);
                 sym(tmp_sym) = sym_clone;
                 this->assign(sym_clone, value);
             }

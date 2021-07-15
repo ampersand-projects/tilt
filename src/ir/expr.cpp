@@ -3,6 +3,7 @@
 
 using namespace tilt;
 
+void Symbol::Accept(Visitor& v) const { v.Visit(*this); }
 void Call::Accept(Visitor& v) const { v.Visit(*this); }
 void IfElse::Accept(Visitor& v) const { v.Visit(*this); }
 void Exists::Accept(Visitor& v) const { v.Visit(*this); }

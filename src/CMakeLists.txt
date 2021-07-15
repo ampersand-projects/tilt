@@ -1,14 +1,13 @@
 set(SRC_FILES
-    ir/node.cpp
     ir/op.cpp
     ir/expr.cpp
     ir/lstream.cpp
     ir/loop.cpp
+    builder/tilder.cpp
     codegen/printer.cpp
     codegen/loopgen.cpp
     codegen/llvmgen.cpp
     engine/engine.cpp
-    builder/tilder.cpp
 )
 
 add_library(tilt STATIC ${SRC_FILES})

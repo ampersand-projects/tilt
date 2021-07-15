@@ -1,7 +1,3 @@
-#include "tilt/base/type.h"
-#include "tilt/ir/expr.h"
-#include "tilt/ir/lstream.h"
-#include "tilt/ir/op.h"
 #include "tilt/codegen/printer.h"
 #include "tilt/codegen/loopgen.h"
 #include "tilt/codegen/llvmgen.h"
@@ -16,26 +12,26 @@
 using namespace std;
 using namespace std::chrono;
 using namespace tilt;
+using namespace tilt::tilder;
 
-OpPtr Select(SymPtr in)
+Op Select(Sym in)
 {
-    auto elem = _elem(in, _pt(0));
-    auto elem_sym = elem->sym("e");
+    auto e = _elem(in, _pt(0));
+    auto e_sym = e->sym("e");
     auto ten = _i32(10);
-    auto add = _add(elem_sym, ten);
-    auto elem_exists = _exists(elem_sym);
+    auto add = _add(e_sym, ten);
+    auto elem_exists = _exists(e_sym);
     auto sel_sym = add->sym("selector");
-    auto sel_op = make_shared<Op>(
-        in->type.tl,
-        FreqIter(0, 1),
+    auto sel_op = _op(
+        _iter(0, 1),
         Params{ in },
+        SymTable{ {e_sym, e}, {sel_sym, add} },
         elem_exists,
-        SymTable{ {elem_sym, elem}, { sel_sym, add } },
         sel_sym);
     return sel_op;
 }
 
-OpPtr NestedSelect(SymPtr in, long w)
+Op NestedSelect(Sym in, long w)
 {
     auto inwin = _subls(in, _win(-w, 0));
     auto inwin_sym = inwin->sym("inwin");
@@ -43,53 +39,50 @@ OpPtr NestedSelect(SymPtr in, long w)
     auto sel_sym = sel->sym("sel");
     auto sel2 = Select(sel_sym);
     auto sel2_sym = sel2->sym("sel2");
-    auto sel_op = make_shared<Op>(
-        in->type.tl,
-        FreqIter(0, w),
+    auto sel_op = _op(
+        _iter(0, w),
         Params{ in },
-        make_shared<True>(),
         SymTable{ {inwin_sym, inwin}, {sel_sym, sel}, {sel2_sym, sel2} },
+        _true(),
         sel2_sym);
     return sel_op;
 }
 
-ExprPtr Count(SymPtr win)
+Expr Count(Sym win)
 {
     auto cur = _elem(win, _pt(0));
     auto cur_sym = cur->sym("cur");
     auto cur_exists = _exists(cur_sym);
     auto one = _i32(1);
     auto count_sel_sym = one->sym("count_sel");
-    auto count_op = make_shared<Op>(
-        win->type.tl,
-        FreqIter(0, 1),
+    auto count_op = _op(
+        _iter(0, 1),
         Params{ win },
+        SymTable{ {cur_sym, cur}, {count_sel_sym, one} },
         cur_exists,
-        SymTable{ {cur_sym, cur}, { count_sel_sym, one } },
         count_sel_sym);
     auto count_init = _i32(0);
-    auto count_acc = [](ExprPtr a, ExprPtr b) { return _add(a, b); };
-    auto count_expr = make_shared<AggExpr>(count_op, count_init, count_acc);
+    auto count_acc = [](Expr a, Expr b) { return _add(a, b); };
+    auto count_expr = _agg(count_op, count_init, count_acc);
     return count_expr;
 }
 
-OpPtr WindowCount(SymPtr in, long w)
+Op WindowCount(Sym in, long w)
 {
-    auto win = _subls(in, _win(-w, 0));
-    auto win_sym = win->sym("win");
-    auto count = Count(win_sym);
+    auto window = _subls(in, _win(-w, 0));
+    auto window_sym = window->sym("win");
+    auto count = Count(window_sym);
     auto count_sym = count->sym("count");
-    auto wc_op = make_shared<Op>(
-        Timeline(FreqIter(0, w)),
-        FreqIter(0, w),
+    auto wc_op = _op(
+        _iter(0, w),
         Params{ in },
-        make_shared<True>(),
-        SymTable{ {win_sym, win}, { count_sym, count } },
+        SymTable{ {window_sym, window}, {count_sym, count} },
+        _true(),
         count_sym);
     return wc_op;
 }
 
-OpPtr Join(SymPtr left, SymPtr right)
+Op Join(Sym left, Sym right)
 {
     auto e_left = _elem(left, _pt(0));
     auto e_left_sym = e_left->sym("left");
@@ -100,17 +93,16 @@ OpPtr Join(SymPtr left, SymPtr right)
     auto left_exist = _exists(e_left_sym);
     auto right_exist = _exists(e_right_sym);
     auto join_cond = _and(left_exist, right_exist);
-    auto join_op = make_shared<Op>(
-        Timeline{left->type.tl.iters[0], right->type.tl.iters[0]},
-        FreqIter(0, 1),
+    auto join_op = _op(
+        _iter(0, 1),
         Params{ left, right },
-        join_cond,
         SymTable{ {e_left_sym, e_left}, {e_right_sym, e_right}, {accum_sym, accum} },
+        join_cond,
         accum_sym);
     return join_op;
 }
 
-OpPtr Query(SymPtr in, long len, long w)
+Op Query(Sym in, long len, long w)
 {
     auto inwin = _subls(in, _win(-len, 0));
     auto inwin_sym = inwin->sym("inwin");
@@ -128,12 +120,11 @@ OpPtr Query(SymPtr in, long len, long w)
     auto join_op_sym = join_op->sym("join");
 
     // query operation
-    auto query_op = make_shared<Op>(
-        join_op_sym->type.tl,
-        FreqIter(0, len),
+    auto query_op = _op(
+        _iter(0, len),
         Params{ in },
-        make_shared<True>(),
         SymTable{ {inwin_sym, inwin}, {sel_op_sym, sel_op}, {wc_op_sym, wc_op}, {join_op_sym, join_op} },
+        _true(),
         join_op_sym);
 
     return query_op;
@@ -142,7 +133,7 @@ OpPtr Query(SymPtr in, long len, long w)
 int main(int argc, char** argv)
 {
     // input stream
-    auto in_sym = _ls("in", types::INT32);
+    auto in_sym = _sym("in", tilt::Type(types::INT32, _iter("in")));
 
     auto query_op = Query(in_sym, 10, 5);
     auto query_op_sym = query_op->sym("query");
