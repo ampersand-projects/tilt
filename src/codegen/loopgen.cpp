@@ -130,6 +130,16 @@ Expr LoopGen::visit(const Exists& exists)
     return _exists(sym_ptr);
 }
 
+Expr LoopGen::visit(const New& new_expr)
+{
+    vector<Expr> input_vals;
+    for (const auto& input: new_expr.inputs) {
+        input_vals.push_back(eval(input));
+    }
+    return _new(move(input_vals));
+}
+
+Expr LoopGen::visit(const Get& get) { return _get(eval(get.input), get.n); }
 Expr LoopGen::visit(const Equals& equals) { return _eq(eval(equals.Left()), eval(equals.Right())); }
 Expr LoopGen::visit(const Not& not_expr) { return _not(eval(not_expr.Input())); }
 Expr LoopGen::visit(const And& and_expr) { return _and(eval(and_expr.Left()), eval(and_expr.Right())); }

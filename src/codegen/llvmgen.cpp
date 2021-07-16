@@ -174,6 +174,24 @@ Value* LLVMGen::visit(const IfElse& ifelse)
     return merge_phi;
 }
 
+Value* LLVMGen::visit(const Get& get)
+{
+    auto input = eval(get.input);
+    return builder()->CreateExtractValue(input, get.n);
+}
+
+Value* LLVMGen::visit(const New& _new)
+{
+    auto ptr = builder()->CreateAlloca(lltype(_new));
+
+    for (size_t i = 0; i < _new.inputs.size(); i++) {
+        auto val_ptr = builder()->CreateStructGEP(ptr, i);
+        builder()->CreateStore(eval(_new.inputs[i]), val_ptr);
+    }
+
+    return builder()->CreateLoad(ptr);
+}
+
 Value* LLVMGen::visit(const IConst& iconst)
 {
     return ConstantInt::getSigned(lltype(iconst), iconst.val);

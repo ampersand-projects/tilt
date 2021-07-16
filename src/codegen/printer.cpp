@@ -1,4 +1,5 @@
 #include "tilt/codegen/printer.h"
+#include "tilt/builder/tilder.h"
 
 #include <unordered_set>
 
@@ -247,6 +248,16 @@ void IRPrinter::Visit(const IfElse& ifelse)
     ifelse.true_body->Accept(*this);
     ostr << " : ";
     ifelse.false_body->Accept(*this);
+}
+
+void IRPrinter::Visit(const Get& get)
+{
+    emitfunc("get", {get.input, tilder::_u64(get.n)});
+}
+
+void IRPrinter::Visit(const New& _new)
+{
+    emitfunc("new", _new.inputs);
 }
 
 void IRPrinter::Visit(const Loop& loop)

@@ -88,7 +88,7 @@ Op Join(Sym left, Sym right)
     auto e_left_sym = e_left->sym("left");
     auto e_right = _elem(right, _pt(0));
     auto e_right_sym = e_right->sym("right");
-    auto accum = _add(e_left_sym, e_right_sym);
+    auto accum = _new(vector<Expr>{e_left_sym, e_right_sym});
     auto accum_sym = accum->sym("accum");
     auto left_exist = _exists(e_left_sym);
     auto right_exist = _exists(e_right_sym);
@@ -176,8 +176,13 @@ int main(int argc, char** argv)
         in_data[i] = i;
     }
 
+    struct Out {
+        int a;
+        int b;
+    };
+
     auto out_tl = new index_t[dlen];
-    auto out_data = new int[dlen];
+    auto out_data = new Out[dlen];
     region_t out_reg;
     out_reg.si.i = 0;
     out_reg.si.t = 0;
@@ -195,9 +200,9 @@ int main(int argc, char** argv)
     for (int i=1; i<dlen; i++) {
         if (argc == 1) {
             cout << "(" << in_tl[i].t << "," << in_tl[i].i << ") " << in_data[i] << " -> "
-                << "(" << out_tl[i].t << "," << out_tl[i].i << ") " << out_data[i] << endl;
+                << "(" << out_tl[i].t << "," << out_tl[i].i << ") " << out_data[i].a << "," << out_data[i].b << endl;
         }
-        out_count += (out_data[i] == in_data[i]+15);
+        out_count += ((out_data[i].a == in_data[i]+10) && (out_data[i].b == 5));
     }
 
     auto dur = duration_cast<microseconds>(end_time - start_time).count();

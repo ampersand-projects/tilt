@@ -40,6 +40,41 @@ namespace tilt {
         void Accept(Visitor&) const final;
     };
 
+    struct Get : public ValNode {
+        Expr input;
+        size_t n;
+
+        Get(Expr input, size_t n) :
+            ValNode(input->type.dtype.ptypes[n]), input(input), n(n)
+        {
+            assert(n < input->type.dtype.ptypes.size());
+        }
+
+        void Accept(Visitor&) const final;
+    };
+
+    struct New : public ValNode {
+        vector<Expr> inputs;
+
+        New(vector<Expr> inputs) :
+            ValNode(get_new_type(inputs)), inputs(inputs)
+        {}
+
+        void Accept(Visitor&) const final;
+
+    private:
+        static DataType get_new_type(vector<Expr> inputs)
+        {
+            vector<PrimitiveType> ptypes;
+            for (const auto& input: inputs) {
+                auto pts = input->type.dtype.ptypes;
+                assert(pts.size() == 1);
+                ptypes.push_back(pts[0]);
+            }
+            return DataType(move(ptypes));
+        }
+    };
+
     struct ConstNode : public ValNode {
         ConstNode(DataType dtype) : ValNode(dtype) {}
     };

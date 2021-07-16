@@ -43,6 +43,8 @@ namespace tilt {
     private:
         llvm::Value* visit(const Symbol&) final;
         llvm::Value* visit(const IfElse&) final;
+        llvm::Value* visit(const Get&) final;
+        llvm::Value* visit(const New&) final;
         llvm::Value* visit(const Exists&) final;
         llvm::Value* visit(const Equals&) final;
         llvm::Value* visit(const Not&) final;

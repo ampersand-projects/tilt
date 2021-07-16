@@ -38,6 +38,8 @@ namespace tilt
         void Visit(const Symbol&) override;
         void Visit(const Call&) override;
         void Visit(const IfElse&) override;
+        void Visit(const Get&) override;
+        void Visit(const New&) override;
         void Visit(const Exists&) override;
         void Visit(const Equals&) override;
         void Visit(const Not&) override;

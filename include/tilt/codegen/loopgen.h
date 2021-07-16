@@ -40,6 +40,8 @@ namespace tilt
 
         Expr visit(const Symbol&) final;
         Expr visit(const IfElse&) final;
+        Expr visit(const Get&) final;
+        Expr visit(const New&) final;
         Expr visit(const Exists&) final;
         Expr visit(const Equals&) final;
         Expr visit(const Not&) final;

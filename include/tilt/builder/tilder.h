@@ -56,6 +56,8 @@ namespace tilt::tilder {
 
     // Misc expressions
     REGISTER_TILDER(_call, Call)
+    REGISTER_TILDER(_get, Get)
+    REGISTER_TILDER(_new, New)
     REGISTER_TILDER(_sel, IfElse)
     REGISTER_TILDER(_now, Now)
     REGISTER_TILDER(_agg, AggNode)
