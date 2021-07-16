@@ -65,61 +65,48 @@ Value* LLVMGen::llsizeof(llvm::Type* type)
     return ConstantInt::get(lltype(types::UINT32), size/8);
 }
 
-llvm::Type* LLVMGen::lltype(const PrimitiveType& btype)
+llvm::Type* LLVMGen::lltype(const DataType& dtype)
 {
-    switch (btype)
-    {
-    case PrimitiveType::BOOL:
-        return llvm::Type::getInt1Ty(llctx());
-    case PrimitiveType::CHAR:
-        return llvm::Type::getInt8Ty(llctx());
-    case PrimitiveType::INT8:
-    case PrimitiveType::UINT8:
-        return llvm::Type::getInt8Ty(llctx());
-    case PrimitiveType::INT16:
-    case PrimitiveType::UINT16:
-        return llvm::Type::getInt16Ty(llctx());
-    case PrimitiveType::INT32:
-    case PrimitiveType::UINT32:
-        return llvm::Type::getInt32Ty(llctx());
-    case PrimitiveType::INT64:
-    case PrimitiveType::UINT64:
-        return llvm::Type::getInt64Ty(llctx());
-    case PrimitiveType::FLOAT32:
-        return llvm::Type::getFloatTy(llctx());
-    case PrimitiveType::FLOAT64:
-        return llvm::Type::getDoubleTy(llctx());
-    case PrimitiveType::TIMESTAMP:
-        return llvm::Type::getInt64Ty(llctx());
-    case PrimitiveType::TIME:
-        return llvm::Type::getInt64Ty(llctx());
-    case PrimitiveType::INDEX:
-        return llmod()->getTypeByName("struct.index_t");
-    case PrimitiveType::UNKNOWN:
-    default:
-        throw std::runtime_error("Invalid type");
+    switch (dtype.btype) {
+        case BaseType::BOOL:
+            return llvm::Type::getInt1Ty(llctx());
+        case BaseType::CHAR:
+            return llvm::Type::getInt8Ty(llctx());
+        case BaseType::INT8:
+        case BaseType::UINT8:
+            return llvm::Type::getInt8Ty(llctx());
+        case BaseType::INT16:
+        case BaseType::UINT16:
+            return llvm::Type::getInt16Ty(llctx());
+        case BaseType::INT32:
+        case BaseType::UINT32:
+            return llvm::Type::getInt32Ty(llctx());
+        case BaseType::INT64:
+        case BaseType::UINT64:
+            return llvm::Type::getInt64Ty(llctx());
+        case BaseType::FLOAT32:
+            return llvm::Type::getFloatTy(llctx());
+        case BaseType::FLOAT64:
+            return llvm::Type::getDoubleTy(llctx());
+        case BaseType::TIMESTAMP:
+            return llvm::Type::getInt64Ty(llctx());
+        case BaseType::TIME:
+            return llvm::Type::getInt64Ty(llctx());
+        case BaseType::INDEX:
+            return llmod()->getTypeByName("struct.index_t");
+        case BaseType::STRUCT: {
+            vector<llvm::Type*> lltypes;
+            for (auto dt: dtype.dtypes) {
+                lltypes.push_back(lltype(dt));
+            }
+            return StructType::get(llctx(), lltypes);
+        }
+        case BaseType::PTR:
+            return PointerType::get(lltype(dtype.dtypes[0]), 0);
+        case BaseType::UNKNOWN:
+        default:
+            throw std::runtime_error("Invalid type");
     }
-}
-
-llvm::Type* LLVMGen::lltype(const vector<PrimitiveType>& btypes, const bool is_ptr)
-{
-    vector<llvm::Type*> lltypes;
-    for (auto btype: btypes) {
-        lltypes.push_back(lltype(btype));
-    }
-
-    llvm::Type* type;
-    if (btypes.size() > 1) {
-        type = StructType::get(llctx(), lltypes);
-    } else {
-        type = lltypes[0];
-    }
-
-    if (is_ptr) {
-        type = PointerType::get(type, 0);
-    }
-
-    return type;
 }
 
 llvm::Type* LLVMGen::lltype(const Type& type)
@@ -311,10 +298,10 @@ Value* LLVMGen::visit(const Fetch& fetch)
     auto reg_val = eval(fetch.reg);
     auto idx_val = eval(fetch.idx);
     auto size_val = llsizeof(lltype(dtype));
-    auto ret_type = lltype({PrimitiveType::INT8}, true);
+    auto ret_type = lltype(types::CHAR_PTR);
     auto addr = llcall("fetch", ret_type, { reg_val, idx_val, size_val });
 
-    return builder()->CreateBitCast(addr, lltype(dtype.ptypes, true));
+    return builder()->CreateBitCast(addr, lltype(fetch));
 }
 
 Value* LLVMGen::visit(const Advance& adv)
@@ -376,7 +363,7 @@ Value* LLVMGen::visit(const AllocRegion& alloc)
     auto size_val = eval(alloc.size);
     auto tl_arr = builder()->CreateAlloca(lltype(types::INDEX), size_val);
     auto data_arr = builder()->CreateAlloca(lltype(alloc.type.dtype), size_val);
-    auto char_arr = builder()->CreateBitCast(data_arr, lltype(types::CHAR.ptypes, true));
+    auto char_arr = builder()->CreateBitCast(data_arr, lltype(types::CHAR_PTR));
 
     auto reg_type = lltype(alloc);
     auto reg_val = builder()->CreateAlloca(reg_type->getPointerElementType());

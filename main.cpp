@@ -19,7 +19,7 @@ Op Select(Sym in)
     auto e = _elem(in, _pt(0));
     auto e_sym = e->sym("e");
     auto ten = _i32(10);
-    auto add = _add(e_sym, ten);
+    auto add = _add(_get(e_sym, 0), ten);
     auto elem_exists = _exists(e_sym);
     auto sel_sym = add->sym("selector");
     auto sel_op = _op(
@@ -28,23 +28,6 @@ Op Select(Sym in)
         SymTable{ {e_sym, e}, {sel_sym, add} },
         elem_exists,
         sel_sym);
-    return sel_op;
-}
-
-Op NestedSelect(Sym in, long w)
-{
-    auto inwin = _subls(in, _win(-w, 0));
-    auto inwin_sym = inwin->sym("inwin");
-    auto sel = Select(inwin_sym);
-    auto sel_sym = sel->sym("sel");
-    auto sel2 = Select(sel_sym);
-    auto sel2_sym = sel2->sym("sel2");
-    auto sel_op = _op(
-        _iter(0, w),
-        Params{ in },
-        SymTable{ {inwin_sym, inwin}, {sel_sym, sel}, {sel2_sym, sel2} },
-        _true(),
-        sel2_sym);
     return sel_op;
 }
 
@@ -133,7 +116,7 @@ Op Query(Sym in, long len, long w)
 int main(int argc, char** argv)
 {
     // input stream
-    auto in_sym = _sym("in", tilt::Type(types::INT32, _iter("in")));
+    auto in_sym = _sym("in", tilt::Type(types::STRUCT<int32_t, int32_t>(), _iter("in")));
 
     auto query_op = Query(in_sym, 10, 5);
     auto query_op_sym = query_op->sym("query");
@@ -161,8 +144,13 @@ int main(int argc, char** argv)
 
     int dlen = (argc>1) ? atoi(argv[1]) : 31;
 
+    struct Data {
+        int a;
+        int b;
+    };
+
     auto in_tl = new index_t[dlen];
-    auto in_data = new int[dlen];
+    auto in_data = new Data[dlen];
     region_t in_reg;
     in_reg.si.i = 0;
     in_reg.si.t = 0;
@@ -173,16 +161,11 @@ int main(int argc, char** argv)
     in_tl[0] = STARTER_CKPT;
     for (int i=1; i<dlen; i++) {
         in_tl[i] = {i, 1};
-        in_data[i] = i;
+        in_data[i] = {i, 3};
     }
 
-    struct Out {
-        int a;
-        int b;
-    };
-
     auto out_tl = new index_t[dlen];
-    auto out_data = new Out[dlen];
+    auto out_data = new Data[dlen];
     region_t out_reg;
     out_reg.si.i = 0;
     out_reg.si.t = 0;
@@ -199,10 +182,10 @@ int main(int argc, char** argv)
     int out_count = 0;
     for (int i=1; i<dlen; i++) {
         if (argc == 1) {
-            cout << "(" << in_tl[i].t << "," << in_tl[i].i << ") " << in_data[i] << " -> "
+            cout << "(" << in_tl[i].t << "," << in_tl[i].i << ") " << in_data[i].a << "," << in_data[i].b << " -> "
                 << "(" << out_tl[i].t << "," << out_tl[i].i << ") " << out_data[i].a << "," << out_data[i].b << endl;
         }
-        out_count += ((out_data[i].a == in_data[i]+10) && (out_data[i].b == 5));
+        out_count += ((out_data[i].a == in_data[i].a+10) && (out_data[i].b == 5));
     }
 
     auto dur = duration_cast<microseconds>(end_time - start_time).count();

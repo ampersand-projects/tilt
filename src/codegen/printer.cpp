@@ -22,7 +22,7 @@ string idx_str(long idx)
 void IRPrinter::Visit(const Symbol& sym)
 {
     if (!sym.type.is_valtype()) ostr << "~";
-    if (sym.type.dtype.is_ptr) ostr << "*";
+    if (sym.type.dtype.is_ptr()) ostr << "*";
     ostr << sym.name;
 }
 

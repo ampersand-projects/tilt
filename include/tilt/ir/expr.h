@@ -45,9 +45,9 @@ namespace tilt {
         size_t n;
 
         Get(Expr input, size_t n) :
-            ValNode(input->type.dtype.ptypes[n]), input(input), n(n)
+            ValNode(input->type.dtype.dtypes[n]), input(input), n(n)
         {
-            assert(n < input->type.dtype.ptypes.size());
+            assert(input->type.dtype.is_struct());
         }
 
         void Accept(Visitor&) const final;
@@ -65,13 +65,11 @@ namespace tilt {
     private:
         static DataType get_new_type(vector<Expr> inputs)
         {
-            vector<PrimitiveType> ptypes;
+            vector<DataType> dtypes;
             for (const auto& input: inputs) {
-                auto pts = input->type.dtype.ptypes;
-                assert(pts.size() == 1);
-                ptypes.push_back(pts[0]);
+                dtypes.push_back(input->type.dtype);
             }
-            return DataType(move(ptypes));
+            return DataType(BaseType::STRUCT, (dtypes));
         }
     };
 

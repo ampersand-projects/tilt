@@ -73,8 +73,7 @@ namespace tilt
         Expr idx;
 
         Fetch(Expr reg, Expr idx) :
-            ValNode(DataType(reg->type.dtype.ptypes, true)),
-            reg(reg), idx(idx)
+            ValNode(DataType(BaseType::PTR, {reg->type.dtype})), reg(reg), idx(idx)
         {
             assert(!reg->type.is_valtype());
             assert(idx->type == types::INDEX_PTR);
@@ -87,10 +86,9 @@ namespace tilt
         Expr ptr;
 
         Load(Expr ptr) :
-            ValNode(DataType(ptr->type.dtype.ptypes, false)),
-            ptr(ptr)
+            ValNode(DataType(ptr->type.dtype.dtypes[0])), ptr(ptr)
         {
-            assert(ptr->type.dtype.is_ptr);
+            assert(ptr->type.dtype.is_ptr());
         }
 
         void Accept(Visitor&) const final;

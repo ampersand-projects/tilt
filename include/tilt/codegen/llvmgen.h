@@ -100,9 +100,7 @@ namespace tilt {
 
         llvm::Value* llsizeof(llvm::Type*);
 
-        llvm::Type* lltype(const PrimitiveType&);
-        llvm::Type* lltype(const vector<PrimitiveType>&, const bool);
-        llvm::Type* lltype(const DataType& dtype) { return lltype(dtype.ptypes, dtype.is_ptr); }
+        llvm::Type* lltype(const DataType&);
         llvm::Type* lltype(const Type&);
         llvm::Type* lltype(const ExprNode& expr) { return lltype(expr.type); }
         llvm::Type* lltype(const Expr& expr) { return lltype(expr->type); }
