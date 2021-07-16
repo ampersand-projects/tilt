@@ -182,7 +182,7 @@ Expr LoopGen::visit(const OpNode& op)
     auto t_end = outer_loop->t;
 
     vector<Expr> inputs;
-    Val size_expr = _i32(1);
+    Val size_expr = _u32(1);
     for (const auto& input: inner_op->inputs) {
         auto input_val = eval(input);
         inputs.push_back(input_val);
