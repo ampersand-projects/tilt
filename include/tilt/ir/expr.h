@@ -158,6 +158,14 @@ namespace tilt {
         Sub(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::SUB, a, b) {}
     };
 
+    struct Mul : public BinaryExpr {
+        Mul(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MUL, a, b) {}
+    };
+
+    struct Div : public BinaryExpr {
+        Div(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::DIV, a, b) {}
+    };
+
     struct Max : public BinaryExpr {
         Max(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MAX, a, b) {}
     };

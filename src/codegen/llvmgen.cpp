@@ -213,6 +213,20 @@ Value* LLVMGen::visit(const NaryExpr& e)
                 return builder()->CreateSub(eval(e.arg<0>()), eval(e.arg<1>()));
             }
         }
+        case MathOp::MUL: {
+            if (e.arg<0>()->type.dtype.is_float()) {
+                return builder()->CreateFMul(eval(e.arg<0>()), eval(e.arg<1>()));
+            } else {
+                return builder()->CreateMul(eval(e.arg<0>()), eval(e.arg<1>()));
+            }
+        }
+        case MathOp::DIV: {
+            if (e.arg<0>()->type.dtype.is_float()) {
+                return builder()->CreateFDiv(eval(e.arg<0>()), eval(e.arg<1>()));
+            } else {
+                return builder()->CreateSDiv(eval(e.arg<0>()), eval(e.arg<1>()));
+            }
+        }
         case MathOp::MAX: {
             auto left = eval(e.arg<0>());
             auto right = eval(e.arg<1>());

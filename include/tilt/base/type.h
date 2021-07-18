@@ -139,7 +139,7 @@ namespace tilt {
     };
 
     enum class MathOp {
-        ADD, SUB, MAX, MIN,
+        ADD, SUB, MUL, DIV, MAX, MIN,
         LT, LTE, GT, EQ,
         NOT, AND, OR,
     };

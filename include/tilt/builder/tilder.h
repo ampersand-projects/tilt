@@ -27,6 +27,8 @@ namespace tilt::tilder {
     // Arithmetic expressions
     REGISTER_TILDER(_add, Add)
     REGISTER_TILDER(_sub, Sub)
+    REGISTER_TILDER(_mul, Mul)
+    REGISTER_TILDER(_div, Div)
     REGISTER_TILDER(_max, Max)
     REGISTER_TILDER(_min, Min)
     REGISTER_TILDER(_lt, LessThan)

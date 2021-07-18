@@ -55,6 +55,8 @@ void IRPrinter::Visit(const NaryExpr& e)
     switch (e.op) {
         case MathOp::ADD: emitbinary(e.arg<0>(), "+", e.arg<1>()); break;
         case MathOp::SUB: emitbinary(e.arg<0>(), "-", e.arg<1>()); break;
+        case MathOp::MUL: emitbinary(e.arg<0>(), "*", e.arg<1>()); break;
+        case MathOp::DIV: emitbinary(e.arg<0>(), "/", e.arg<1>()); break;
         case MathOp::MAX: emitfunc("max", {e.arg<0>(), e.arg<1>()}); break;
         case MathOp::MIN: emitfunc("min", {e.arg<0>(), e.arg<1>()}); break;
         case MathOp::EQ: emitbinary(e.arg<0>(), "==", e.arg<1>()); break;
