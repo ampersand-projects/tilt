@@ -34,8 +34,6 @@ namespace tilt::tilder {
     REGISTER_TILDER(_gt, GreaterThan)
     
     // Logical expressions
-    REGISTER_TILDER(_true, True)
-    REGISTER_TILDER(_false, False)
     REGISTER_TILDER(_exists, Exists)
     REGISTER_TILDER(_not, Not)
     REGISTER_TILDER(_eq, Equals)
@@ -43,11 +41,7 @@ namespace tilt::tilder {
     REGISTER_TILDER(_or, Or)
     
     // Constant expressions
-    REGISTER_TILDER(_iconst, IConst)
-    REGISTER_TILDER(_uconst, UConst)
-    REGISTER_TILDER(_fconst, FConst)
-    REGISTER_TILDER(_cconst, CConst)
-    REGISTER_TILDER(_tconst, TConst)
+    REGISTER_TILDER(_const, ConstNode)
 
     // LStream operations
     REGISTER_TILDER(_subls, SubLStream)
@@ -59,7 +53,6 @@ namespace tilt::tilder {
     REGISTER_TILDER(_get, Get)
     REGISTER_TILDER(_new, New)
     REGISTER_TILDER(_sel, IfElse)
-    REGISTER_TILDER(_now, Now)
     REGISTER_TILDER(_agg, AggNode)
 
     // Loop IR expressions
@@ -97,6 +90,8 @@ namespace tilt::tilder {
     Const _f64(double);
     Const _ch(char);
     Const _ts(long);
+    Const _true();
+    Const _false();
 
     using _iter = Iter;
     using _pt = Point;

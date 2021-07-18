@@ -25,7 +25,6 @@ namespace tilt {
         UINT64,
         FLOAT32,
         FLOAT64,
-        TIMESTAMP,
         STRUCT,
         PTR,
         UNKNOWN,
@@ -64,6 +63,34 @@ namespace tilt {
         bool is_struct() const { return btype == BaseType::STRUCT; }
         bool is_ptr() const { return btype == BaseType::PTR; }
         bool is_arr() const { return size > 0; }
+
+        bool is_float() const
+        {
+            return (this->btype == BaseType::FLOAT32)
+                || (this->btype == BaseType::FLOAT64);
+        }
+
+        bool is_int() const
+        {
+            return (this->btype == BaseType::INT8)
+                || (this->btype == BaseType::INT16)
+                || (this->btype == BaseType::INT32)
+                || (this->btype == BaseType::INT64)
+                || (this->btype == BaseType::UINT8)
+                || (this->btype == BaseType::UINT16)
+                || (this->btype == BaseType::UINT32)
+                || (this->btype == BaseType::UINT64);
+        }
+
+        bool is_signed() const
+        {
+            return (this->btype == BaseType::INT8)
+                || (this->btype == BaseType::INT16)
+                || (this->btype == BaseType::INT32)
+                || (this->btype == BaseType::INT64)
+                || (this->btype == BaseType::FLOAT32)
+                || (this->btype == BaseType::FLOAT64);
+        }
     };
 
     struct Iter {
@@ -111,6 +138,12 @@ namespace tilt {
         }
     };
 
+    enum class MathOp {
+        ADD, SUB, MAX, MIN,
+        LT, LTE, GT, EQ,
+        NOT, AND, OR,
+    };
+
     namespace types {
 
         static const DataType BOOL = { BaseType::BOOL };
@@ -126,7 +159,6 @@ namespace tilt {
         static const DataType UINT64 = { BaseType::UINT64 };
         static const DataType FLOAT32 = { BaseType::FLOAT32 };
         static const DataType FLOAT64 = { BaseType::FLOAT64 };
-        static const DataType TIMESTAMP = { BaseType::TIMESTAMP };
 
         // Loop IR types
         static const DataType TIME = { BaseType::TIME };

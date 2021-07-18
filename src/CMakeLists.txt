@@ -1,8 +1,5 @@
 set(SRC_FILES
-    ir/op.cpp
-    ir/expr.cpp
-    ir/lstream.cpp
-    ir/loop.cpp
+    ir/ir.cpp
     builder/tilder.cpp
     codegen/printer.cpp
     codegen/loopgen.cpp

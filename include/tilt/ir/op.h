@@ -16,10 +16,10 @@ namespace tilt
         Iter iter;
         Params inputs;
         SymTable syms;
-        Pred pred;
+        Expr pred;
         Sym output;
 
-        OpNode(Iter iter, Params inputs, SymTable syms, Pred pred, Sym output) :
+        OpNode(Iter iter, Params inputs, SymTable syms, Expr pred, Sym output) :
             LStream(Type(output->type.dtype, iter)), iter(iter),
             inputs(move(inputs)), syms(move(syms)), pred(pred), output(output)
         {

@@ -20,29 +20,10 @@ namespace tilt
         virtual void Visit(const Get&) = 0;
         virtual void Visit(const New&) = 0;
         virtual void Visit(const Exists&) = 0;
-        virtual void Visit(const Equals&) = 0;
-        virtual void Visit(const Not&) = 0;
-        virtual void Visit(const And&) = 0;
-        virtual void Visit(const Or&) = 0;
-        virtual void Visit(const IConst&) = 0;
-        virtual void Visit(const UConst&) = 0;
-        virtual void Visit(const FConst&) = 0;
-        virtual void Visit(const CConst&) = 0;
-        virtual void Visit(const TConst&) = 0;
-        virtual void Visit(const Add&) = 0;
-        virtual void Visit(const Sub&) = 0;
-        virtual void Visit(const Max&) = 0;
-        virtual void Visit(const Min&) = 0;
-        virtual void Visit(const Now&) = 0;
-        virtual void Visit(const True&) = 0;
-        virtual void Visit(const False&) = 0;
-        virtual void Visit(const LessThan&) = 0;
-        virtual void Visit(const LessThanEqual&) = 0;
-        virtual void Visit(const GreaterThan&) = 0;
-
+        virtual void Visit(const ConstNode&) = 0;
+        virtual void Visit(const NaryExpr&) = 0;
         virtual void Visit(const SubLStream&) = 0;
         virtual void Visit(const Element&) = 0;
-
         virtual void Visit(const OpNode&) = 0;
         virtual void Visit(const AggNode&) = 0;
 

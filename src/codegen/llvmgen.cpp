@@ -88,8 +88,6 @@ llvm::Type* LLVMGen::lltype(const DataType& dtype)
             return llvm::Type::getFloatTy(llctx());
         case BaseType::FLOAT64:
             return llvm::Type::getDoubleTy(llctx());
-        case BaseType::TIMESTAMP:
-            return llvm::Type::getInt64Ty(llctx());
         case BaseType::TIME:
             return llvm::Type::getInt64Ty(llctx());
         case BaseType::INDEX:
@@ -179,107 +177,102 @@ Value* LLVMGen::visit(const New& _new)
     return builder()->CreateLoad(ptr);
 }
 
-Value* LLVMGen::visit(const IConst& iconst)
+Value* LLVMGen::visit(const ConstNode& cnst)
 {
-    return ConstantInt::getSigned(lltype(iconst), iconst.val);
+    switch (cnst.type.dtype.btype) {
+        case BaseType::BOOL: return (cnst.val ? ConstantInt::getTrue(llctx()) : ConstantInt::getFalse(llctx()));
+        case BaseType::INT8:
+        case BaseType::INT16:
+        case BaseType::INT32:
+        case BaseType::INT64: return ConstantInt::getSigned(lltype(cnst), cnst.val);
+        case BaseType::UINT8:
+        case BaseType::UINT16:
+        case BaseType::UINT32:
+        case BaseType::UINT64:
+        case BaseType::TIME: return ConstantInt::get(lltype(cnst), cnst.val);
+        case BaseType::FLOAT32:
+        case BaseType::FLOAT64: return ConstantFP::get(lltype(cnst), cnst.val);
+        default: throw std::runtime_error("Invalid constant type"); break;
+    }
 }
 
-Value* LLVMGen::visit(const UConst& uconst)
+Value* LLVMGen::visit(const NaryExpr& e)
 {
-    return ConstantInt::get(lltype(uconst), uconst.val);
+    switch (e.op) {
+        case MathOp::ADD: {
+            if (e.arg<0>()->type.dtype.is_float()) {
+                return builder()->CreateFAdd(eval(e.arg<0>()), eval(e.arg<1>()));
+            } else {
+                return builder()->CreateAdd(eval(e.arg<0>()), eval(e.arg<1>()));
+            }
+        }
+        case MathOp::SUB: {
+            if (e.arg<0>()->type.dtype.is_float()) {
+                return builder()->CreateFSub(eval(e.arg<0>()), eval(e.arg<1>()));
+            } else {
+                return builder()->CreateSub(eval(e.arg<0>()), eval(e.arg<1>()));
+            }
+        }
+        case MathOp::MAX: {
+            auto left = eval(e.arg<0>());
+            auto right = eval(e.arg<1>());
+            Value* ge;
+            if (e.arg<0>()->type.dtype.is_float()) {
+                ge = builder()->CreateFCmpOGE(left, right);
+            } else {
+                ge = builder()->CreateICmpSGE(left, right);
+            }
+            return builder()->CreateSelect(ge, left, right);
+        }
+        case MathOp::MIN: {
+            auto left = eval(e.arg<0>());
+            auto right = eval(e.arg<1>());
+            Value* le;
+            if (e.arg<0>()->type.dtype.is_float()) {
+                le = builder()->CreateFCmpOLE(left, right);
+            } else {
+                le = builder()->CreateICmpSLE(left, right);
+            }
+            return builder()->CreateSelect(le, left, right);
+        }
+        case MathOp::EQ: {
+            if (e.arg<0>()->type.dtype.is_float()) {
+                return builder()->CreateFCmpOEQ(eval(e.arg<0>()), eval(e.arg<1>()));
+            } else {
+                return builder()->CreateICmpEQ(eval(e.arg<0>()), eval(e.arg<1>()));
+            }
+        }
+        case MathOp::LT: {
+            if (e.arg<0>()->type.dtype.is_float()) {
+                return builder()->CreateFCmpOLT(eval(e.arg<0>()), eval(e.arg<1>()));
+            } else {
+                return builder()->CreateICmpSLT(eval(e.arg<0>()), eval(e.arg<1>()));
+            }
+        }
+        case MathOp::LTE: {
+            if (e.arg<0>()->type.dtype.is_float()) {
+                return builder()->CreateFCmpOLE(eval(e.arg<0>()), eval(e.arg<1>()));
+            } else {
+                return builder()->CreateICmpSLE(eval(e.arg<0>()), eval(e.arg<1>()));
+            }
+        }
+        case MathOp::GT: {
+            if (e.arg<0>()->type.dtype.is_float()) {
+                return builder()->CreateFCmpOGT(eval(e.arg<0>()), eval(e.arg<1>()));
+            } else {
+                return builder()->CreateICmpSGT(eval(e.arg<0>()), eval(e.arg<1>()));
+            }
+        }
+        case MathOp::NOT: return builder()->CreateNot(eval(e.arg<0>()));
+        case MathOp::AND: return builder()->CreateAnd(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::OR: return builder()->CreateOr(eval(e.arg<0>()), eval(e.arg<1>()));
+        default: throw std::runtime_error("Invalid math operation"); break;
+    }
 }
-
-Value* LLVMGen::visit(const FConst& fconst)
-{
-    return ConstantFP::get(lltype(fconst), fconst.val);
-}
-
-Value* LLVMGen::visit(const CConst& cconst)
-{
-    return ConstantInt::get(lltype(cconst), cconst.val);
-}
-
-Value* LLVMGen::visit(const TConst& tconst)
-{
-    return ConstantInt::get(lltype(tconst), tconst.val);
-}
-
-Value* LLVMGen::visit(const Add& add)
-{
-    return builder()->CreateAdd(eval(add.Left()), eval(add.Right()));
-}
-
-Value* LLVMGen::visit(const Sub& sub)
-{
-    return builder()->CreateSub(eval(sub.Left()), eval(sub.Right()));
-}
-
-Value* LLVMGen::visit(const Max& max)
-{
-    auto left = eval(max.Left());
-    auto right = eval(max.Right());
-    auto ge = builder()->CreateICmpSGE(left, right);
-    return builder()->CreateSelect(ge, left, right);
-}
-
-Value* LLVMGen::visit(const Min& min)
-{
-    auto left = eval(min.Left());
-    auto right = eval(min.Right());
-    auto le = builder()->CreateICmpSLE(left, right);
-    return builder()->CreateSelect(le, left, right);
-}
-
-Value* LLVMGen::visit(const Now&) { throw std::runtime_error("Invalid expression"); }
 
 Value* LLVMGen::visit(const Exists& exists)
 {
     return builder()->CreateIsNotNull(eval(exists.sym));
-}
-
-Value* LLVMGen::visit(const Equals& equals)
-{
-    return builder()->CreateICmpEQ(eval(equals.Left()), eval(equals.Right()));
-}
-
-Value* LLVMGen::visit(const Not& not_expr)
-{
-    return builder()->CreateNot(eval(not_expr.Input()));
-}
-
-Value* LLVMGen::visit(const And& and_expr)
-{
-    return builder()->CreateAnd(eval(and_expr.Left()), eval(and_expr.Right()));
-}
-
-Value* LLVMGen::visit(const Or& or_expr)
-{
-    return builder()->CreateOr(eval(or_expr.Left()), eval(or_expr.Right()));
-}
-
-Value* LLVMGen::visit(const True&)
-{
-    return ConstantInt::getTrue(llctx());
-}
-
-Value* LLVMGen::visit(const False&)
-{
-    return ConstantInt::getFalse(llctx());
-}
-
-Value* LLVMGen::visit(const LessThan& lt)
-{
-    return builder()->CreateICmpSLT(eval(lt.Left()), eval(lt.Right()));
-}
-
-Value* LLVMGen::visit(const LessThanEqual& lte)
-{
-    return builder()->CreateICmpSLE(eval(lte.Left()), eval(lte.Right()));
-}
-
-Value* LLVMGen::visit(const GreaterThan& gt)
-{
-    return builder()->CreateICmpSGT(eval(gt.Left()), eval(gt.Right()));
 }
 
 Value* LLVMGen::visit(const GetTime& get_time)

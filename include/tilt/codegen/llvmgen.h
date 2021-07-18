@@ -46,25 +46,8 @@ namespace tilt {
         llvm::Value* visit(const Get&) final;
         llvm::Value* visit(const New&) final;
         llvm::Value* visit(const Exists&) final;
-        llvm::Value* visit(const Equals&) final;
-        llvm::Value* visit(const Not&) final;
-        llvm::Value* visit(const And&) final;
-        llvm::Value* visit(const Or&) final;
-        llvm::Value* visit(const IConst&) final;
-        llvm::Value* visit(const UConst&) final;
-        llvm::Value* visit(const FConst&) final;
-        llvm::Value* visit(const CConst&) final;
-        llvm::Value* visit(const TConst&) final;
-        llvm::Value* visit(const Add&) final;
-        llvm::Value* visit(const Sub&) final;
-        llvm::Value* visit(const Max&) final;
-        llvm::Value* visit(const Min&) final;
-        llvm::Value* visit(const Now&) final;
-        llvm::Value* visit(const True&) final;
-        llvm::Value* visit(const False&) final;
-        llvm::Value* visit(const LessThan&) final;
-        llvm::Value* visit(const LessThanEqual&) final;
-        llvm::Value* visit(const GreaterThan&) final;
+        llvm::Value* visit(const ConstNode&) final;
+        llvm::Value* visit(const NaryExpr&) final;
         llvm::Value* visit(const SubLStream&) final { throw std::runtime_error("Invalid expression"); }
         llvm::Value* visit(const Element&) final { throw std::runtime_error("Invalid expression"); }
         llvm::Value* visit(const OpNode&) final { throw std::runtime_error("Invalid expression"); }

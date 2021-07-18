@@ -74,235 +74,96 @@ namespace tilt {
     };
 
     struct ConstNode : public ValNode {
-        ConstNode(DataType dtype) : ValNode(dtype) {}
+        const double val;
+
+        ConstNode(BaseType btype, double val) :
+            ValNode(DataType(btype)), val(val)
+        {}
+
+        void Accept(Visitor&) const final;
     };
     typedef shared_ptr<ConstNode> Const;
 
-    struct IConst : public ConstNode {
-        const int64_t val;
+    struct Exists : public ValNode {
+        Sym sym;
 
-        IConst(DataType dtype, const int64_t val) :
-            ConstNode(dtype), val(val)
-        {
-            assert(
-                dtype == types::INT8 ||
-                dtype == types::INT16 ||
-                dtype == types::INT32 ||
-                dtype == types::INT64
-            );
-        }
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct UConst : public ConstNode {
-        const uint64_t val;
-
-        UConst(DataType dtype, const uint64_t val) :
-            ConstNode(dtype), val(val)
-        {
-            assert(
-                dtype == types::UINT8 ||
-                dtype == types::UINT16 ||
-                dtype == types::UINT32 ||
-                dtype == types::UINT64
-            );
-        }
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct FConst : public ConstNode {
-        const double val;
-
-        FConst(DataType dtype, const double val) :
-            ConstNode(dtype), val(val)
-        {
-            assert(
-                dtype == types::FLOAT32 ||
-                dtype == types::FLOAT64
-            );
-        }
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct CConst : public ConstNode {
-        const char val;
-
-        CConst(const char val) :
-            ConstNode(types::CHAR), val(val)
-        {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct TConst : public ConstNode {
-        const long val;
-
-        TConst(const long val) :
-            ConstNode(types::TIME), val(val)
-        {}
+        Exists(Sym sym) : ValNode(types::BOOL), sym(sym) {}
 
         void Accept(Visitor&) const final;
     };
 
     struct NaryExpr : public ValNode {
-        vector<Expr> inputs;
+        MathOp op;
+        vector<Expr> args;
 
-        NaryExpr(DataType dtype, vector<Expr> inputs)
-            : ValNode(dtype), inputs(move(inputs))
+        NaryExpr(DataType dtype, MathOp op, vector<Expr> args)
+            : ValNode(dtype), op(op), args(move(args))
         {}
 
         template<size_t i>
-        Expr Get() const { return inputs[i]; }
+        Expr arg() const { return args[i]; }
 
-        size_t Size() const { return inputs.size(); }
-    };
-
-    struct Predicate : public NaryExpr {
-        Predicate(vector<Expr> inputs) :
-            NaryExpr(types::BOOL, move(inputs))
-        {}
-    };
-    typedef shared_ptr<Predicate> Pred;
-
-    struct UnaryPred : public Predicate {
-        UnaryPred(Expr a) : Predicate({a}) {}
-
-        Expr Input() const { return Get<0>(); }
-    };
-
-    struct BinaryPred : public Predicate {
-        BinaryPred(Expr a, Expr b) : Predicate({a, b}) {}
-
-        Expr Left() const { return Get<0>(); }
-        Expr Right() const { return Get<1>(); }
-    };
-
-    struct True : public Predicate {
-        True() : Predicate({}) {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct False : public Predicate {
-        False() : Predicate({}) {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct Exists : public UnaryPred {
-        Sym sym;
-
-        Exists(Sym sym) : UnaryPred({(Expr) sym}), sym(sym) {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct Not : public UnaryPred {
-        Not(Expr a) : UnaryPred(a) {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct Equals : public BinaryPred {
-        Equals(Expr a, Expr b) : BinaryPred(a, b) {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct And : public BinaryPred {
-        And(Expr a, Expr b) : BinaryPred(a, b) {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct Or : public BinaryPred {
-        Or(Expr a, Expr b) : BinaryPred(a, b) {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct LessThan : public BinaryPred {
-        LessThan(Expr a, Expr b) : BinaryPred(a, b) {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct GreaterThan : public BinaryPred {
-        GreaterThan(Expr a, Expr b) : BinaryPred(a, b) {}
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct LessThanEqual : public BinaryPred {
-        LessThanEqual(Expr a, Expr b) : BinaryPred(a, b) {}
+        size_t size() const { return args.size(); }
 
         void Accept(Visitor&) const final;
     };
 
     struct UnaryExpr : public NaryExpr {
-        UnaryExpr(DataType dtype, Expr input)
-            : NaryExpr(dtype, vector<Expr>{input})
+        UnaryExpr(DataType dtype, MathOp op, Expr input)
+            : NaryExpr(dtype, op, vector<Expr>{input})
         {}
-
-        Expr Input() const { return Get<0>(); }
     };
 
     struct BinaryExpr : public NaryExpr {
-        BinaryExpr(DataType dtype, Expr left, Expr right)
-            : NaryExpr(dtype, vector<Expr>{left, right})
-        {}
+        BinaryExpr(DataType dtype, MathOp op, Expr left, Expr right)
+            : NaryExpr(dtype, op, vector<Expr>{left, right})
+        {
+            assert(left->type == right->type);
+        }
+    };
 
-        Expr Left() const { return Get<0>(); }
-        Expr Right() const { return Get<1>(); }
+    struct Not : public UnaryExpr {
+        Not(Expr a) : UnaryExpr(types::BOOL, MathOp::NOT, a) {}
+    };
+
+    struct Equals : public BinaryExpr {
+        Equals(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::EQ, a, b) {}
+    };
+
+    struct And : public BinaryExpr {
+        And(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::AND, a, b) {}
+    };
+
+    struct Or : public BinaryExpr {
+        Or(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::OR, a, b) {}
+    };
+
+    struct LessThan : public BinaryExpr {
+        LessThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LT, a, b) {}
+    };
+
+    struct GreaterThan : public BinaryExpr {
+        GreaterThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GT, a, b) {}
+    };
+
+    struct LessThanEqual : public BinaryExpr {
+        LessThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LTE, a, b) {}
     };
 
     struct Add : public BinaryExpr {
-        Add(Expr a, Expr b) :
-            BinaryExpr(a->type.dtype, a, b)
-        {
-            assert(a->type.dtype == b->type.dtype);
-        }
-
-        void Accept(Visitor&) const final;
+        Add(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::ADD, a, b) {}
     };
 
     struct Sub : public BinaryExpr {
-        Sub(Expr a, Expr b) :
-            BinaryExpr(a->type.dtype, a, b)
-        {
-            assert(a->type.dtype == b->type.dtype);
-        }
-
-        void Accept(Visitor&) const final;
+        Sub(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::SUB, a, b) {}
     };
 
     struct Max : public BinaryExpr {
-        Max(Expr a, Expr b) :
-            BinaryExpr(a->type.dtype, a, b)
-        {
-            assert(a->type.dtype == b->type.dtype);
-        }
-
-        void Accept(Visitor&) const final;
+        Max(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MAX, a, b) {}
     };
 
     struct Min : public BinaryExpr {
-        Min(Expr a, Expr b) :
-            BinaryExpr(a->type.dtype, a, b)
-        {
-            assert(a->type.dtype == b->type.dtype);
-        }
-
-        void Accept(Visitor&) const final;
-    };
-
-    struct Now : public ValNode {
-        Now() : ValNode(types::TIMESTAMP) {}
-
-        void Accept(Visitor&) const final;
+        Min(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MIN, a, b) {}
     };
 
 } // namespace tilt

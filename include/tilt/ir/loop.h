@@ -230,7 +230,7 @@ namespace tilt
         map<Sym, Sym> state_bases;
 
         // loop condition
-        Pred exit_cond;
+        Expr exit_cond;
 
         // Inner loops
         vector<shared_ptr<Loop>> inner_loops;

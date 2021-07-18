@@ -140,25 +140,26 @@ Expr LoopGen::visit(const New& new_expr)
 }
 
 Expr LoopGen::visit(const Get& get) { return _get(eval(get.input), get.n); }
-Expr LoopGen::visit(const Equals& equals) { return _eq(eval(equals.Left()), eval(equals.Right())); }
-Expr LoopGen::visit(const Not& not_expr) { return _not(eval(not_expr.Input())); }
-Expr LoopGen::visit(const And& and_expr) { return _and(eval(and_expr.Left()), eval(and_expr.Right())); }
-Expr LoopGen::visit(const Or& or_expr) { return _or(eval(or_expr.Left()), eval(or_expr.Right())); }
-Expr LoopGen::visit(const IConst& iconst) { return _iconst(iconst); }
-Expr LoopGen::visit(const UConst& uconst) { return _uconst(uconst); }
-Expr LoopGen::visit(const FConst& fconst) { return _fconst(fconst); }
-Expr LoopGen::visit(const CConst& cconst) { return _cconst(cconst); }
-Expr LoopGen::visit(const TConst& tconst) { return _tconst(tconst); }
-Expr LoopGen::visit(const Add& add) { return _add(eval(add.Left()), eval(add.Right())); }
-Expr LoopGen::visit(const Sub& sub) { return _sub(eval(sub.Left()), eval(sub.Right())); }
-Expr LoopGen::visit(const Max& max) { return _max(eval(max.Left()), eval(max.Right())); }
-Expr LoopGen::visit(const Min& min) { return _min(eval(min.Left()), eval(min.Right())); }
-Expr LoopGen::visit(const Now&) { return _now(); }
-Expr LoopGen::visit(const True&) { return _true(); }
-Expr LoopGen::visit(const False&) { return _false(); }
-Expr LoopGen::visit(const LessThan& lt) { return _lt(eval(lt.Left()), eval(lt.Right())); }
-Expr LoopGen::visit(const LessThanEqual& lte) { return _lte(eval(lte.Left()), eval(lte.Right())); }
-Expr LoopGen::visit(const GreaterThan& gt) { return _gt(eval(gt.Left()), eval(gt.Right())); }
+
+Expr LoopGen::visit(const ConstNode& cnst) { return _const(cnst); }
+
+Expr LoopGen::visit(const NaryExpr& e)
+{
+    switch (e.op) {
+        case MathOp::ADD: return _add(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::SUB: return _sub(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::MAX: return _max(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::MIN: return _min(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::EQ: return _eq(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::NOT: return _not(eval(e.arg<0>()));
+        case MathOp::AND: return _and(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::OR: return _or(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::LT: return _lt(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::LTE: return _lte(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::GT: return _gt(eval(e.arg<0>()), eval(e.arg<1>()));
+        default: throw std::runtime_error("Invalid math operation"); break;
+    }
+}
 
 Expr LoopGen::visit(const SubLStream& subls)
 {

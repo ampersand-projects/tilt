@@ -26,55 +26,46 @@ void IRPrinter::Visit(const Symbol& sym)
     ostr << sym.name;
 }
 
-void IRPrinter::Visit(const IConst& iconst) { ostr << iconst.val; }
-void IRPrinter::Visit(const UConst& uconst) { ostr << uconst.val; }
-void IRPrinter::Visit(const FConst& fconst) { ostr << fconst.val; }
-void IRPrinter::Visit(const CConst& cconst) { ostr << cconst.val; }
-void IRPrinter::Visit(const TConst& tconst) { ostr << tconst.val; }
-void IRPrinter::Visit(const Add& add)
-{
-    emitbinary(add.Left(), "+", add.Right());
-}
-void IRPrinter::Visit(const Sub& sub)
-{
-    emitbinary(sub.Left(), "-", sub.Right());
-}
-void IRPrinter::Visit(const Max& max)
-{
-    emitfunc("max", {max.Left(), max.Right()});
-}
-void IRPrinter::Visit(const Min& min)
-{
-    emitfunc("min", {min.Left(), min.Right()});
-}
-void IRPrinter::Visit(const Now&)
-{
-    ostr << "t" << ctx.nesting;
-}
-
 void IRPrinter::Visit(const Exists& exists)
 {
     emitunary(EXISTS, exists.sym);
 }
 
-void IRPrinter::Visit(const Equals& equals)
+void IRPrinter::Visit(const ConstNode& cnst)
 {
-    emitbinary(equals.Left(), "&&", equals.Right());
+    switch (cnst.type.dtype.btype) {
+        case BaseType::BOOL: ostr << (cnst.val ? "true" : "false"); break;
+        case BaseType::INT8:
+        case BaseType::INT16:
+        case BaseType::INT32:
+        case BaseType::INT64: ostr << cnst.val << "i"; break;
+        case BaseType::UINT8:
+        case BaseType::UINT16:
+        case BaseType::UINT32:
+        case BaseType::UINT64: ostr << cnst.val << "u"; break;
+        case BaseType::FLOAT32:
+        case BaseType::FLOAT64: ostr << cnst.val << "f"; break;
+        case BaseType::TIME: ostr << cnst.val << "t"; break;
+        default: throw std::runtime_error("Invalid constant type"); break;
+    }
 }
 
-void IRPrinter::Visit(const Not& not_pred)
+void IRPrinter::Visit(const NaryExpr& e)
 {
-    emitunary("!", not_pred.Input());
-}
-
-void IRPrinter::Visit(const And& and_pred)
-{
-    emitbinary(and_pred.Left(), "&&", and_pred.Right());
-}
-
-void IRPrinter::Visit(const Or& or_pred)
-{
-    emitbinary(or_pred.Left(), "||", or_pred.Right());
+    switch (e.op) {
+        case MathOp::ADD: emitbinary(e.arg<0>(), "+", e.arg<1>()); break;
+        case MathOp::SUB: emitbinary(e.arg<0>(), "-", e.arg<1>()); break;
+        case MathOp::MAX: emitfunc("max", {e.arg<0>(), e.arg<1>()}); break;
+        case MathOp::MIN: emitfunc("min", {e.arg<0>(), e.arg<1>()}); break;
+        case MathOp::EQ: emitbinary(e.arg<0>(), "==", e.arg<1>()); break;
+        case MathOp::NOT: emitunary("!", e.arg<0>()); break;
+        case MathOp::AND: emitbinary(e.arg<0>(), "&&", e.arg<1>()); break;
+        case MathOp::OR: emitbinary(e.arg<0>(), "||", e.arg<1>()); break;
+        case MathOp::LT: emitbinary(e.arg<0>(), "<", e.arg<1>()); break;
+        case MathOp::LTE: emitbinary(e.arg<0>(), "<=", e.arg<1>()); break;
+        case MathOp::GT: emitbinary(e.arg<0>(), ">", e.arg<1>()); break;
+        default: throw std::runtime_error("Invalid math operation"); break;
+    }
 }
 
 void IRPrinter::Visit(const SubLStream& subls)
@@ -139,31 +130,6 @@ void IRPrinter::Visit(const AggNode& agg)
     agg.op->Accept(*this);
     exit_block();
     ostr << "}";
-}
-
-void IRPrinter::Visit(const True&)
-{
-    ostr << "True";
-}
-
-void IRPrinter::Visit(const False&)
-{
-    ostr << "False";
-}
-
-void IRPrinter::Visit(const LessThan& lt)
-{
-    emitbinary(lt.Left(), "<", lt.Right());
-}
-
-void IRPrinter::Visit(const LessThanEqual& lte)
-{
-    emitbinary(lte.Left(), "<=", lte.Right());
-}
-
-void IRPrinter::Visit(const GreaterThan& gt)
-{
-    emitbinary(gt.Left(), ">", gt.Right());
 }
 
 void IRPrinter::Visit(const AllocIndex& alloc_idx)
