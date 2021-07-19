@@ -277,7 +277,6 @@ Value* LLVMGen::visit(const NaryExpr& e)
                 return builder()->CreateICmpSGT(eval(e.arg<0>()), eval(e.arg<1>()));
             }
         }
-
         case MathOp::GTE: {
             if (e.arg<0>()->type.dtype.is_float()) {
                 return builder()->CreateFCmpOGE(eval(e.arg<0>()), eval(e.arg<1>()));
@@ -285,7 +284,6 @@ Value* LLVMGen::visit(const NaryExpr& e)
                 return builder()->CreateICmpSGE(eval(e.arg<0>()), eval(e.arg<1>()));
             }
         }
-
         case MathOp::NOT: return builder()->CreateNot(eval(e.arg<0>()));
         case MathOp::AND: return builder()->CreateAnd(eval(e.arg<0>()), eval(e.arg<1>()));
         case MathOp::OR: return builder()->CreateOr(eval(e.arg<0>()), eval(e.arg<1>()));
