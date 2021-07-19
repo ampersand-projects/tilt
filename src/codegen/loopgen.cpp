@@ -159,6 +159,7 @@ Expr LoopGen::visit(const NaryExpr& e)
         case MathOp::LT: return _lt(eval(e.arg<0>()), eval(e.arg<1>()));
         case MathOp::LTE: return _lte(eval(e.arg<0>()), eval(e.arg<1>()));
         case MathOp::GT: return _gt(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::GTE: return _gte(eval(e.arg<0>()), eval(e.arg<1>()));
         default: throw std::runtime_error("Invalid math operation"); break;
     }
 }
