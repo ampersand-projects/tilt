@@ -66,6 +66,7 @@ void IRPrinter::Visit(const NaryExpr& e)
         case MathOp::LT: emitbinary(e.arg<0>(), "<", e.arg<1>()); break;
         case MathOp::LTE: emitbinary(e.arg<0>(), "<=", e.arg<1>()); break;
         case MathOp::GT: emitbinary(e.arg<0>(), ">", e.arg<1>()); break;
+        case MathOp::GTE: emitbinary(e.arg<0>(), ">=", e.arg<1>()); break;
         default: throw std::runtime_error("Invalid math operation"); break;
     }
 }

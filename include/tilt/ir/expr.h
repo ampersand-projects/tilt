@@ -150,6 +150,10 @@ namespace tilt {
         LessThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LTE, a, b) {}
     };
 
+    struct GreaterThanEqual : public BinaryExpr {
+        GreaterThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GTE, a, b) {}
+    };  
+
     struct Add : public BinaryExpr {
         Add(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::ADD, a, b) {}
     };

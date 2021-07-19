@@ -34,6 +34,7 @@ namespace tilt::tilder {
     REGISTER_TILDER(_lt, LessThan)
     REGISTER_TILDER(_lte, LessThanEqual)
     REGISTER_TILDER(_gt, GreaterThan)
+    REGISTER_TILDER(_gte, GreaterThanEqual)
     
     // Logical expressions
     REGISTER_TILDER(_exists, Exists)
