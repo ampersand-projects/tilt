@@ -1,5 +1,6 @@
 set(TEST_FILES
     basic_tests.cpp
+    test_base.cpp
 )
 
 add_executable(tilt_test ${TEST_FILES})
