@@ -1,0 +1,11 @@
+name: cpplint
+on: [push, pull_request]
+jobs:
+  cpplint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-python@v1
+    - run: pip install cpplint
+    - run: cpplint --exclude=third_party --exclude=main.cpp --recursive --filter=-legal/copyright,-whitespace/braces,-whitespace/indent,-build/namespaces,-build/include_subdir --linelength=120 .
+

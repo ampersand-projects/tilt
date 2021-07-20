@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "test_base.h"
 
 #include "tilt/codegen/loopgen.h"
@@ -10,7 +12,7 @@
 using namespace tilt;
 using namespace tilt::tilder;
 
-void run_op(Op op, long st, long et, region_t* out_reg, region_t* in_reg)
+void run_op(Op op, int64_t st, int64_t et, region_t* out_reg, region_t* in_reg)
 {
     auto op_sym = op->sym("query");
     auto loop = LoopGen::Build(op_sym, op.get());
@@ -21,8 +23,8 @@ void run_op(Op op, long st, long et, region_t* out_reg, region_t* in_reg)
     auto llmod = LLVMGen::Build(loop, llctx);
     jit->AddModule(move(llmod));
 
-    auto loop_addr = (region_t* (*)(long, long, region_t*, region_t*)) jit->Lookup(loop->GetName());
-    auto init_region = (region_t* (*)(region_t*, long, index_t*, char*)) jit->Lookup("init_region");
+    auto loop_addr = (region_t* (*)(int64_t, int64_t, region_t*, region_t*)) jit->Lookup(loop->GetName());
+    auto init_region = (region_t* (*)(region_t*, int64_t, index_t*, char*)) jit->Lookup("init_region");
 
     init_region(out_reg, st, out_reg->tl, out_reg->data);
 
@@ -41,21 +43,21 @@ void op_test(Op op, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
 
     region_t in_reg;
     in_reg.si = {in_st, 0};
-    in_reg.ei = {in_et, (unsigned int) input.size() - 1};
+    in_reg.ei = {in_et, (uint32_t) input.size() - 1};
     auto in_tl = vector<index_t>(input.size());
     auto in_data = vector<InTy>(input.size());
     for (size_t i = 0; i < input.size(); i++) {
-        in_tl[i] = {input[i].st, (unsigned int) (input[i].et - input[i].st)};
+        in_tl[i] = {input[i].st, (uint32_t) (input[i].et - input[i].st)};
         in_data[i] = input[i].payload;
     }
     in_reg.tl = in_tl.data();
-    in_reg.data = (char*) in_data.data();
+    in_reg.data = reinterpret_cast<char*>(in_data.data());
 
     region_t out_reg;
     auto out_tl = vector<index_t>(true_out.size());
     auto out_data = vector<OutTy>(true_out.size());
     out_reg.tl = out_tl.data();
-    out_reg.data = (char*) out_data.data();
+    out_reg.data = reinterpret_cast<char*>(out_data.data());
 
     run_op(op, out_st, out_et, &out_reg, &in_reg);
 
@@ -97,8 +99,8 @@ void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
     auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter("in")));
     vector<Event<int32_t>> input(len);
     for (size_t i = 0; i < len; i++) {
-        long st = dur * i;
-        long et = st + dur;
+        int64_t st = dur * i;
+        int64_t et = st + dur;
         int32_t payload = i;
         input[i] = {st, et, payload};
     }
@@ -121,6 +123,5 @@ void addop_test()
 {
     select_test<int32_t, int32_t>(
         [] (Expr s) { return _add(s, _i32(10)); },
-        [] (int32_t s) { return s + 10; }
-    );
+        [] (int32_t s) { return s + 10; });
 }

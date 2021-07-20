@@ -42,7 +42,7 @@ Function* LLVMGen::llfunc(const string name, llvm::Type* ret_type, vector<llvm::
 Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<Value*> arg_vals)
 {
     vector<llvm::Type*> arg_types;
-    for (const auto& arg_val: arg_vals) {
+    for (const auto& arg_val : arg_vals) {
         arg_types.push_back(arg_val->getType());
     }
     auto fn = llfunc(name, ret_type, arg_types);
@@ -52,7 +52,7 @@ Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<Value*> a
 Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<Expr> args)
 {
     vector<Value*> arg_vals;
-    for (const auto& arg: args) {
+    for (const auto& arg : args) {
         arg_vals.push_back(eval(arg));
     }
 
@@ -94,7 +94,7 @@ llvm::Type* LLVMGen::lltype(const DataType& dtype)
             return llmod()->getTypeByName("struct.index_t");
         case BaseType::STRUCT: {
             vector<llvm::Type*> lltypes;
-            for (auto dt: dtype.dtypes) {
+            for (auto dt : dtype.dtypes) {
                 lltypes.push_back(lltype(dt));
             }
             return StructType::get(llctx(), lltypes);
@@ -402,7 +402,7 @@ Value* LLVMGen::visit(const Call& call)
 Value* LLVMGen::visit(const Loop& loop)
 {
     // Build inner loops
-    for (const auto& inner_loop: loop.inner_loops) {
+    for (const auto& inner_loop : loop.inner_loops) {
         LLVMGenCtx new_ctx(inner_loop.get(), &llctx());
         auto& old_ctx = switch_ctx(new_ctx);
         inner_loop->Accept(*this);
@@ -418,7 +418,7 @@ Value* LLVMGen::visit(const Loop& loop)
 
     // Define function signature
     vector<llvm::Type*> args_type;
-    for (const auto& input: loop.inputs) {
+    for (const auto& input : loop.inputs) {
         args_type.push_back(lltype(input->type));
     }
     auto loop_fn = llfunc(loop.GetName(), lltype(loop.output), args_type);
@@ -431,7 +431,7 @@ Value* LLVMGen::visit(const Loop& loop)
     loop_fn->getBasicBlockList().push_back(preheader_bb);
     builder()->SetInsertPoint(preheader_bb);
     map<Sym, llvm::Value*> base_inits;
-    for (const auto& [_, base]: loop.state_bases) {
+    for (const auto& [_, base] : loop.state_bases) {
         base_inits[base] = eval(loop.syms.at(base));
     }
     builder()->CreateBr(header_bb);
@@ -439,7 +439,7 @@ Value* LLVMGen::visit(const Loop& loop)
     // Phi nodes for loop states
     loop_fn->getBasicBlockList().push_back(header_bb);
     builder()->SetInsertPoint(header_bb);
-    for (const auto& [base_sym, val]: base_inits) {
+    for (const auto& [base_sym, val] : base_inits) {
         auto base = builder()->CreatePHI(lltype(base_sym->type), 2, base_sym->name);
         assign(base_sym, base);
         base->addIncoming(val, preheader_bb);
@@ -452,18 +452,18 @@ Value* LLVMGen::visit(const Loop& loop)
     loop_fn->getBasicBlockList().push_back(body_bb);
     builder()->SetInsertPoint(body_bb);
     auto stack_val = builder()->CreateIntrinsic(Intrinsic::stacksave, {}, {});
-    
+
     // Update loop counter
     eval(loop.t);
 
     // Update indices
-    for (const auto& idx: loop.idxs) {
+    for (const auto& idx : loop.idxs) {
         eval(idx);
     }
 
     // Evaluate loop output
     eval(loop.output);
-    for (const auto& [var, base]: loop.state_bases) {
+    for (const auto& [var, base] : loop.state_bases) {
         auto base_phi = dyn_cast<PHINode>(eval(base));
         base_phi->addIncoming(eval(var), end_bb);
     }

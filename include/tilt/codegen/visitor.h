@@ -1,52 +1,51 @@
-#ifndef TILT_VISITOR
-#define TILT_VISITOR
+#ifndef INCLUDE_TILT_CODEGEN_VISITOR_H_
+#define INCLUDE_TILT_CODEGEN_VISITOR_H_
 
 #include "tilt/ir/expr.h"
 #include "tilt/ir/lstream.h"
 #include "tilt/ir/op.h"
 #include "tilt/ir/loop.h"
 
-namespace tilt
-{
+namespace tilt {
 
-    class Visitor {
-    public:
-        /**
-         * TiLT IR
-         */
-        virtual void Visit(const Symbol&) = 0;
-        virtual void Visit(const Call&) = 0;
-        virtual void Visit(const IfElse&) = 0;
-        virtual void Visit(const Get&) = 0;
-        virtual void Visit(const New&) = 0;
-        virtual void Visit(const Exists&) = 0;
-        virtual void Visit(const ConstNode&) = 0;
-        virtual void Visit(const NaryExpr&) = 0;
-        virtual void Visit(const SubLStream&) = 0;
-        virtual void Visit(const Element&) = 0;
-        virtual void Visit(const OpNode&) = 0;
-        virtual void Visit(const AggNode&) = 0;
+class Visitor {
+public:
+    /**
+     * TiLT IR
+     */
+    virtual void Visit(const Symbol&) = 0;
+    virtual void Visit(const Call&) = 0;
+    virtual void Visit(const IfElse&) = 0;
+    virtual void Visit(const Get&) = 0;
+    virtual void Visit(const New&) = 0;
+    virtual void Visit(const Exists&) = 0;
+    virtual void Visit(const ConstNode&) = 0;
+    virtual void Visit(const NaryExpr&) = 0;
+    virtual void Visit(const SubLStream&) = 0;
+    virtual void Visit(const Element&) = 0;
+    virtual void Visit(const OpNode&) = 0;
+    virtual void Visit(const AggNode&) = 0;
 
-        /**
-         * Loop IR
-         */
-        virtual void Visit(const AllocIndex&) = 0;
-        virtual void Visit(const GetTime&) = 0;
-        virtual void Visit(const GetIndex&) = 0;
-        virtual void Visit(const Fetch&) = 0;
-        virtual void Visit(const Load&) = 0;
-        virtual void Visit(const Store&) = 0;
-        virtual void Visit(const Advance&) = 0;
-        virtual void Visit(const NextTime&) = 0;
-        virtual void Visit(const GetStartIdx&) = 0;
-        virtual void Visit(const GetEndIdx&) = 0;
-        virtual void Visit(const CommitData&) = 0;
-        virtual void Visit(const CommitNull&) = 0;
-        virtual void Visit(const AllocRegion&) = 0;
-        virtual void Visit(const MakeRegion&) = 0;
-        virtual void Visit(const Loop&) = 0;
-    };
+    /**
+     * Loop IR
+     */
+    virtual void Visit(const AllocIndex&) = 0;
+    virtual void Visit(const GetTime&) = 0;
+    virtual void Visit(const GetIndex&) = 0;
+    virtual void Visit(const Fetch&) = 0;
+    virtual void Visit(const Load&) = 0;
+    virtual void Visit(const Store&) = 0;
+    virtual void Visit(const Advance&) = 0;
+    virtual void Visit(const NextTime&) = 0;
+    virtual void Visit(const GetStartIdx&) = 0;
+    virtual void Visit(const GetEndIdx&) = 0;
+    virtual void Visit(const CommitData&) = 0;
+    virtual void Visit(const CommitNull&) = 0;
+    virtual void Visit(const AllocRegion&) = 0;
+    virtual void Visit(const MakeRegion&) = 0;
+    virtual void Visit(const Loop&) = 0;
+};
 
-} // namespace tilt
+}  // namespace tilt
 
-#endif // TILT_VISITOR
+#endif  // INCLUDE_TILT_CODEGEN_VISITOR_H_

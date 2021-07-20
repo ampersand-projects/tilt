@@ -1,7 +1,7 @@
+#include <unordered_set>
+
 #include "tilt/codegen/printer.h"
 #include "tilt/builder/tilder.h"
-
-#include <unordered_set>
 
 using namespace tilt;
 using namespace std;
@@ -11,11 +11,14 @@ static const auto FORALL = "\u2200";
 static const auto IN = "\u2208";
 static const auto PHI = "\u0278";
 
-string idx_str(long idx)
+string idx_str(int64_t idx)
 {
     ostringstream ostr;
-    if (idx > 0) { ostr << " + " << idx; }
-    else if (idx < 0) { ostr << " - " << -idx; }
+    if (idx > 0) {
+        ostr << " + " << idx;
+    } else if (idx < 0) {
+        ostr << " - " << -idx;
+    }
     return ostr.str();
 }
 
@@ -111,7 +114,7 @@ void IRPrinter::Visit(const OpNode& op)
     op.output->Accept(*this);
     ostr << " : " << PHI;
     exit_block();
-    
+
     ostr << "}";
     exit_op();
 }
@@ -231,7 +234,7 @@ void IRPrinter::Visit(const New& _new)
 
 void IRPrinter::Visit(const Loop& loop)
 {
-    for (const auto& inner_loop: loop.inner_loops)
+    for (const auto& inner_loop : loop.inner_loops)
     {
         inner_loop->Accept(*this);
     }
@@ -247,7 +250,7 @@ void IRPrinter::Visit(const Loop& loop)
     emitcomment("initialization");
     emitnewline();
     unordered_set<Sym> bases;
-    for (const auto& [_, base]: loop.state_bases) {
+    for (const auto& [_, base] : loop.state_bases) {
         emitassign(base, loop.syms.at(base));
         bases.insert(base);
         emitnewline();
@@ -273,7 +276,7 @@ void IRPrinter::Visit(const Loop& loop)
 
     emitcomment("update indices");
     emitnewline();
-    for (const auto& idx: loop.idxs) {
+    for (const auto& idx : loop.idxs) {
         emitassign(idx, loop.syms.at(idx));
         emitnewline();
     }
@@ -281,7 +284,7 @@ void IRPrinter::Visit(const Loop& loop)
 
     emitcomment("set local variables");
     emitnewline();
-    for (const auto& [sym, expr]: loop.syms) {
+    for (const auto& [sym, expr] : loop.syms) {
         if (bases.find(sym) == bases.end() &&
             loop.state_bases.find(sym) == loop.state_bases.end()) {
             emitassign(sym, expr);
@@ -297,7 +300,7 @@ void IRPrinter::Visit(const Loop& loop)
     emitnewline();
 
     emitcomment("Update states");
-    for (const auto& [var, base]: loop.state_bases) {
+    for (const auto& [var, base] : loop.state_bases) {
         emitnewline();
         emitassign(base, var);
     }

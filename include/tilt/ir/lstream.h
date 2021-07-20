@@ -1,68 +1,60 @@
-#ifndef TILT_LSTREAM
-#define TILT_LSTREAM
-
-#include "tilt/ir/node.h"
+#ifndef INCLUDE_TILT_IR_LSTREAM_H_
+#define INCLUDE_TILT_IR_LSTREAM_H_
 
 #include <cassert>
+#include <utility>
+#include <memory>
+
+#include "tilt/ir/node.h"
 
 using namespace std;
 
 namespace tilt {
 
-    struct LStream : public ExprNode {
-        LStream(Type type) : ExprNode(move(type)) {}
-    };
+struct LStream : public ExprNode {
+    explicit LStream(Type type) : ExprNode(move(type)) {}
+};
 
-    struct Point {
-        const long offset;
+struct Point {
+    const int64_t offset;
 
-        Point(long offset) : offset(offset)
-        {
-            assert(offset <= 0);
-        }
+    explicit Point(int64_t offset) : offset(offset) { assert(offset <= 0); }
+    Point() : Point(0) {}
 
-        Point() : Point(0) {}
+    bool operator<(const Point& o) const { return offset < o.offset; }
+};
+typedef shared_ptr<Point> Pointer;
 
-        bool operator<(const Point& o) const
-        {
-            return offset < o.offset;
-        }
-    };
-    typedef shared_ptr<Point> Pointer;
+struct Window {
+    Point start;
+    Point end;
 
-    struct Window {
-        Point start;
-        Point end;
+    Window(Point start, Point end) : start(start), end(end) { assert(start < end); }
+    Window(int64_t start, int64_t end) : Window(Point(start), Point(end)) {}
+};
 
-        Window(Point start, Point end) :
-            start(start), end(end)
-        {
-            assert(start < end);
-        }
-    };
+struct SubLStream : public LStream {
+    Sym lstream;
+    const Window win;
 
-    struct SubLStream : public LStream {
-        Sym lstream;
-        const Window win;
+    SubLStream(Sym lstream, Window win) :
+        LStream(lstream->type), lstream(lstream), win(win)
+    {}
 
-        SubLStream(Sym lstream, Window win) :
-            LStream(lstream->type), lstream(lstream), win(win)
-        {}
+    void Accept(Visitor&) const final;
+};
 
-        void Accept(Visitor&) const final;
-    };
+struct Element : public ValNode {
+    Sym lstream;
+    const Point pt;
 
-    struct Element : public ValNode {
-        Sym lstream;
-        const Point pt;
+    Element(Sym lstream, Point pt) :
+        ValNode(lstream->type.dtype), lstream(lstream), pt(pt)
+    {}
 
-        Element(Sym lstream, Point pt) :
-            ValNode(lstream->type.dtype), lstream(lstream), pt(pt)
-        {}
+    void Accept(Visitor&) const final;
+};
 
-        void Accept(Visitor&) const final;
-    };
+}  // namespace tilt
 
-} // namespace tilt
-
-#endif // TILT_LSTREAM
+#endif  // INCLUDE_TILT_IR_LSTREAM_H_

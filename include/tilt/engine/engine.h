@@ -1,5 +1,8 @@
-#ifndef TILT_ENGINE
-#define TILT_ENGINE
+#ifndef INCLUDE_TILT_ENGINE_ENGINE_H_
+#define INCLUDE_TILT_ENGINE_ENGINE_H_
+
+#include <memory>
+#include <utility>
 
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/TargetSelect.h"
@@ -18,49 +21,45 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Transforms/IPO.h"
 
-#include <memory>
-
 using namespace std;
 using namespace llvm;
 using namespace llvm::orc;
 
 namespace tilt {
 
-    class ExecEngine {
-    public:
-        ExecEngine(JITTargetMachineBuilder jtmb, DataLayout dl) :
-            linker(es, []() { return make_unique<SectionMemoryManager>(); }),
-            compiler(es, linker, make_unique<ConcurrentIRCompiler>(move(jtmb))),
-            optimizer(es, compiler, optimize_module),
-            dl(move(dl)), mangler(es, this->dl),
-            ctx(make_unique<LLVMContext>()),
-            jd(es.createBareJITDylib("__tilt_dylib"))
-        {
-            jd.addGenerator(
-                cantFail(DynamicLibrarySearchGenerator::GetForCurrentProcess(dl.getGlobalPrefix()))
-            );
-        }
+class ExecEngine {
+public:
+    ExecEngine(JITTargetMachineBuilder jtmb, DataLayout dl) :
+        linker(es, []() { return make_unique<SectionMemoryManager>(); }),
+        compiler(es, linker, make_unique<ConcurrentIRCompiler>(move(jtmb))),
+        optimizer(es, compiler, optimize_module),
+        dl(move(dl)), mangler(es, this->dl),
+        ctx(make_unique<LLVMContext>()),
+        jd(es.createBareJITDylib("__tilt_dylib"))
+    {
+        jd.addGenerator(cantFail(DynamicLibrarySearchGenerator::GetForCurrentProcess(dl.getGlobalPrefix())));
+    }
 
-        static ExecEngine* Get();
-        void AddModule(unique_ptr<Module>);
-        LLVMContext& GetCtx();
-        intptr_t Lookup(StringRef);
+    static ExecEngine* Get();
+    void AddModule(unique_ptr<Module>);
+    LLVMContext& GetCtx();
+    intptr_t Lookup(StringRef);
 
-    private:
-        static Expected<ThreadSafeModule> optimize_module(ThreadSafeModule, const MaterializationResponsibility&);
+private:
+    static Expected<ThreadSafeModule> optimize_module(ThreadSafeModule, const MaterializationResponsibility&);
 
-        ExecutionSession es;
-        RTDyldObjectLinkingLayer linker;
-        IRCompileLayer compiler;
-        IRTransformLayer optimizer;
+    ExecutionSession es;
+    RTDyldObjectLinkingLayer linker;
+    IRCompileLayer compiler;
+    IRTransformLayer optimizer;
 
-        DataLayout dl;
-        MangleAndInterner mangler;
-        ThreadSafeContext ctx;
+    DataLayout dl;
+    MangleAndInterner mangler;
+    ThreadSafeContext ctx;
 
-        JITDylib& jd;
-    };
+    JITDylib& jd;
+};
 
-} // namespace tilt
+}  // namespace tilt
 
-#endif // TILT_ENGINE
+#endif  // INCLUDE_TILT_ENGINE_ENGINE_H_

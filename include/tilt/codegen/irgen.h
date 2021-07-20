@@ -1,151 +1,153 @@
-#ifndef TILT_IRGEN
-#define TILT_IRGEN
+#ifndef INCLUDE_TILT_CODEGEN_IRGEN_H_
+#define INCLUDE_TILT_CODEGEN_IRGEN_H_
+
+#include <map>
+#include <memory>
+#include <utility>
 
 #include "tilt/codegen/visitor.h"
 #include "tilt/builder/tilder.h"
 
-#include <map>
-
 using namespace std;
 
-namespace tilt
-{
-    template<typename CtxTy, typename InExprTy, typename OutExprTy>
-    class IRGen;
+namespace tilt {
 
-    template<typename InExprTy, typename OutExprTy>
-    class IRGenCtx {
-    protected:
-        IRGenCtx(Sym sym, const map<Sym, InExprTy>* in_sym_tbl, map<Sym, OutExprTy>* out_sym_tbl) :
-            sym(sym), in_sym_tbl(in_sym_tbl), out_sym_tbl(out_sym_tbl)
-        {}
+template<typename CtxTy, typename InExprTy, typename OutExprTy>
+class IRGen;
 
-        Sym sym;
-        const map<Sym, InExprTy>* in_sym_tbl;
-        map<Sym, OutExprTy>* out_sym_tbl;
-        map<Sym, Sym> sym_map;
-        OutExprTy val;
+template<typename InExprTy, typename OutExprTy>
+class IRGenCtx {
+protected:
+    IRGenCtx(Sym sym, const map<Sym, InExprTy>* in_sym_tbl, map<Sym, OutExprTy>* out_sym_tbl) :
+        sym(sym), in_sym_tbl(in_sym_tbl), out_sym_tbl(out_sym_tbl)
+    {}
 
-        template<typename CtxTy, typename InTy, typename OutTy>
-        friend class IRGen;
-    };
+    Sym sym;
+    const map<Sym, InExprTy>* in_sym_tbl;
+    map<Sym, OutExprTy>* out_sym_tbl;
+    map<Sym, Sym> sym_map;
+    OutExprTy val;
 
-    template<typename CtxTy, typename InExprTy, typename OutExprTy>
-    class IRGen : public Visitor {
-    public:
-        IRGen(CtxTy ctx) : irctx(move(ctx)) {}
+    template<typename CtxTy, typename InTy, typename OutTy>
+    friend class IRGen;
+};
 
-    protected:
-        virtual OutExprTy visit(const Symbol&) = 0;
-        virtual OutExprTy visit(const IfElse&) = 0;
-        virtual OutExprTy visit(const Get&) = 0;
-        virtual OutExprTy visit(const New&) = 0;
-        virtual OutExprTy visit(const Exists&) = 0;
-        virtual OutExprTy visit(const ConstNode&) = 0;
-        virtual OutExprTy visit(const NaryExpr&) = 0;
-        virtual OutExprTy visit(const SubLStream&) = 0;
-        virtual OutExprTy visit(const Element&) = 0;
-        virtual OutExprTy visit(const OpNode&) = 0;
-        virtual OutExprTy visit(const AggNode&) = 0;
-        virtual OutExprTy visit(const AllocIndex&) = 0;
-        virtual OutExprTy visit(const GetTime&) = 0;
-        virtual OutExprTy visit(const GetIndex&) = 0;
-        virtual OutExprTy visit(const Fetch&) = 0;
-        virtual OutExprTy visit(const Load&) = 0;
-        virtual OutExprTy visit(const Store&) = 0;
-        virtual OutExprTy visit(const Advance&) = 0;
-        virtual OutExprTy visit(const NextTime&) = 0;
-        virtual OutExprTy visit(const GetStartIdx&) = 0;
-        virtual OutExprTy visit(const GetEndIdx&) = 0;
-        virtual OutExprTy visit(const CommitData&) = 0;
-        virtual OutExprTy visit(const CommitNull&) = 0;
-        virtual OutExprTy visit(const AllocRegion&) = 0;
-        virtual OutExprTy visit(const MakeRegion&) = 0;
-        virtual OutExprTy visit(const Call&) = 0;
-        virtual OutExprTy visit(const Loop&) = 0;
+template<typename CtxTy, typename InExprTy, typename OutExprTy>
+class IRGen : public Visitor {
+public:
+    explicit IRGen(CtxTy ctx) : irctx(move(ctx)) {}
 
-        void Visit(const IfElse& expr) final { val() = visit(expr); }
-        void Visit(const Get& expr) final { val() = visit(expr); }
-        void Visit(const New& expr) final { val() = visit(expr); }
-        void Visit(const Exists& expr) final { val() = visit(expr); }
-        void Visit(const ConstNode& expr) final { val() = visit(expr); }
-        void Visit(const NaryExpr& expr) final { val() = visit(expr); }
-        void Visit(const SubLStream& expr) final { val() = visit(expr); }
-        void Visit(const Element& expr) final { val() = visit(expr); }
-        void Visit(const OpNode& expr) final { val() = visit(expr); }
-        void Visit(const AggNode& expr) final { val() = visit(expr); }
-        void Visit(const AllocIndex& expr) final { val() = visit(expr); }
-        void Visit(const GetTime& expr) final { val() = visit(expr); }
-        void Visit(const GetIndex& expr) final { val() = visit(expr); }
-        void Visit(const Fetch& expr) final { val() = visit(expr); }
-        void Visit(const Load& expr) final { val() = visit(expr); }
-        void Visit(const Store& expr) final { val() = visit(expr); }
-        void Visit(const Advance& expr) final { val() = visit(expr); }
-        void Visit(const NextTime& expr) final { val() = visit(expr); }
-        void Visit(const GetStartIdx& expr) final { val() = visit(expr); }
-        void Visit(const GetEndIdx& expr) final { val() = visit(expr); }
-        void Visit(const CommitData& expr) final { val() = visit(expr); }
-        void Visit(const CommitNull& expr) final { val() = visit(expr); }
-        void Visit(const AllocRegion& expr) final { val() = visit(expr); }
-        void Visit(const MakeRegion& expr) final { val() = visit(expr); }
-        void Visit(const Call& expr) final { val() = visit(expr); }
-        void Visit(const Loop& expr) final { val() = visit(expr); }
+protected:
+    virtual OutExprTy visit(const Symbol&) = 0;
+    virtual OutExprTy visit(const IfElse&) = 0;
+    virtual OutExprTy visit(const Get&) = 0;
+    virtual OutExprTy visit(const New&) = 0;
+    virtual OutExprTy visit(const Exists&) = 0;
+    virtual OutExprTy visit(const ConstNode&) = 0;
+    virtual OutExprTy visit(const NaryExpr&) = 0;
+    virtual OutExprTy visit(const SubLStream&) = 0;
+    virtual OutExprTy visit(const Element&) = 0;
+    virtual OutExprTy visit(const OpNode&) = 0;
+    virtual OutExprTy visit(const AggNode&) = 0;
+    virtual OutExprTy visit(const AllocIndex&) = 0;
+    virtual OutExprTy visit(const GetTime&) = 0;
+    virtual OutExprTy visit(const GetIndex&) = 0;
+    virtual OutExprTy visit(const Fetch&) = 0;
+    virtual OutExprTy visit(const Load&) = 0;
+    virtual OutExprTy visit(const Store&) = 0;
+    virtual OutExprTy visit(const Advance&) = 0;
+    virtual OutExprTy visit(const NextTime&) = 0;
+    virtual OutExprTy visit(const GetStartIdx&) = 0;
+    virtual OutExprTy visit(const GetEndIdx&) = 0;
+    virtual OutExprTy visit(const CommitData&) = 0;
+    virtual OutExprTy visit(const CommitNull&) = 0;
+    virtual OutExprTy visit(const AllocRegion&) = 0;
+    virtual OutExprTy visit(const MakeRegion&) = 0;
+    virtual OutExprTy visit(const Call&) = 0;
+    virtual OutExprTy visit(const Loop&) = 0;
 
-        CtxTy& ctx() { return irctx; }
+    void Visit(const IfElse& expr) final { val() = visit(expr); }
+    void Visit(const Get& expr) final { val() = visit(expr); }
+    void Visit(const New& expr) final { val() = visit(expr); }
+    void Visit(const Exists& expr) final { val() = visit(expr); }
+    void Visit(const ConstNode& expr) final { val() = visit(expr); }
+    void Visit(const NaryExpr& expr) final { val() = visit(expr); }
+    void Visit(const SubLStream& expr) final { val() = visit(expr); }
+    void Visit(const Element& expr) final { val() = visit(expr); }
+    void Visit(const OpNode& expr) final { val() = visit(expr); }
+    void Visit(const AggNode& expr) final { val() = visit(expr); }
+    void Visit(const AllocIndex& expr) final { val() = visit(expr); }
+    void Visit(const GetTime& expr) final { val() = visit(expr); }
+    void Visit(const GetIndex& expr) final { val() = visit(expr); }
+    void Visit(const Fetch& expr) final { val() = visit(expr); }
+    void Visit(const Load& expr) final { val() = visit(expr); }
+    void Visit(const Store& expr) final { val() = visit(expr); }
+    void Visit(const Advance& expr) final { val() = visit(expr); }
+    void Visit(const NextTime& expr) final { val() = visit(expr); }
+    void Visit(const GetStartIdx& expr) final { val() = visit(expr); }
+    void Visit(const GetEndIdx& expr) final { val() = visit(expr); }
+    void Visit(const CommitData& expr) final { val() = visit(expr); }
+    void Visit(const CommitNull& expr) final { val() = visit(expr); }
+    void Visit(const AllocRegion& expr) final { val() = visit(expr); }
+    void Visit(const MakeRegion& expr) final { val() = visit(expr); }
+    void Visit(const Call& expr) final { val() = visit(expr); }
+    void Visit(const Loop& expr) final { val() = visit(expr); }
 
-        CtxTy& switch_ctx(CtxTy& new_ctx) { swap(new_ctx, irctx); return new_ctx; }
+    CtxTy& ctx() { return irctx; }
 
-        virtual void assign(const Sym& sym_ptr, OutExprTy val)
-        {
-            sym(sym_ptr) = sym_ptr;
-            auto& m = *(ctx().out_sym_tbl);
-            m[sym_ptr] = val;
+    CtxTy& switch_ctx(CtxTy& new_ctx) { swap(new_ctx, irctx); return new_ctx; }
+
+    virtual void assign(const Sym& sym_ptr, OutExprTy val)
+    {
+        sym(sym_ptr) = sym_ptr;
+        auto& m = *(ctx().out_sym_tbl);
+        m[sym_ptr] = val;
+    }
+
+    Sym& sym(const Sym& in_sym) { return ctx().sym_map[in_sym]; }
+
+    Sym get_sym(const Symbol& symbol)
+    {
+        shared_ptr<Symbol> tmp_sym(const_cast<Symbol*>(&symbol), [](Symbol*) {});
+        return tmp_sym;
+    }
+
+    OutExprTy& val() { return ctx().val; }
+
+    OutExprTy eval(const InExprTy expr)
+    {
+        OutExprTy val = nullptr;
+
+        swap(val, ctx().val);
+        expr->Accept(*this);
+        swap(ctx().val, val);
+
+        return val;
+    }
+
+    void Visit(const Symbol& symbol) final
+    {
+        auto tmp_sym = get_sym(symbol);
+
+        if (ctx().sym_map.find(tmp_sym) == ctx().sym_map.end()) {
+            auto expr = ctx().in_sym_tbl->at(tmp_sym);
+
+            swap(ctx().sym, tmp_sym);
+            auto value = eval(expr);
+            swap(tmp_sym, ctx().sym);
+
+            auto sym_clone = tilder::_sym(symbol);
+            sym(tmp_sym) = sym_clone;
+            this->assign(sym_clone, value);
         }
 
-        Sym& sym(const Sym& in_sym) { return ctx().sym_map[in_sym]; }
+        val() = visit(symbol);
+    }
 
-        Sym get_sym(const Symbol& symbol)
-        {
-            shared_ptr<Symbol> tmp_sym(const_cast<Symbol*>(&symbol), [](Symbol*) {});
-            return tmp_sym;
-        }
+private:
+    CtxTy irctx;
+};
 
-        OutExprTy& val() { return ctx().val; }
+}  // namespace tilt
 
-        OutExprTy eval(const InExprTy expr)
-        {
-            OutExprTy val = nullptr;
-
-            swap(val, ctx().val);
-            expr->Accept(*this);
-            swap(ctx().val, val);
-
-            return val;
-        }
-
-        void Visit(const Symbol& symbol) final
-        {
-            auto tmp_sym = get_sym(symbol);
-
-            if (ctx().sym_map.find(tmp_sym) == ctx().sym_map.end()) {
-                auto expr = ctx().in_sym_tbl->at(tmp_sym);
-
-                swap(ctx().sym, tmp_sym);
-                auto value = eval(expr);
-                swap(tmp_sym, ctx().sym);
-
-                auto sym_clone = tilder::_sym(symbol);
-                sym(tmp_sym) = sym_clone;
-                this->assign(sym_clone, value);
-            }
-
-            val() = visit(symbol);
-        }
-
-    private:
-        CtxTy irctx;
-    };
-
-} // namespace tilt
-
-#endif // TILT_IRGEN
+#endif  // INCLUDE_TILT_CODEGEN_IRGEN_H_

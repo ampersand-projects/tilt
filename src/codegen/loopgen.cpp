@@ -1,7 +1,7 @@
-#include "tilt/codegen/loopgen.h"
-
 #include <string>
 #include <unordered_set>
+
+#include "tilt/codegen/loopgen.h"
 
 using namespace tilt;
 using namespace tilt::tilder;
@@ -66,7 +66,7 @@ void LoopGen::build_loop()
 
     // Populate edge indices on the inputs
     map<Indexer, Sym> edge_idxs;
-    for (const auto& [reg, pt_idx_map]: ctx().pt_idx_maps) {
+    for (const auto& [reg, pt_idx_map] : ctx().pt_idx_maps) {
         auto& tail_idx = pt_idx_map.begin()->second;
         auto& head_idx = pt_idx_map.rbegin()->second;
         edge_idxs[tail_idx] = reg;
@@ -75,7 +75,7 @@ void LoopGen::build_loop()
 
     // Expression to calculate loop counter shift
     Expr delta = nullptr;
-    for (const auto& [idx, reg]: edge_idxs) {
+    for (const auto& [idx, reg] : edge_idxs) {
         const auto& base_idx = loop->state_bases.at(idx);
         auto next_time_expr = _next_time(reg, base_idx);
         auto cur_time_expr = _get_time(base_idx);
@@ -134,7 +134,7 @@ Expr LoopGen::visit(const Exists& exists)
 Expr LoopGen::visit(const New& new_expr)
 {
     vector<Expr> input_vals;
-    for (const auto& input: new_expr.inputs) {
+    for (const auto& input : new_expr.inputs) {
         input_vals.push_back(eval(input));
     }
     return _new(move(input_vals));
@@ -198,7 +198,7 @@ Expr LoopGen::visit(const OpNode& op)
 
     vector<Expr> inputs;
     Val size_expr = _u32(1);
-    for (const auto& input: inner_op->inputs) {
+    for (const auto& input : inner_op->inputs) {
         auto input_val = eval(input);
         inputs.push_back(input_val);
         auto start = _get_idx(_get_start_idx(input_val));
@@ -216,7 +216,7 @@ Expr LoopGen::visit(const OpNode& op)
     }
 
     vector<Expr> args = {t_start, t_end, out_sym};
-    for (const auto& input: inputs) {
+    for (const auto& input : inputs) {
         args.push_back(input);
     }
     return _call(inner_loop, move(args));
@@ -254,7 +254,7 @@ Expr LoopGen::visit(const AggNode& aggexpr)
     auto t_end = outer_loop->t;
 
     vector<Expr> args = { t_start, t_end, eval(aggexpr.init) };
-    for (const auto& input: aggexpr.op->inputs) {
+    for (const auto& input : aggexpr.op->inputs) {
         args.push_back(eval(input));
     }
     return _call(agg_loop, args);

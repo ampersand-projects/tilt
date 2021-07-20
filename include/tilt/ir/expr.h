@@ -1,183 +1,184 @@
-#ifndef TILT_EXPR
-#define TILT_EXPR
-
-#include "tilt/base/type.h"
-#include "tilt/ir/node.h"
+#ifndef INCLUDE_TILT_IR_EXPR_H_
+#define INCLUDE_TILT_IR_EXPR_H_
 
 #include <string>
 #include <memory>
 #include <cassert>
 #include <vector>
 #include <map>
+#include <utility>
+
+#include "tilt/base/type.h"
+#include "tilt/ir/node.h"
 
 using namespace std;
 
 namespace tilt {
 
-    struct Call : public ExprNode {
-        Func fn;
-        vector<Expr> args;
+struct Call : public ExprNode {
+    Func fn;
+    vector<Expr> args;
 
-        Call(Func fn, vector<Expr> args) :
-            ExprNode(fn->type), fn(fn), args(move(args))
-        {}
+    Call(Func fn, vector<Expr> args) :
+        ExprNode(fn->type), fn(fn), args(move(args))
+    {}
 
-        void Accept(Visitor&) const final;
-    };
+    void Accept(Visitor&) const final;
+};
 
-    struct IfElse : public ExprNode {
-        Expr cond;
-        Expr true_body;
-        Expr false_body;
+struct IfElse : public ExprNode {
+    Expr cond;
+    Expr true_body;
+    Expr false_body;
 
-        IfElse(Expr cond, Expr true_body, Expr false_body) :
-            ExprNode(true_body->type), cond(cond), true_body(true_body), false_body(false_body)
-        {
-            assert(cond->type == types::BOOL);
-            assert(true_body->type.dtype == false_body->type.dtype);
+    IfElse(Expr cond, Expr true_body, Expr false_body) :
+        ExprNode(true_body->type), cond(cond), true_body(true_body), false_body(false_body)
+    {
+        assert(cond->type.dtype == types::BOOL);
+        assert(true_body->type.dtype == false_body->type.dtype);
+    }
+
+    void Accept(Visitor&) const final;
+};
+
+struct Get : public ValNode {
+    Expr input;
+    size_t n;
+
+    Get(Expr input, size_t n) :
+        ValNode(input->type.dtype.dtypes[n]), input(input), n(n)
+    {
+        assert(input->type.dtype.is_struct());
+    }
+
+    void Accept(Visitor&) const final;
+};
+
+struct New : public ValNode {
+    vector<Expr> inputs;
+
+    explicit New(vector<Expr> inputs) :
+        ValNode(get_new_type(inputs)), inputs(inputs)
+    {}
+
+    void Accept(Visitor&) const final;
+
+private:
+    static DataType get_new_type(vector<Expr> inputs)
+    {
+        vector<DataType> dtypes;
+        for (const auto& input : inputs) {
+            dtypes.push_back(input->type.dtype);
         }
+        return DataType(BaseType::STRUCT, (dtypes));
+    }
+};
 
-        void Accept(Visitor&) const final;
-    };
+struct ConstNode : public ValNode {
+    const double val;
 
-    struct Get : public ValNode {
-        Expr input;
-        size_t n;
+    ConstNode(BaseType btype, double val) :
+        ValNode(DataType(btype)), val(val)
+    {}
 
-        Get(Expr input, size_t n) :
-            ValNode(input->type.dtype.dtypes[n]), input(input), n(n)
-        {
-            assert(input->type.dtype.is_struct());
-        }
+    void Accept(Visitor&) const final;
+};
+typedef shared_ptr<ConstNode> Const;
 
-        void Accept(Visitor&) const final;
-    };
+struct Exists : public ValNode {
+    Sym sym;
 
-    struct New : public ValNode {
-        vector<Expr> inputs;
+    explicit Exists(Sym sym) : ValNode(types::BOOL), sym(sym) {}
 
-        New(vector<Expr> inputs) :
-            ValNode(get_new_type(inputs)), inputs(inputs)
-        {}
+    void Accept(Visitor&) const final;
+};
 
-        void Accept(Visitor&) const final;
+struct NaryExpr : public ValNode {
+    MathOp op;
+    vector<Expr> args;
 
-    private:
-        static DataType get_new_type(vector<Expr> inputs)
-        {
-            vector<DataType> dtypes;
-            for (const auto& input: inputs) {
-                dtypes.push_back(input->type.dtype);
-            }
-            return DataType(BaseType::STRUCT, (dtypes));
-        }
-    };
+    NaryExpr(DataType dtype, MathOp op, vector<Expr> args) :
+        ValNode(dtype), op(op), args(move(args))
+    {}
 
-    struct ConstNode : public ValNode {
-        const double val;
+    template<size_t i>
+    Expr arg() const { return args[i]; }
 
-        ConstNode(BaseType btype, double val) :
-            ValNode(DataType(btype)), val(val)
-        {}
+    size_t size() const { return args.size(); }
 
-        void Accept(Visitor&) const final;
-    };
-    typedef shared_ptr<ConstNode> Const;
+    void Accept(Visitor&) const final;
+};
 
-    struct Exists : public ValNode {
-        Sym sym;
+struct UnaryExpr : public NaryExpr {
+    UnaryExpr(DataType dtype, MathOp op, Expr input)
+        : NaryExpr(dtype, op, vector<Expr>{input})
+    {}
+};
 
-        Exists(Sym sym) : ValNode(types::BOOL), sym(sym) {}
+struct BinaryExpr : public NaryExpr {
+    BinaryExpr(DataType dtype, MathOp op, Expr left, Expr right)
+        : NaryExpr(dtype, op, vector<Expr>{left, right})
+    {
+        assert(left->type == right->type);
+    }
+};
 
-        void Accept(Visitor&) const final;
-    };
+struct Not : public UnaryExpr {
+    explicit Not(Expr a) : UnaryExpr(types::BOOL, MathOp::NOT, a) {}
+};
 
-    struct NaryExpr : public ValNode {
-        MathOp op;
-        vector<Expr> args;
+struct Equals : public BinaryExpr {
+    Equals(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::EQ, a, b) {}
+};
 
-        NaryExpr(DataType dtype, MathOp op, vector<Expr> args)
-            : ValNode(dtype), op(op), args(move(args))
-        {}
+struct And : public BinaryExpr {
+    And(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::AND, a, b) {}
+};
 
-        template<size_t i>
-        Expr arg() const { return args[i]; }
+struct Or : public BinaryExpr {
+    Or(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::OR, a, b) {}
+};
 
-        size_t size() const { return args.size(); }
+struct LessThan : public BinaryExpr {
+    LessThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LT, a, b) {}
+};
 
-        void Accept(Visitor&) const final;
-    };
+struct GreaterThan : public BinaryExpr {
+    GreaterThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GT, a, b) {}
+};
 
-    struct UnaryExpr : public NaryExpr {
-        UnaryExpr(DataType dtype, MathOp op, Expr input)
-            : NaryExpr(dtype, op, vector<Expr>{input})
-        {}
-    };
+struct LessThanEqual : public BinaryExpr {
+    LessThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LTE, a, b) {}
+};
 
-    struct BinaryExpr : public NaryExpr {
-        BinaryExpr(DataType dtype, MathOp op, Expr left, Expr right)
-            : NaryExpr(dtype, op, vector<Expr>{left, right})
-        {
-            assert(left->type == right->type);
-        }
-    };
+struct GreaterThanEqual : public BinaryExpr {
+    GreaterThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GTE, a, b) {}
+};
 
-    struct Not : public UnaryExpr {
-        Not(Expr a) : UnaryExpr(types::BOOL, MathOp::NOT, a) {}
-    };
+struct Add : public BinaryExpr {
+    Add(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::ADD, a, b) {}
+};
 
-    struct Equals : public BinaryExpr {
-        Equals(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::EQ, a, b) {}
-    };
+struct Sub : public BinaryExpr {
+    Sub(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::SUB, a, b) {}
+};
 
-    struct And : public BinaryExpr {
-        And(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::AND, a, b) {}
-    };
+struct Mul : public BinaryExpr {
+    Mul(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MUL, a, b) {}
+};
 
-    struct Or : public BinaryExpr {
-        Or(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::OR, a, b) {}
-    };
+struct Div : public BinaryExpr {
+    Div(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::DIV, a, b) {}
+};
 
-    struct LessThan : public BinaryExpr {
-        LessThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LT, a, b) {}
-    };
+struct Max : public BinaryExpr {
+    Max(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MAX, a, b) {}
+};
 
-    struct GreaterThan : public BinaryExpr {
-        GreaterThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GT, a, b) {}
-    };
+struct Min : public BinaryExpr {
+    Min(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MIN, a, b) {}
+};
 
-    struct LessThanEqual : public BinaryExpr {
-        LessThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LTE, a, b) {}
-    };
+}  // namespace tilt
 
-    struct GreaterThanEqual : public BinaryExpr {
-        GreaterThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GTE, a, b) {}
-    };  
-
-    struct Add : public BinaryExpr {
-        Add(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::ADD, a, b) {}
-    };
-
-    struct Sub : public BinaryExpr {
-        Sub(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::SUB, a, b) {}
-    };
-
-    struct Mul : public BinaryExpr {
-        Mul(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MUL, a, b) {}
-    };
-
-    struct Div : public BinaryExpr {
-        Div(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::DIV, a, b) {}
-    };
-
-    struct Max : public BinaryExpr {
-        Max(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MAX, a, b) {}
-    };
-
-    struct Min : public BinaryExpr {
-        Min(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MIN, a, b) {}
-    };
-
-} // namespace tilt
-
-#endif // TILT_EXPR
+#endif  // INCLUDE_TILT_IR_EXPR_H_

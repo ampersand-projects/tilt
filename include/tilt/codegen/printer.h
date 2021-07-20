@@ -1,118 +1,119 @@
-#ifndef TILT_IRPRINTER
-#define TILT_IRPRINTER
+#ifndef INCLUDE_TILT_CODEGEN_PRINTER_H_
+#define INCLUDE_TILT_CODEGEN_PRINTER_H_
+
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "llvm/IR/Module.h"
 #include "tilt/codegen/visitor.h"
 
-#include <sstream>
-#include <string>
-
 using namespace std;
 
-namespace tilt
-{
+namespace tilt {
 
-    class IRPrinterCtx {
-    public:
-        IRPrinterCtx() : indent(0), nesting(0) {}
+class IRPrinterCtx {
+public:
+    IRPrinterCtx() : indent(0), nesting(0) {}
 
-    private:
-        size_t indent;
-        size_t nesting;
+private:
+    size_t indent;
+    size_t nesting;
 
-        friend class IRPrinter;
-    };
+    friend class IRPrinter;
+};
 
-    class IRPrinter : public Visitor {
-    public:
-        IRPrinter() : IRPrinter(IRPrinterCtx()) {}
-        IRPrinter(IRPrinterCtx ctx) : IRPrinter(move(ctx), 2) {}
+class IRPrinter : public Visitor {
+public:
+    IRPrinter() : IRPrinter(IRPrinterCtx()) {}
+    explicit IRPrinter(IRPrinterCtx ctx) : IRPrinter(move(ctx), 2) {}
 
-        IRPrinter(IRPrinterCtx ctx, size_t tabstop) :
-            ctx(move(ctx)), tabstop(tabstop)
-        {}
+    IRPrinter(IRPrinterCtx ctx, size_t tabstop) :
+        ctx(move(ctx)), tabstop(tabstop)
+    {}
 
-        static string Build(const Expr);
-        static string Build(const llvm::Module*);
+    static string Build(const Expr);
+    static string Build(const llvm::Module*);
 
-        void Visit(const Symbol&) override;
-        void Visit(const Call&) override;
-        void Visit(const IfElse&) override;
-        void Visit(const Get&) override;
-        void Visit(const New&) override;
-        void Visit(const Exists&) override;
-        void Visit(const ConstNode&) override;
-        void Visit(const NaryExpr&) override;
-        void Visit(const SubLStream&) override;
-        void Visit(const Element&) override;
-        void Visit(const OpNode&) override;
-        void Visit(const AggNode&) override;
-        void Visit(const AllocIndex&) override;
-        void Visit(const GetTime&) override;
-        void Visit(const GetIndex&) override;
-        void Visit(const Fetch&) override;
-        void Visit(const Load&) override;
-        void Visit(const Store&) override;
-        void Visit(const Advance&) override;
-        void Visit(const NextTime&) override;
-        void Visit(const GetStartIdx&) override;
-        void Visit(const GetEndIdx&) override;
-        void Visit(const CommitData&) override;
-        void Visit(const CommitNull&) override;
-        void Visit(const AllocRegion&) override;
-        void Visit(const MakeRegion&) override;
-        void Visit(const Loop&) override;
+    void Visit(const Symbol&) override;
+    void Visit(const Call&) override;
+    void Visit(const IfElse&) override;
+    void Visit(const Get&) override;
+    void Visit(const New&) override;
+    void Visit(const Exists&) override;
+    void Visit(const ConstNode&) override;
+    void Visit(const NaryExpr&) override;
+    void Visit(const SubLStream&) override;
+    void Visit(const Element&) override;
+    void Visit(const OpNode&) override;
+    void Visit(const AggNode&) override;
+    void Visit(const AllocIndex&) override;
+    void Visit(const GetTime&) override;
+    void Visit(const GetIndex&) override;
+    void Visit(const Fetch&) override;
+    void Visit(const Load&) override;
+    void Visit(const Store&) override;
+    void Visit(const Advance&) override;
+    void Visit(const NextTime&) override;
+    void Visit(const GetStartIdx&) override;
+    void Visit(const GetEndIdx&) override;
+    void Visit(const CommitData&) override;
+    void Visit(const CommitNull&) override;
+    void Visit(const AllocRegion&) override;
+    void Visit(const MakeRegion&) override;
+    void Visit(const Loop&) override;
 
-    private:
-        void enter_op() { ctx.nesting++; }
-        void exit_op() { ctx.nesting--; }
-        void enter_block() { ctx.indent++; emitnewline(); }
-        void exit_block() { ctx.indent--; emitnewline(); }
+private:
+    void enter_op() { ctx.nesting++; }
+    void exit_op() { ctx.nesting--; }
+    void enter_block() { ctx.indent++; emitnewline(); }
+    void exit_block() { ctx.indent--; emitnewline(); }
 
-        void emittab() { ostr << string(1 << tabstop, ' '); }
-        void emitnewline() { ostr << endl << string(ctx.indent << tabstop, ' '); }
-        void emit(string str) { ostr << str; }
-        void emitcomment(string comment) { ostr << "/* " << comment << " */"; }
+    void emittab() { ostr << string(1 << tabstop, ' '); }
+    void emitnewline() { ostr << endl << string(ctx.indent << tabstop, ' '); }
+    void emit(string str) { ostr << str; }
+    void emitcomment(string comment) { ostr << "/* " << comment << " */"; }
 
-        void emitunary(const string op, const Expr a)
-        {
-            ostr << op;
-            a->Accept(*this);
+    void emitunary(const string op, const Expr a)
+    {
+        ostr << op;
+        a->Accept(*this);
+    }
+
+    void emitbinary(const Expr a, const string op, const Expr b)
+    {
+        ostr << "(";
+        a->Accept(*this);
+        ostr << " " << op << " ";
+        b->Accept(*this);
+        ostr << ")";
+    }
+
+    void emitassign(const Expr lhs, const Expr rhs)
+    {
+        lhs->Accept(*this);
+        ostr << " = ";
+        rhs->Accept(*this);
+        ostr << ";";
+    }
+
+    void emitfunc(const string name, const vector<Expr> args)
+    {
+        ostr << name << "(";
+        for (size_t i = 0; i < args.size()-1; i++) {
+            args[i]->Accept(*this);
+            ostr << ", ";
         }
+        args.back()->Accept(*this);
+        ostr << ")";
+    }
 
-        void emitbinary(const Expr a, const string op, const Expr b)
-        {
-            ostr << "(";
-            a->Accept(*this);
-            ostr << " " << op << " ";
-            b->Accept(*this);
-            ostr << ")";
-        }
+    IRPrinterCtx ctx;
+    size_t tabstop;
+    ostringstream ostr;
+};
 
-        void emitassign(const Expr lhs, const Expr rhs)
-        {
-            lhs->Accept(*this);
-            ostr << " = ";
-            rhs->Accept(*this);
-            ostr << ";";
-        }
+}  // namespace tilt
 
-        void emitfunc(const string name, const vector<Expr> args)
-        {
-            ostr << name << "(";
-            for (size_t i = 0; i < args.size()-1; i++) {
-                args[i]->Accept(*this);
-                ostr << ", ";
-            }
-            args.back()->Accept(*this);
-            ostr << ")";
-        }
-
-        IRPrinterCtx ctx;
-        size_t tabstop;
-        ostringstream ostr;
-    };
-
-} // namespace tilt
-
-#endif // TILT_IRPRINTER
+#endif  // INCLUDE_TILT_CODEGEN_PRINTER_H_

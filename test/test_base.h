@@ -1,17 +1,18 @@
-#ifndef TILT_TEST_BASE
-#define TILT_TEST_BASE
-
-#include "tilt/ir/op.h"
+#ifndef TEST_TEST_BASE_H_
+#define TEST_TEST_BASE_H_
 
 #include <functional>
+#include <vector>
+
+#include "tilt/ir/op.h"
 
 using namespace std;
 using namespace tilt;
 
 template<typename T>
 struct Event {
-    long st;
-    long et;
+    int64_t st;
+    int64_t et;
     T payload;
 };
 
@@ -27,4 +28,4 @@ void select_test(function<Expr(Expr)>, function<OutTy(InTy)>);
 // Math op tests
 void addop_test();
 
-#endif
+#endif  // TEST_TEST_BASE_H_

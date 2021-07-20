@@ -1,13 +1,13 @@
+#include <iostream>
+#include <memory>
+#include <cstdlib>
+#include <chrono>
+
 #include "tilt/codegen/printer.h"
 #include "tilt/codegen/loopgen.h"
 #include "tilt/codegen/llvmgen.h"
 #include "tilt/engine/engine.h"
 #include "tilt/builder/tilder.h"
-
-#include <iostream>
-#include <memory>
-#include <cstdlib>
-#include <chrono>
 
 using namespace std;
 using namespace std::chrono;
@@ -50,7 +50,7 @@ Expr Count(Sym win)
     return count_expr;
 }
 
-Op WindowCount(Sym in, long w)
+Op WindowCount(Sym in, int64_t w)
 {
     auto window = _subls(in, _win(-w, 0));
     auto window_sym = window->sym("win");
@@ -85,7 +85,7 @@ Op Join(Sym left, Sym right)
     return join_op;
 }
 
-Op Query(Sym in, long len, long w)
+Op Query(Sym in, int64_t len, int64_t w)
 {
     auto inwin = _subls(in, _win(-len, 0));
     auto inwin_sym = inwin->sym("inwin");
@@ -140,11 +140,11 @@ int main(int argc, char** argv)
 
     jit->AddModule(move(llmod));
 
-    auto loop_addr = (region_t* (*)(long, long, region_t*, region_t*)) jit->Lookup(loop->GetName());
-    auto init_region = (region_t* (*)(region_t*, long, index_t*, char*)) jit->Lookup("init_region");
+    auto loop_addr = (region_t* (*)(int64_t, int64_t, region_t*, region_t*)) jit->Lookup(loop->GetName());
+    auto init_region = (region_t* (*)(region_t*, int64_t, index_t*, char*)) jit->Lookup("init_region");
 
-    int dlen = (argc>1) ? atoi(argv[1]) : 30;
-    unsigned int dur = 5;
+    int dlen = (argc > 1) ? atoi(argv[1]) : 30;
+    uint32_t dur = 5;
 
     struct Data {
         int a;
@@ -154,8 +154,8 @@ int main(int argc, char** argv)
     auto in_tl = new index_t[dlen];
     auto in_data = new Data[dlen];
     region_t in_reg;
-    init_region(&in_reg, 0, in_tl, (char*)in_data);
-    for (int i=0; i<dlen; i++) {
+    init_region(&in_reg, 0, in_tl, reinterpret_cast<char*>(in_data));
+    for (int i = 0; i < dlen; i++) {
         auto t = dur*i;
         in_reg.ei.t = t;
         in_reg.ei.i++;
@@ -166,14 +166,14 @@ int main(int argc, char** argv)
     auto out_tl = new index_t[dlen];
     auto out_data = new Data[dlen];
     region_t out_reg;
-    init_region(&out_reg, 0, out_tl, (char*)out_data);
+    init_region(&out_reg, 0, out_tl, reinterpret_cast<char*>(out_data));
 
     auto start_time = high_resolution_clock::now();
     auto* res_reg = loop_addr(0, dur*dlen, &out_reg, &in_reg);
     auto end_time = high_resolution_clock::now();
 
     int out_count = 0;
-    for (int i=0; i<dlen; i++) {
+    for (int i = 0; i < dlen; i++) {
         if (argc == 1) {
             cout << "(" << in_tl[i].t << "," << in_tl[i].i << ") " << in_data[i].a << "," << in_data[i].b << " -> "
                 << "(" << out_tl[i].t << "," << out_tl[i].i << ") " << out_data[i].a << "," << out_data[i].b << endl;
