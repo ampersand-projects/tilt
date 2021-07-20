@@ -118,7 +118,7 @@ int main(int argc, char** argv)
     // input stream
     auto in_sym = _sym("in", tilt::Type(types::STRUCT<int32_t, int32_t>(), _iter("in")));
 
-    auto query_op = Query(in_sym, 10, 5);
+    auto query_op = Query(in_sym, 10, 10);
     auto query_op_sym = query_op->sym("query");
 
     cout << endl << "TiLT IR: " << endl;
@@ -141,8 +141,10 @@ int main(int argc, char** argv)
     jit->AddModule(move(llmod));
 
     auto loop_addr = (region_t* (*)(long, long, region_t*, region_t*)) jit->Lookup(loop->GetName());
+    auto init_region = (region_t* (*)(region_t*, long, index_t*, char*)) jit->Lookup("init_region");
 
-    int dlen = (argc>1) ? atoi(argv[1]) : 31;
+    int dlen = (argc>1) ? atoi(argv[1]) : 30;
+    unsigned int dur = 5;
 
     struct Data {
         int a;
@@ -152,44 +154,35 @@ int main(int argc, char** argv)
     auto in_tl = new index_t[dlen];
     auto in_data = new Data[dlen];
     region_t in_reg;
-    in_reg.si.i = 0;
-    in_reg.si.t = 0;
-    in_reg.ei.i = dlen-1;
-    in_reg.ei.t = dlen-1;
-    in_reg.tl = in_tl;
-    in_reg.data = (char*) in_data;
-    in_tl[0] = STARTER_CKPT;
-    for (int i=1; i<dlen; i++) {
-        in_tl[i] = {i, 1};
-        in_data[i] = {i, 3};
+    init_region(&in_reg, 0, in_tl, (char*)in_data);
+    for (int i=0; i<dlen; i++) {
+        auto t = dur*i;
+        in_reg.ei.t = t;
+        in_reg.ei.i++;
+        in_tl[in_reg.ei.i] = {t, dur};
+        in_data[in_reg.ei.i] = {i, 3};
     }
 
     auto out_tl = new index_t[dlen];
     auto out_data = new Data[dlen];
     region_t out_reg;
-    out_reg.si.i = 0;
-    out_reg.si.t = 0;
-    out_reg.ei.i = 0;
-    out_reg.ei.t = 0;
-    out_reg.tl = out_tl;
-    out_reg.data = (char*) out_data;
-    out_tl[0] = STARTER_CKPT;
+    init_region(&out_reg, 0, out_tl, (char*)out_data);
 
     auto start_time = high_resolution_clock::now();
-    auto* res_reg = loop_addr(0, dlen-1, &out_reg, &in_reg);
+    auto* res_reg = loop_addr(0, dur*dlen, &out_reg, &in_reg);
     auto end_time = high_resolution_clock::now();
 
     int out_count = 0;
-    for (int i=1; i<dlen; i++) {
+    for (int i=0; i<dlen; i++) {
         if (argc == 1) {
             cout << "(" << in_tl[i].t << "," << in_tl[i].i << ") " << in_data[i].a << "," << in_data[i].b << " -> "
                 << "(" << out_tl[i].t << "," << out_tl[i].i << ") " << out_data[i].a << "," << out_data[i].b << endl;
         }
-        out_count += ((out_data[i].a == in_data[i].a+10) && (out_data[i].b == 5));
+        out_count += ((out_data[i].a == in_data[i].a+10) && (out_data[i].b == 2));
     }
 
-    auto dur = duration_cast<microseconds>(end_time - start_time).count();
-    cout << "Data size: " << out_count << " Time: " << dur << endl;
+    auto time = duration_cast<microseconds>(end_time - start_time).count();
+    cout << "Data size: " << out_count << " Time: " << time << endl;
 
     return 0;
 }

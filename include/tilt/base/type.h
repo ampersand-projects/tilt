@@ -206,6 +206,7 @@ namespace tilt {
 } // namespace tilt
 
 extern "C" {
+
     struct index_t {
         long t;
         unsigned int i;
@@ -218,7 +219,6 @@ extern "C" {
         char* data;
     };
 
-#define STARTER_CKPT {0, 0};
 }
 
 #endif // TILT_TYPE

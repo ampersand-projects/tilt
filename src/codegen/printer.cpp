@@ -257,17 +257,17 @@ void IRPrinter::Visit(const Loop& loop)
     ostr << "while(1) {";
     enter_block();
 
-    emitcomment("update timer");
-    emitnewline();
-    emitassign(loop.t, loop.syms.at(loop.t));
-    emitnewline();
-    emitnewline();
-
     emitcomment("loop condition check");
     emitnewline();
     ostr << "if (";
     loop.exit_cond->Accept(*this);
     ostr << ") break;";
+    emitnewline();
+    emitnewline();
+
+    emitcomment("update timer");
+    emitnewline();
+    emitassign(loop.t, loop.syms.at(loop.t));
     emitnewline();
     emitnewline();
 
@@ -304,6 +304,12 @@ void IRPrinter::Visit(const Loop& loop)
 
     exit_block();
     ostr << "}";
+
+    emitnewline();
+    emitnewline();
+    ostr << "return ";
+    loop.state_bases.at(loop.output)->Accept(*this);
+    ostr << ";";
 
     exit_block();
     ostr << "}";

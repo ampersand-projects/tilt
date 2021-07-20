@@ -51,6 +51,9 @@ void LoopGen::build_loop()
     loop->t = _time("t");
     loop->state_bases[loop->t] = t_base;
 
+    // Loop exit condition
+    loop->exit_cond = _eq(t_base, t_end);
+
     // Create loop return value
     auto output_base = _reg("output_base", ctx().op->type);
     assign(output_base, out_arg);
@@ -73,7 +76,7 @@ void LoopGen::build_loop()
     // Expression to calculate loop counter shift
     Expr delta = nullptr;
     for (const auto& [idx, reg]: edge_idxs) {
-        const auto& base_idx = loop->state_bases[idx];
+        const auto& base_idx = loop->state_bases.at(idx);
         auto next_time_expr = _next_time(reg, base_idx);
         auto cur_time_expr = _get_time(base_idx);
         auto diff_expr = _sub(next_time_expr, cur_time_expr);
@@ -85,11 +88,9 @@ void LoopGen::build_loop()
     }
 
     // Loop counter update expression
-    auto t_incr = _max(_ts(ctx().op->iter.period), delta);
-    assign(loop->t, _add(t_base, t_incr));
-
-    // Loop exit condition
-    loop->exit_cond = _gt(loop->t, t_end);
+    auto p = _ts(ctx().op->iter.period);
+    auto t_incr = _max(p, _mul(_div(delta, p), p));
+    assign(loop->t, _min(t_end, _add(t_base, t_incr)));
 
     // Update loop output:
     //      1. Outer loop returns the output region of the inner loop

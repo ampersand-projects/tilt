@@ -34,17 +34,25 @@ namespace tilt { extern "C" {
     TILT_VINSTR_ATTR
     long next_time(region_t* reg, index_t* idx)
     {
-        auto e = reg->tl[idx->i];
-        auto et = e.t;
-        auto st = e.t - e.i;
-        return (idx->t < st) ? st : et;
+        auto t = idx->t;
+        auto civl = reg->tl[idx->i];
+        auto cst = civl.t;
+        auto cet = cst + civl.i;
+
+        if (t < cet) { return (t < cst) ? cst : cet; }
+        else {
+            auto nivl = reg->tl[idx->i + 1];
+            auto nst = nivl.t;
+            auto net = nst + nivl.i;
+            return (t < nst) ? nst : net;
+        }
     }
 
     TILT_VINSTR_ATTR
     index_t* advance(region_t* reg, index_t* idx, long t)
     {
         auto i = idx->i;
-        while (reg->tl[i].t < t) { i++; }
+        while ((reg->tl[i].t + reg->tl[i].i) < t) { i++; }
         idx->t = t;
         idx->i = i;
         return idx;
@@ -53,7 +61,8 @@ namespace tilt { extern "C" {
     TILT_VINSTR_ATTR
     char* fetch(region_t* reg, index_t* idx, unsigned int size)
     {
-        return reg->data + (idx->i * size);
+        auto ivl = reg->tl[idx->i];
+        return (idx->t <= ivl.t) ? nullptr : (reg->data + (idx->i * size));
     }
 
     TILT_VINSTR_ATTR
@@ -68,14 +77,13 @@ namespace tilt { extern "C" {
     }
 
     TILT_VINSTR_ATTR
-    region_t* alloc_region(region_t* reg, long t, index_t* tl, char* data)
+    region_t* init_region(region_t* reg, long t, index_t* tl, char* data)
     {
         reg->si.t = t;
         reg->si.i = 0;
         reg->ei.t = t;
-        reg->ei.i = 0;
+        reg->ei.i = -1;
         reg->tl = tl;
-        reg->tl[0] = STARTER_CKPT;
         reg->data = data;
         return reg;
     }
@@ -83,15 +91,12 @@ namespace tilt { extern "C" {
     TILT_VINSTR_ATTR
     region_t* commit_data(region_t* reg, long t)
     {
-        auto et = reg->ei.t;
-        auto dur = t - et;
-        auto i = reg->ei.i + 1;
-
-        reg->tl[i].t = t;
-        reg->tl[i].i = dur;
-
+        auto last_ckpt = reg->ei.t;
         reg->ei.t = t;
-        reg->ei.i = i;
+        reg->ei.i++;
+
+        reg->tl[reg->ei.i].t = last_ckpt;
+        reg->tl[reg->ei.i].i = t - last_ckpt;
 
         return reg;
     }

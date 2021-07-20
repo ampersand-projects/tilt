@@ -82,9 +82,11 @@ namespace tilt
 
         void emitbinary(const Expr a, const string op, const Expr b)
         {
+            ostr << "(";
             a->Accept(*this);
             ostr << " " << op << " ";
             b->Accept(*this);
+            ostr << ")";
         }
 
         void emitassign(const Expr lhs, const Expr rhs)

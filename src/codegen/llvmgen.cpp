@@ -23,7 +23,7 @@ void LLVMGen::register_vinstrs()
     Linker::linkModules(*llmod(), easy::get_module(llctx(), advance, _1, _2, _3));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), fetch, _1, _2, _3));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), make_region, _1, _2, _3, _4));
-    Linker::linkModules(*llmod(), easy::get_module(llctx(), alloc_region, _1, _2, _3, _4));
+    Linker::linkModules(*llmod(), easy::get_module(llctx(), init_region, _1, _2, _3, _4));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), commit_data, _1, _2));
     Linker::linkModules(*llmod(), easy::get_module(llctx(), commit_null, _1, _2));
 }
@@ -381,7 +381,7 @@ Value* LLVMGen::visit(const AllocRegion& alloc)
 
     auto reg_type = lltype(alloc);
     auto reg_val = builder()->CreateAlloca(reg_type->getPointerElementType());
-    return llcall("alloc_region", lltype(alloc), { reg_val, time_val, tl_arr, char_arr });
+    return llcall("init_region", lltype(alloc), { reg_val, time_val, tl_arr, char_arr });
 }
 
 Value* LLVMGen::visit(const MakeRegion& make_reg)
@@ -445,20 +445,23 @@ Value* LLVMGen::visit(const Loop& loop)
         base->addIncoming(val, preheader_bb);
     }
 
-    // Update loop counter and check exit condition
-    eval(loop.t);
-    auto exit_cond = eval(loop.exit_cond);
-    builder()->CreateCondBr(exit_cond, exit_bb, body_bb);
+    // Check exit condition
+    builder()->CreateCondBr(eval(loop.exit_cond), exit_bb, body_bb);
 
-    // Update indices
+    // Loop body
     loop_fn->getBasicBlockList().push_back(body_bb);
     builder()->SetInsertPoint(body_bb);
     auto stack_val = builder()->CreateIntrinsic(Intrinsic::stacksave, {}, {});
+    
+    // Update loop counter
+    eval(loop.t);
+
+    // Update indices
     for (const auto& idx: loop.idxs) {
         eval(idx);
     }
 
-    // Loop body
+    // Evaluate loop output
     eval(loop.output);
     for (const auto& [var, base]: loop.state_bases) {
         auto base_phi = dyn_cast<PHINode>(eval(base));
@@ -466,7 +469,7 @@ Value* LLVMGen::visit(const Loop& loop)
     }
     builder()->CreateBr(end_bb);
 
-    // Update loop states and jump back to loop header
+    // Jump back to loop header
     loop_fn->getBasicBlockList().push_back(end_bb);
     builder()->SetInsertPoint(end_bb);
     builder()->CreateIntrinsic(Intrinsic::stackrestore, {}, {stack_val});
