@@ -49,7 +49,7 @@ void LoopGen::build_loop()
     loop->inputs.push_back(t_end);
     loop->inputs.push_back(out_arg);
     for (auto& in : ctx().op->inputs) {
-        Sym in_reg = _reg(in->name, in->type);
+        auto in_reg = _sym(in->name, in->type);
         loop->inputs.push_back(in_reg);
         sym(in) = in_reg;
     }
@@ -213,9 +213,11 @@ Expr LoopGen::visit(const OpNode& op)
     for (const auto& input : inner_op->inputs) {
         auto input_val = eval(input);
         inputs.push_back(input_val);
-        auto start = _get_start_idx(input_val);
-        auto end = _get_end_idx(input_val);
-        size_expr = _add(size_expr, _sub(end, start));
+        if (!input->type.is_valtype()) {
+            auto start = _get_start_idx(input_val);
+            auto end = _get_end_idx(input_val);
+            size_expr = _add(size_expr, _sub(end, start));
+        }
     }
 
     Sym out_sym;
