@@ -101,8 +101,7 @@ struct NaryExpr : public ValNode {
         ValNode(dtype), op(op), args(move(args))
     {}
 
-    template<size_t i>
-    Expr arg() const { return args[i]; }
+    Expr arg(size_t i) const { return args[i]; }
 
     size_t size() const { return args.size(); }
 

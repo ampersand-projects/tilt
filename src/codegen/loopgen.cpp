@@ -147,20 +147,20 @@ Expr LoopGen::visit(const ConstNode& cnst) { return _const(cnst); }
 Expr LoopGen::visit(const NaryExpr& e)
 {
     switch (e.op) {
-        case MathOp::ADD: return _add(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::SUB: return _sub(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::MUL: return _mul(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::DIV: return _div(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::MAX: return _max(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::MIN: return _min(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::EQ: return _eq(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::NOT: return _not(eval(e.arg<0>()));
-        case MathOp::AND: return _and(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::OR: return _or(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::LT: return _lt(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::LTE: return _lte(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::GT: return _gt(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::GTE: return _gte(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::ADD: return _add(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::SUB: return _sub(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::MUL: return _mul(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::DIV: return _div(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::MAX: return _max(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::MIN: return _min(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::EQ: return _eq(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::NOT: return _not(eval(e.arg(0)));
+        case MathOp::AND: return _and(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::OR: return _or(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::LT: return _lt(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::LTE: return _lte(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::GT: return _gt(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::GTE: return _gte(eval(e.arg(0)), eval(e.arg(1)));
         default: throw std::runtime_error("Invalid math operation"); break;
     }
 }

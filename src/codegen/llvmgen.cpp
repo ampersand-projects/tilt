@@ -200,38 +200,38 @@ Value* LLVMGen::visit(const NaryExpr& e)
 {
     switch (e.op) {
         case MathOp::ADD: {
-            if (e.arg<0>()->type.dtype.is_float()) {
-                return builder()->CreateFAdd(eval(e.arg<0>()), eval(e.arg<1>()));
+            if (e.arg(0)->type.dtype.is_float()) {
+                return builder()->CreateFAdd(eval(e.arg(0)), eval(e.arg(1)));
             } else {
-                return builder()->CreateAdd(eval(e.arg<0>()), eval(e.arg<1>()));
+                return builder()->CreateAdd(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::SUB: {
-            if (e.arg<0>()->type.dtype.is_float()) {
-                return builder()->CreateFSub(eval(e.arg<0>()), eval(e.arg<1>()));
+            if (e.arg(0)->type.dtype.is_float()) {
+                return builder()->CreateFSub(eval(e.arg(0)), eval(e.arg(1)));
             } else {
-                return builder()->CreateSub(eval(e.arg<0>()), eval(e.arg<1>()));
+                return builder()->CreateSub(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::MUL: {
-            if (e.arg<0>()->type.dtype.is_float()) {
-                return builder()->CreateFMul(eval(e.arg<0>()), eval(e.arg<1>()));
+            if (e.arg(0)->type.dtype.is_float()) {
+                return builder()->CreateFMul(eval(e.arg(0)), eval(e.arg(1)));
             } else {
-                return builder()->CreateMul(eval(e.arg<0>()), eval(e.arg<1>()));
+                return builder()->CreateMul(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::DIV: {
-            if (e.arg<0>()->type.dtype.is_float()) {
-                return builder()->CreateFDiv(eval(e.arg<0>()), eval(e.arg<1>()));
+            if (e.arg(0)->type.dtype.is_float()) {
+                return builder()->CreateFDiv(eval(e.arg(0)), eval(e.arg(1)));
             } else {
-                return builder()->CreateSDiv(eval(e.arg<0>()), eval(e.arg<1>()));
+                return builder()->CreateSDiv(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::MAX: {
-            auto left = eval(e.arg<0>());
-            auto right = eval(e.arg<1>());
+            auto left = eval(e.arg(0));
+            auto right = eval(e.arg(1));
             Value* ge;
-            if (e.arg<0>()->type.dtype.is_float()) {
+            if (e.arg(0)->type.dtype.is_float()) {
                 ge = builder()->CreateFCmpOGE(left, right);
             } else {
                 ge = builder()->CreateICmpSGE(left, right);
@@ -239,10 +239,10 @@ Value* LLVMGen::visit(const NaryExpr& e)
             return builder()->CreateSelect(ge, left, right);
         }
         case MathOp::MIN: {
-            auto left = eval(e.arg<0>());
-            auto right = eval(e.arg<1>());
+            auto left = eval(e.arg(0));
+            auto right = eval(e.arg(1));
             Value* le;
-            if (e.arg<0>()->type.dtype.is_float()) {
+            if (e.arg(0)->type.dtype.is_float()) {
                 le = builder()->CreateFCmpOLE(left, right);
             } else {
                 le = builder()->CreateICmpSLE(left, right);
@@ -250,43 +250,43 @@ Value* LLVMGen::visit(const NaryExpr& e)
             return builder()->CreateSelect(le, left, right);
         }
         case MathOp::EQ: {
-            if (e.arg<0>()->type.dtype.is_float()) {
-                return builder()->CreateFCmpOEQ(eval(e.arg<0>()), eval(e.arg<1>()));
+            if (e.arg(0)->type.dtype.is_float()) {
+                return builder()->CreateFCmpOEQ(eval(e.arg(0)), eval(e.arg(1)));
             } else {
-                return builder()->CreateICmpEQ(eval(e.arg<0>()), eval(e.arg<1>()));
+                return builder()->CreateICmpEQ(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::LT: {
-            if (e.arg<0>()->type.dtype.is_float()) {
-                return builder()->CreateFCmpOLT(eval(e.arg<0>()), eval(e.arg<1>()));
+            if (e.arg(0)->type.dtype.is_float()) {
+                return builder()->CreateFCmpOLT(eval(e.arg(0)), eval(e.arg(1)));
             } else {
-                return builder()->CreateICmpSLT(eval(e.arg<0>()), eval(e.arg<1>()));
+                return builder()->CreateICmpSLT(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::LTE: {
-            if (e.arg<0>()->type.dtype.is_float()) {
-                return builder()->CreateFCmpOLE(eval(e.arg<0>()), eval(e.arg<1>()));
+            if (e.arg(0)->type.dtype.is_float()) {
+                return builder()->CreateFCmpOLE(eval(e.arg(0)), eval(e.arg(1)));
             } else {
-                return builder()->CreateICmpSLE(eval(e.arg<0>()), eval(e.arg<1>()));
+                return builder()->CreateICmpSLE(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::GT: {
-            if (e.arg<0>()->type.dtype.is_float()) {
-                return builder()->CreateFCmpOGT(eval(e.arg<0>()), eval(e.arg<1>()));
+            if (e.arg(0)->type.dtype.is_float()) {
+                return builder()->CreateFCmpOGT(eval(e.arg(0)), eval(e.arg(1)));
             } else {
-                return builder()->CreateICmpSGT(eval(e.arg<0>()), eval(e.arg<1>()));
+                return builder()->CreateICmpSGT(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::GTE: {
-            if (e.arg<0>()->type.dtype.is_float()) {
-                return builder()->CreateFCmpOGE(eval(e.arg<0>()), eval(e.arg<1>()));
+            if (e.arg(0)->type.dtype.is_float()) {
+                return builder()->CreateFCmpOGE(eval(e.arg(0)), eval(e.arg(1)));
             } else {
-                return builder()->CreateICmpSGE(eval(e.arg<0>()), eval(e.arg<1>()));
+                return builder()->CreateICmpSGE(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::NOT: return builder()->CreateNot(eval(e.arg<0>()));
-        case MathOp::AND: return builder()->CreateAnd(eval(e.arg<0>()), eval(e.arg<1>()));
-        case MathOp::OR: return builder()->CreateOr(eval(e.arg<0>()), eval(e.arg<1>()));
+        case MathOp::NOT: return builder()->CreateNot(eval(e.arg(0)));
+        case MathOp::AND: return builder()->CreateAnd(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::OR: return builder()->CreateOr(eval(e.arg(0)), eval(e.arg(1)));
         default: throw std::runtime_error("Invalid math operation"); break;
     }
 }
