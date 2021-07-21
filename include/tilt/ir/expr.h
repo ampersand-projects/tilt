@@ -178,6 +178,10 @@ struct Min : public BinaryExpr {
     Min(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MIN, a, b) {}
 };
 
+struct Mod : public BinaryExpr {
+    Mod(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MOD, a, b) {}
+};
+
 }  // namespace tilt
 
 #endif  // INCLUDE_TILT_IR_EXPR_H_

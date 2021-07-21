@@ -151,6 +151,7 @@ Expr LoopGen::visit(const NaryExpr& e)
         case MathOp::SUB: return _sub(eval(e.arg(0)), eval(e.arg(1)));
         case MathOp::MUL: return _mul(eval(e.arg(0)), eval(e.arg(1)));
         case MathOp::DIV: return _div(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::MOD: return _mod(eval(e.arg(0)), eval(e.arg(1)));
         case MathOp::MAX: return _max(eval(e.arg(0)), eval(e.arg(1)));
         case MathOp::MIN: return _min(eval(e.arg(0)), eval(e.arg(1)));
         case MathOp::EQ: return _eq(eval(e.arg(0)), eval(e.arg(1)));
