@@ -1,32 +1,15 @@
 #include "tilt/base/type.h"
 #include "tilt/codegen/llvmgen.h"
-#include "tilt/codegen/vinstr.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/DataLayout.h"
-#include "llvm/Linker/Linker.h"
-
-#include "easy/jit.h"
 
 using namespace std;
 using namespace std::placeholders;
 using namespace tilt;
 using namespace llvm;
 
-void LLVMGen::register_vinstrs()
-{
-    Linker::linkModules(*llmod(), easy::get_module(llctx(), get_start_idx, _1));
-    Linker::linkModules(*llmod(), easy::get_module(llctx(), get_end_idx, _1));
-    Linker::linkModules(*llmod(), easy::get_module(llctx(), get_time, _1));
-    Linker::linkModules(*llmod(), easy::get_module(llctx(), get_index, _1));
-    Linker::linkModules(*llmod(), easy::get_module(llctx(), next_time, _1, _2));
-    Linker::linkModules(*llmod(), easy::get_module(llctx(), advance, _1, _2, _3));
-    Linker::linkModules(*llmod(), easy::get_module(llctx(), fetch, _1, _2, _3));
-    Linker::linkModules(*llmod(), easy::get_module(llctx(), make_region, _1, _2, _3, _4));
-    Linker::linkModules(*llmod(), easy::get_module(llctx(), init_region, _1, _2, _3, _4));
-    Linker::linkModules(*llmod(), easy::get_module(llctx(), commit_data, _1, _2));
-    Linker::linkModules(*llmod(), easy::get_module(llctx(), commit_null, _1, _2));
-}
+
 
 Function* LLVMGen::llfunc(const string name, llvm::Type* ret_type, vector<llvm::Type*> arg_types)
 {

@@ -4,6 +4,7 @@ set(SRC_FILES
     codegen/printer.cpp
     codegen/loopgen.cpp
     codegen/llvmgen.cpp
+    codegen/vinstr.cpp
     engine/engine.cpp
 )
 
