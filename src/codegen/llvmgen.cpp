@@ -211,12 +211,7 @@ Value* LLVMGen::visit(const NaryExpr& e)
             }
         }
         case MathOp::MOD: {
-             if (e.arg(0)->type.dtype.is_signed()){
-                return builder()->CreateSRem(eval(e.arg(0)), eval(e.arg(1)));
-            }
-            else {
-                return builder()->CreateURem(eval(e.arg(0)), eval(e.arg(1)));
-            }
+            return builder()->CreateSRem(eval(e.arg(0)), eval(e.arg(1)));
         }
         case MathOp::MAX: {
             auto left = eval(e.arg(0));
