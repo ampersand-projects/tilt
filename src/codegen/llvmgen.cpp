@@ -272,15 +272,9 @@ Value* LLVMGen::visit(const NaryExpr& e)
                 return builder()->CreateICmpSGE(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::Opcode::NOT: { 
-            return builder()->CreateNot(eval(e.arg(0)));
-        }
-        case MathOp::Opcode::AND: {
-            return builder()->CreateAnd(eval(e.arg(0)), eval(e.arg(1)));
-        }
-        case MathOp::Opcode::OR: {
-            return builder()->CreateOr(eval(e.arg(0)), eval(e.arg(1)));
-        }
+        case MathOp::Opcode::NOT: return builder()->CreateNot(eval(e.arg(0)));
+        case MathOp::Opcode::AND: return builder()->CreateAnd(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::Opcode::OR: return builder()->CreateOr(eval(e.arg(0)), eval(e.arg(1)));
         default: throw std::runtime_error("Invalid math operation"); break;
     }
 }
