@@ -25,7 +25,10 @@ void op_test(Op, QueryFn<InTy, OutTy>, vector<Event<InTy>>);
 template<typename InTy, typename OutTy>
 void select_test(function<Expr(Expr)>, function<OutTy(InTy)>);
 
-// Math op tests
-void addop_test();
+// Math ops tests
+void iadd_test();
+void fadd_test();
+void isub_test();
+void fsub_test();
 
 #endif  // TEST_TEST_BASE_H_

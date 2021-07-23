@@ -97,11 +97,11 @@ void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
     const unsigned int dur = 5;
 
     auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter("in")));
-    vector<Event<int32_t>> input(len);
+    vector<Event<InTy>> input(len);
     for (size_t i = 0; i < len; i++) {
         int64_t st = dur * i;
         int64_t et = st + dur;
-        int32_t payload = i;
+        InTy payload = i;
         input[i] = {st, et, payload};
     }
 
@@ -119,9 +119,30 @@ void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
     op_test<InTy, OutTy>(sel_op, sel_query_fn, input);
 }
 
-void addop_test()
+void iadd_test()
 {
     select_test<int32_t, int32_t>(
         [] (Expr s) { return _add(s, _i32(10)); },
         [] (int32_t s) { return s + 10; });
+}
+
+void fadd_test()
+{
+    select_test<float, float>(
+        [] (Expr s) { return _add(s, _f32(5)); },
+        [] (float s) { return s + 5.0; });
+}
+
+void isub_test()
+{
+    select_test<int32_t, int32_t>(
+        [] (Expr s) { return _sub(s, _i32(10)); },
+        [] (int32_t s) { return s - 10; });
+}
+
+void fsub_test()
+{
+    select_test<float, float>(
+        [] (Expr s) { return _sub(s, _f32(15)); },
+        [] (float s) { return s - 15.0; });
 }
