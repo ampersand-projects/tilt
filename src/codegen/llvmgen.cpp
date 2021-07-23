@@ -210,9 +210,7 @@ Value* LLVMGen::visit(const NaryExpr& e)
                 return builder()->CreateSDiv(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::MOD: {
-            return builder()->CreateSRem(eval(e.arg(0)), eval(e.arg(1)));
-        }
+        case MathOp::MOD: return builder()->CreateSRem(eval(e.arg(0)), eval(e.arg(1)));
         case MathOp::MAX: {
             auto left = eval(e.arg(0));
             auto right = eval(e.arg(1));
