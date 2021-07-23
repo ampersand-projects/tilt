@@ -55,21 +55,21 @@ void IRPrinter::Visit(const ConstNode& cnst)
 
 void IRPrinter::Visit(const NaryExpr& e)
 {
-    switch (e.op) {
-        case MathOp::ADD: emitbinary(e.arg(0), "+", e.arg(1)); break;
-        case MathOp::SUB: emitbinary(e.arg(0), "-", e.arg(1)); break;
-        case MathOp::MUL: emitbinary(e.arg(0), "*", e.arg(1)); break;
-        case MathOp::DIV: emitbinary(e.arg(0), "/", e.arg(1)); break;
-        case MathOp::MAX: emitfunc("max", {e.arg(0), e.arg(1)}); break;
-        case MathOp::MIN: emitfunc("min", {e.arg(0), e.arg(1)}); break;
-        case MathOp::EQ: emitbinary(e.arg(0), "==", e.arg(1)); break;
-        case MathOp::NOT: emitunary("!", e.arg(0)); break;
-        case MathOp::AND: emitbinary(e.arg(0), "&&", e.arg(1)); break;
-        case MathOp::OR: emitbinary(e.arg(0), "||", e.arg(1)); break;
-        case MathOp::LT: emitbinary(e.arg(0), "<", e.arg(1)); break;
-        case MathOp::LTE: emitbinary(e.arg(0), "<=", e.arg(1)); break;
-        case MathOp::GT: emitbinary(e.arg(0), ">", e.arg(1)); break;
-        case MathOp::GTE: emitbinary(e.arg(0), ">=", e.arg(1)); break;
+    switch (e.op.get_opcode()) {
+        case MathOp::Opcode::ADD: emitbinary(e.arg(0), "+", e.arg(1)); break;
+        case MathOp::Opcode::SUB: emitbinary(e.arg(0), "-", e.arg(1)); break;
+        case MathOp::Opcode::MUL: emitbinary(e.arg(0), "*", e.arg(1)); break;
+        case MathOp::Opcode::DIV: emitbinary(e.arg(0), "/", e.arg(1)); break;
+        case MathOp::Opcode::MAX: emitfunc("max", {e.arg(0), e.arg(1)}); break;
+        case MathOp::Opcode::MIN: emitfunc("min", {e.arg(0), e.arg(1)}); break;
+        case MathOp::Opcode::EQ: emitbinary(e.arg(0), "==", e.arg(1)); break;
+        case MathOp::Opcode::NOT: emitunary("!", e.arg(0)); break;
+        case MathOp::Opcode::AND: emitbinary(e.arg(0), "&&", e.arg(1)); break;
+        case MathOp::Opcode::OR: emitbinary(e.arg(0), "||", e.arg(1)); break;
+        case MathOp::Opcode::LT: emitbinary(e.arg(0), "<", e.arg(1)); break;
+        case MathOp::Opcode::LTE: emitbinary(e.arg(0), "<=", e.arg(1)); break;
+        case MathOp::Opcode::GT: emitbinary(e.arg(0), ">", e.arg(1)); break;
+        case MathOp::Opcode::GTE: emitbinary(e.arg(0), ">=", e.arg(1)); break;
         default: throw std::runtime_error("Invalid math operation"); break;
     }
 }

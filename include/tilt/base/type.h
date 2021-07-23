@@ -60,6 +60,7 @@ struct DataType {
             && (this->size == o.size);
     }
 
+    bool is_bool() const { return btype == BaseType::BOOL; } 
     bool is_struct() const { return btype == BaseType::STRUCT; }
     bool is_ptr() const { return btype == BaseType::PTR; }
     bool is_arr() const { return size > 0; }
@@ -138,10 +139,43 @@ struct Type {
     }
 };
 
-enum class MathOp {
-    ADD, SUB, MUL, DIV, MAX, MIN,
-    LT, LTE, GT, GTE, EQ,
-    NOT, AND, OR,
+struct MathOp {
+    enum Opcode {
+        ADD, SUB, MUL, DIV, MAX, MIN,
+        LT, LTE, GT, GTE, EQ,
+        NOT, AND, OR
+    };
+
+    MathOp(Opcode opcode) : 
+        opcode(opcode)
+    {}
+
+    Opcode get_opcode() const{
+        return opcode;
+    }
+
+    bool is_numeric() const
+    {
+        return (opcode == Opcode::ADD) 
+            || (opcode == Opcode::SUB) 
+            || (opcode == Opcode::DIV) 
+            || (opcode == Opcode::MAX)
+            || (opcode == Opcode::MIN)
+            || (opcode == Opcode::LT) 
+            || (opcode == Opcode::LTE) 
+            || (opcode == Opcode::GT) 
+            || (opcode == Opcode::GTE);
+    }
+
+    bool is_logical() const
+    {
+        return (opcode == Opcode::NOT) 
+            || (opcode == Opcode::AND) 
+            || (opcode == Opcode::OR);
+    }
+
+private: 
+    Opcode opcode;
 };
 
 }  // namespace tilt

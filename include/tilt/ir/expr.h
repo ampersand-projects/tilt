@@ -58,7 +58,7 @@ struct New : public ValNode {
     vector<Expr> inputs;
 
     explicit New(vector<Expr> inputs) :
-        ValNode(get_new_type(inputs)), inputs(inputs)
+        ValNode( _new_type(inputs)), inputs(inputs)
     {}
 
     void Accept(Visitor&) const final;
@@ -97,7 +97,7 @@ struct NaryExpr : public ValNode {
     MathOp op;
     vector<Expr> args;
 
-    NaryExpr(DataType dtype, MathOp op, vector<Expr> args) :
+    NaryExpr(DataType dtype, MathOp::Opcode op, vector<Expr> args) :
         ValNode(dtype), op(op), args(move(args))
     {}
 
@@ -109,13 +109,13 @@ struct NaryExpr : public ValNode {
 };
 
 struct UnaryExpr : public NaryExpr {
-    UnaryExpr(DataType dtype, MathOp op, Expr input)
+    UnaryExpr(DataType dtype, MathOp::Opcode op, Expr input)
         : NaryExpr(dtype, op, vector<Expr>{input})
     {}
 };
 
 struct BinaryExpr : public NaryExpr {
-    BinaryExpr(DataType dtype, MathOp op, Expr left, Expr right)
+    BinaryExpr(DataType dtype, MathOp::Opcode op, Expr left, Expr right)
         : NaryExpr(dtype, op, vector<Expr>{left, right})
     {
         assert(left->type == right->type);
@@ -123,59 +123,59 @@ struct BinaryExpr : public NaryExpr {
 };
 
 struct Not : public UnaryExpr {
-    explicit Not(Expr a) : UnaryExpr(types::BOOL, MathOp::NOT, a) {}
+    explicit Not(Expr a) : UnaryExpr(types::BOOL, MathOp::Opcode::NOT, a) {}
 };
 
 struct Equals : public BinaryExpr {
-    Equals(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::EQ, a, b) {}
+    Equals(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::Opcode::EQ, a, b) {}
 };
 
 struct And : public BinaryExpr {
-    And(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::AND, a, b) {}
+    And(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::Opcode::AND, a, b) {}
 };
 
 struct Or : public BinaryExpr {
-    Or(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::OR, a, b) {}
+    Or(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::Opcode::OR, a, b) {}
 };
 
 struct LessThan : public BinaryExpr {
-    LessThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LT, a, b) {}
+    LessThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::Opcode::LT, a, b) {}
 };
 
 struct GreaterThan : public BinaryExpr {
-    GreaterThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GT, a, b) {}
+    GreaterThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::Opcode::GT, a, b) {}
 };
 
 struct LessThanEqual : public BinaryExpr {
-    LessThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LTE, a, b) {}
+    LessThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::Opcode::LTE, a, b) {}
 };
 
 struct GreaterThanEqual : public BinaryExpr {
-    GreaterThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GTE, a, b) {}
+    GreaterThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::Opcode::GTE, a, b) {}
 };
 
 struct Add : public BinaryExpr {
-    Add(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::ADD, a, b) {}
+    Add(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::Opcode::ADD, a, b) {}
 };
 
 struct Sub : public BinaryExpr {
-    Sub(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::SUB, a, b) {}
+    Sub(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::Opcode::SUB, a, b) {}
 };
 
 struct Mul : public BinaryExpr {
-    Mul(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MUL, a, b) {}
+    Mul(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::Opcode::MUL, a, b) {}
 };
 
 struct Div : public BinaryExpr {
-    Div(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::DIV, a, b) {}
+    Div(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::Opcode::DIV, a, b) {}
 };
 
 struct Max : public BinaryExpr {
-    Max(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MAX, a, b) {}
+    Max(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::Opcode::MAX, a, b) {}
 };
 
 struct Min : public BinaryExpr {
-    Min(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MIN, a, b) {}
+    Min(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::Opcode::MIN, a, b) {}
 };
 
 }  // namespace tilt

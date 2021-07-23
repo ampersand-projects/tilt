@@ -181,95 +181,106 @@ Value* LLVMGen::visit(const ConstNode& cnst)
 
 Value* LLVMGen::visit(const NaryExpr& e)
 {
-    switch (e.op) {
-        case MathOp::ADD: {
-            if (e.arg(0)->type.dtype.is_float()) {
+    auto arg_dtype = e.arg(0)->type.dtype;
+    if (e.op.is_logical()) {
+        assert(arg_dtype.is_bool());
+    }
+
+    switch (e.op.get_opcode()) {
+        case MathOp::Opcode::ADD: {
+            if (arg_dtype.is_float()) {
                 return builder()->CreateFAdd(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateAdd(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::SUB: {
-            if (e.arg(0)->type.dtype.is_float()) {
+        case MathOp::Opcode::SUB: {
+            if (arg_dtype.is_float()) {
                 return builder()->CreateFSub(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateSub(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::MUL: {
-            if (e.arg(0)->type.dtype.is_float()) {
+        case MathOp::Opcode::MUL: {
+            if (arg_dtype.is_float()) {
                 return builder()->CreateFMul(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateMul(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::DIV: {
-            if (e.arg(0)->type.dtype.is_float()) {
+        case MathOp::Opcode::DIV: {          
+            if (arg_dtype.is_float()) {
                 return builder()->CreateFDiv(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateSDiv(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::MAX: {
+        case MathOp::Opcode::MAX: {
             auto left = eval(e.arg(0));
             auto right = eval(e.arg(1));
             Value* ge;
-            if (e.arg(0)->type.dtype.is_float()) {
+            if (arg_dtype.is_float()) {
                 ge = builder()->CreateFCmpOGE(left, right);
             } else {
                 ge = builder()->CreateICmpSGE(left, right);
             }
             return builder()->CreateSelect(ge, left, right);
         }
-        case MathOp::MIN: {
+        case MathOp::Opcode::MIN: {
             auto left = eval(e.arg(0));
             auto right = eval(e.arg(1));
             Value* le;
-            if (e.arg(0)->type.dtype.is_float()) {
+            if (arg_dtype.is_float()) {
                 le = builder()->CreateFCmpOLE(left, right);
             } else {
                 le = builder()->CreateICmpSLE(left, right);
             }
             return builder()->CreateSelect(le, left, right);
         }
-        case MathOp::EQ: {
-            if (e.arg(0)->type.dtype.is_float()) {
+        case MathOp::Opcode::EQ: {
+            if (arg_dtype.is_float()) {
                 return builder()->CreateFCmpOEQ(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateICmpEQ(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::LT: {
-            if (e.arg(0)->type.dtype.is_float()) {
+        case MathOp::Opcode::LT: {
+            if (arg_dtype.is_float()) {
                 return builder()->CreateFCmpOLT(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateICmpSLT(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::LTE: {
-            if (e.arg(0)->type.dtype.is_float()) {
+        case MathOp::Opcode::LTE: {
+            if (arg_dtype.is_float()) {
                 return builder()->CreateFCmpOLE(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateICmpSLE(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::GT: {
-            if (e.arg(0)->type.dtype.is_float()) {
+        case MathOp::Opcode::GT: {
+            if (arg_dtype.is_float()) {
                 return builder()->CreateFCmpOGT(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateICmpSGT(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::GTE: {
-            if (e.arg(0)->type.dtype.is_float()) {
+        case MathOp::Opcode::GTE: {
+            if (arg_dtype.is_float()) {
                 return builder()->CreateFCmpOGE(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateICmpSGE(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::NOT: return builder()->CreateNot(eval(e.arg(0)));
-        case MathOp::AND: return builder()->CreateAnd(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::OR: return builder()->CreateOr(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::Opcode::NOT: { 
+            return builder()->CreateNot(eval(e.arg(0)));
+        }
+        case MathOp::Opcode::AND: {
+            return builder()->CreateAnd(eval(e.arg(0)), eval(e.arg(1)));
+        }
+        case MathOp::Opcode::OR: {
+            return builder()->CreateOr(eval(e.arg(0)), eval(e.arg(1)));
+        }
         default: throw std::runtime_error("Invalid math operation"); break;
     }
 }
