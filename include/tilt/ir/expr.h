@@ -58,7 +58,7 @@ struct New : public ValNode {
     vector<Expr> inputs;
 
     explicit New(vector<Expr> inputs) :
-        ValNode( _new_type(inputs)), inputs(inputs)
+        ValNode(get_new_type(inputs)), inputs(inputs)
     {}
 
     void Accept(Visitor&) const final;
