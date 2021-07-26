@@ -224,7 +224,7 @@ struct Min : public BinaryExpr {
 struct Mod : public BinaryExpr {
     Mod(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MOD, a, b)
     {
-        assert(a->type.dtype.is_int());
+        assert(a->type.dtype.is_numeric() && !a->type.dtype.is_float());
     }
 };
 
