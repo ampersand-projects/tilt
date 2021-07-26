@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <utility>
+#include <iostream>
 
 #include "tilt/base/type.h"
 #include "tilt/ir/node.h"
@@ -123,7 +124,10 @@ struct BinaryExpr : public NaryExpr {
 };
 
 struct Not : public UnaryExpr {
-    explicit Not(Expr a) : UnaryExpr(types::BOOL, MathOp::NOT, a) {}
+    explicit Not(Expr a) : UnaryExpr(types::BOOL, MathOp::NOT, a) 
+    {
+        assert(a->type.dtype.is_bool());
+    }
 };
 
 struct Sqrt : public UnaryExpr {
@@ -135,55 +139,94 @@ struct Equals : public BinaryExpr {
 };
 
 struct And : public BinaryExpr {
-    And(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::AND, a, b) {}
+    And(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::AND, a, b)
+    {
+        assert(a->type.dtype.is_bool());
+    }
 };
 
 struct Or : public BinaryExpr {
-    Or(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::OR, a, b) {}
+    Or(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::OR, a, b)
+    {
+        assert(a->type.dtype.is_bool());
+    }
 };
 
 struct LessThan : public BinaryExpr {
-    LessThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LT, a, b) {}
+    LessThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LT, a, b) 
+    {
+        assert(a->type.dtype.is_numeric());
+    }
 };
 
 struct GreaterThan : public BinaryExpr {
-    GreaterThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GT, a, b) {}
+    GreaterThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GT, a, b)
+    {
+        assert(a->type.dtype.is_numeric());
+    }
 };
 
 struct LessThanEqual : public BinaryExpr {
-    LessThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LTE, a, b) {}
+    LessThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LTE, a, b)
+    {
+        assert(a->type.dtype.is_numeric());
+    }
 };
 
 struct GreaterThanEqual : public BinaryExpr {
-    GreaterThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GTE, a, b) {}
+    GreaterThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GTE, a, b)
+    {
+        assert(a->type.dtype.is_numeric());
+    }
 };
 
 struct Add : public BinaryExpr {
-    Add(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::ADD, a, b) {}
+    Add(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::ADD, a, b)
+    {
+        assert(a->type.dtype.is_numeric());
+    }
 };
 
 struct Sub : public BinaryExpr {
-    Sub(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::SUB, a, b) {}
+    Sub(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::SUB, a, b)
+    {
+        assert(a->type.dtype.is_numeric());
+    }
 };
 
 struct Mul : public BinaryExpr {
-    Mul(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MUL, a, b) {}
+    Mul(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MUL, a, b)
+    {
+        assert(a->type.dtype.is_numeric());
+    }
 };
 
 struct Div : public BinaryExpr {
-    Div(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::DIV, a, b) {}
+    Div(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::DIV, a, b)
+    {
+        assert(a->type.dtype.is_numeric());
+    }
 };
 
 struct Max : public BinaryExpr {
-    Max(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MAX, a, b) {}
+    Max(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MAX, a, b)
+    {
+        assert(a->type.dtype.is_numeric());
+    }
 };
 
 struct Min : public BinaryExpr {
-    Min(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MIN, a, b) {}
+    Min(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MIN, a, b)
+    {
+        assert(a->type.dtype.is_numeric());
+    }
 };
 
 struct Mod : public BinaryExpr {
-    Mod(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MOD, a, b) {}
+    Mod(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MOD, a, b)
+    {
+        assert(a->type.dtype.is_int());
+    }
 };
 
 }  // namespace tilt
