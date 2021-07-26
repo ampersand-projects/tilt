@@ -13,7 +13,7 @@ using namespace std;
 namespace tilt {
 
 enum class BaseType {
-    BOOL = 0,
+    BOOL,
     CHAR,
     INT8,
     INT16,

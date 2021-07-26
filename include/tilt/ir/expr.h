@@ -7,7 +7,6 @@
 #include <vector>
 #include <map>
 #include <utility>
-#include <iostream>
 
 #include "tilt/base/type.h"
 #include "tilt/ir/node.h"
