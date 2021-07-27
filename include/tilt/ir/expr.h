@@ -1,12 +1,20 @@
 #ifndef INCLUDE_TILT_IR_EXPR_H_
 #define INCLUDE_TILT_IR_EXPR_H_
 
+#define Assert(EXPR, MSG) \
+   (!(EXPR)) ? \
+      (std::cerr << "main: " << __FILE__ \
+      << ":" << __LINE__ << ": " << __PRETTY_FUNCTION__ \
+      << ": Assertion on `" << #EXPR << "` failed: " \
+      << (MSG) << std::endl, abort(), 0) : 1
+
 #include <string>
 #include <memory>
 #include <cassert>
 #include <vector>
 #include <map>
 #include <utility>
+#include <iostream>
 
 #include "tilt/base/type.h"
 #include "tilt/ir/node.h"
@@ -34,8 +42,10 @@ struct IfElse : public ExprNode {
     IfElse(Expr cond, Expr true_body, Expr false_body) :
         ExprNode(true_body->type), cond(cond), true_body(true_body), false_body(false_body)
     {
-        assert(cond->type.dtype == types::BOOL);
-        assert(true_body->type.dtype == false_body->type.dtype);
+        Assert(cond->type.dtype == types::BOOL, 
+               "IfElse expression requires that the condtion is bool type.");
+        Assert(true_body->type.dtype == false_body->type.dtype, 
+               "IfElse expression requires that the body for True and False match their types.");
     }
 
     void Accept(Visitor&) const final;
@@ -48,7 +58,8 @@ struct Get : public ValNode {
     Get(Expr input, size_t n) :
         ValNode(input->type.dtype.dtypes[n]), input(input), n(n)
     {
-        assert(input->type.dtype.is_struct());
+        Assert(input->type.dtype.is_struct(), 
+               "Get expression requires that the input is struct type.");
     }
 
     void Accept(Visitor&) const final;
@@ -99,7 +110,10 @@ struct NaryExpr : public ValNode {
 
     NaryExpr(DataType dtype, MathOp op, vector<Expr> args) :
         ValNode(dtype), op(op), args(move(args))
-    {}
+    {
+        Assert(!arg(0)->type.dtype.is_ptr() && !arg(0)->type.dtype.is_struct(), 
+               "NaryExpr Expression require arguments cannot be pointer or struct type.");
+    }
 
     Expr arg(size_t i) const { return args[i]; }
 
@@ -118,14 +132,15 @@ struct BinaryExpr : public NaryExpr {
     BinaryExpr(DataType dtype, MathOp op, Expr left, Expr right)
         : NaryExpr(dtype, op, vector<Expr>{left, right})
     {
-        assert(left->type == right->type);
+        Assert(left->type == right->type, 
+               "BinaryExpr expression requires that both arguments have the same type.");
     }
 };
 
 struct Not : public UnaryExpr {
     explicit Not(Expr a) : UnaryExpr(types::BOOL, MathOp::NOT, a) 
     {
-        assert(a->type.dtype.is_bool());
+        Assert(a->type.dtype.btype == BaseType::BOOL, "Not expression requires bool type argument.");
     }
 };
 
@@ -134,97 +149,78 @@ struct Sqrt : public UnaryExpr {
 };
 
 struct Equals : public BinaryExpr {
-    Equals(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::EQ, a, b) {}
+    Equals(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::EQ, a, b) 
+    {}
 };
 
 struct And : public BinaryExpr {
     And(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::AND, a, b)
     {
-        assert(a->type.dtype.is_bool());
+        Assert(a->type.dtype.btype == BaseType::BOOL, "And expression requires bool type argument.");
     }
 };
 
 struct Or : public BinaryExpr {
     Or(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::OR, a, b)
     {
-        assert(a->type.dtype.is_bool());
+        Assert(a->type.dtype.btype == BaseType::BOOL, "Or expression requires bool type argument.");
     }
 };
 
 struct LessThan : public BinaryExpr {
     LessThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LT, a, b) 
-    {
-        assert(a->type.dtype.is_numeric());
-    }
+    {}
 };
 
 struct GreaterThan : public BinaryExpr {
     GreaterThan(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GT, a, b)
-    {
-        assert(a->type.dtype.is_numeric());
-    }
+    {}
 };
 
 struct LessThanEqual : public BinaryExpr {
     LessThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::LTE, a, b)
-    {
-        assert(a->type.dtype.is_numeric());
-    }
+    {}
 };
 
 struct GreaterThanEqual : public BinaryExpr {
     GreaterThanEqual(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::GTE, a, b)
-    {
-        assert(a->type.dtype.is_numeric());
-    }
+    {}
 };
 
 struct Add : public BinaryExpr {
     Add(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::ADD, a, b)
-    {
-        assert(a->type.dtype.is_numeric());
-    }
+    {}
 };
 
 struct Sub : public BinaryExpr {
     Sub(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::SUB, a, b)
-    {
-        assert(a->type.dtype.is_numeric());
-    }
+    {}
 };
 
 struct Mul : public BinaryExpr {
     Mul(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MUL, a, b)
-    {
-        assert(a->type.dtype.is_numeric());
-    }
+    {}
 };
 
 struct Div : public BinaryExpr {
     Div(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::DIV, a, b)
-    {
-        assert(a->type.dtype.is_numeric());
-    }
+    {}
 };
 
 struct Max : public BinaryExpr {
     Max(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MAX, a, b)
-    {
-        assert(a->type.dtype.is_numeric());
-    }
+    {}
 };
 
 struct Min : public BinaryExpr {
     Min(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MIN, a, b)
-    {
-        assert(a->type.dtype.is_numeric());
-    }
+    {}
 };
 
 struct Mod : public BinaryExpr {
     Mod(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MOD, a, b)
     {
-        assert(a->type.dtype.is_numeric() && !a->type.dtype.is_float());
+        Assert(!a->type.dtype.is_float(), "Mod only supports integer arguments.");
     }
 };
 

@@ -60,7 +60,6 @@ struct DataType {
             && (this->size == o.size);
     }
 
-    bool is_bool() const { return btype == BaseType::BOOL; }
     bool is_struct() const { return btype == BaseType::STRUCT; }
     bool is_ptr() const { return btype == BaseType::PTR; }
     bool is_arr() const { return size > 0; }
@@ -91,14 +90,6 @@ struct DataType {
             || (this->btype == BaseType::INT64)
             || (this->btype == BaseType::FLOAT32)
             || (this->btype == BaseType::FLOAT64);
-    }
-
-    bool is_numeric() const 
-    {
-        return is_int() 
-            || is_float()
-            || (this->btype == BaseType::TIME)
-            || (this->btype == BaseType::INDEX);
     }
 };
 
