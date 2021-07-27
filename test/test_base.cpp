@@ -1,4 +1,5 @@
 #include <utility>
+#include <cmath>
 
 #include "test_base.h"
 
@@ -145,4 +146,18 @@ void fsub_test()
     select_test<float, float>(
         [] (Expr s) { return _sub(s, _f32(15)); },
         [] (float s) { return s - 15.0; });
+}
+
+void fsqrt_test()
+{
+    select_test<float, float>(
+        [] (Expr s) { return _sqrt(s); },
+        [] (float s) { return static_cast<float>(std::sqrt(s)); });
+}
+
+void dsqrt_test()
+{
+    select_test<double, double>(
+        [] (Expr s) { return _sqrt(s); },
+        [] (double s) { return std::sqrt(s); });
 }

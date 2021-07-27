@@ -126,6 +126,10 @@ struct Not : public UnaryExpr {
     explicit Not(Expr a) : UnaryExpr(types::BOOL, MathOp::NOT, a) {}
 };
 
+struct Sqrt : public UnaryExpr {
+    explicit Sqrt(Expr a) : UnaryExpr(a->type.dtype, MathOp::SQRT, a) {}
+};
+
 struct Equals : public BinaryExpr {
     Equals(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::EQ, a, b) {}
 };

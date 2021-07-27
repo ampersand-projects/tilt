@@ -30,5 +30,7 @@ void iadd_test();
 void fadd_test();
 void isub_test();
 void fsub_test();
+void fsqrt_test();
+void dsqrt_test();
 
 #endif  // TEST_TEST_BASE_H_

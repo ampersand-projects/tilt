@@ -233,6 +233,7 @@ Value* LLVMGen::visit(const NaryExpr& e)
             }
             return builder()->CreateSelect(le, left, right);
         }
+        case MathOp::SQRT: return builder()->CreateIntrinsic(Intrinsic::sqrt, {lltype(e.arg(0))}, {eval(e.arg(0))});
         case MathOp::EQ: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFCmpOEQ(eval(e.arg(0)), eval(e.arg(1)));
