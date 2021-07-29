@@ -140,7 +140,8 @@ struct Type {
 };
 
 enum class MathOp {
-    ADD, SUB, MUL, DIV, MOD, MAX, MIN, SQRT,
+    ADD, SUB, MUL, DIV, 
+    MOD, MAX, MIN, SQRT, POW,
     LT, LTE, GT, GTE, EQ,
     NOT, AND, OR,
 };

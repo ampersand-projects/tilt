@@ -200,6 +200,10 @@ struct Mod : public BinaryExpr {
     }
 };
 
+struct Pow : public BinaryExpr {
+    Pow(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::POW, a, b) {}
+};
+
 }  // namespace tilt
 
 #endif  // INCLUDE_TILT_IR_EXPR_H_
