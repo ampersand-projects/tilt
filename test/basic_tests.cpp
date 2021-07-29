@@ -7,3 +7,5 @@ TEST(MathOpTests, ISubOpTest) { isub_test(); }
 TEST(MathOpTests, FSubOpTest) { fsub_test(); }
 TEST(MathOpTests, FSqrtOpTest) { fsqrt_test(); }
 TEST(MathOpTests, DSqrtOpTest) { dsqrt_test(); }
+TEST(MathOpTests, FPowOPTest) { fpow_test(); }
+TEST(MathOpTests, DPowOPTest) { dpow_test(); }

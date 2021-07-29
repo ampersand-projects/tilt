@@ -161,3 +161,17 @@ void dsqrt_test()
         [] (Expr s) { return _sqrt(s); },
         [] (double s) { return std::sqrt(s); });
 }
+
+void fpow_test()
+{
+    select_test<float, float>(
+        [] (Expr s) { return _pow(s, _f32(2)); },
+        [] (float s) { return std::pow(s, 2); });
+}
+
+void dpow_test()
+{
+    select_test<double, double>(
+        [] (Expr s) { return _pow(s, _f64(2)); },
+        [] (double s) { return std::pow(s, 2); });
+}
