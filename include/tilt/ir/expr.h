@@ -102,7 +102,6 @@ struct NaryExpr : public ValNode {
         ValNode(dtype), op(op), args(move(args))
     {
         CHECK(!arg(0)->type.dtype.is_ptr() && !arg(0)->type.dtype.is_struct());
-        CHECK(false);
     }
 
     Expr arg(size_t i) const { return args[i]; }
