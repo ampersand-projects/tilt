@@ -245,7 +245,7 @@ Expr LoopGen::visit(const AggNode& aggexpr)
     agg_loop->state_bases[agg_loop->output] = output_base;
     auto acc_expr = eval(aggexpr.acc(output_base, sym(aggexpr.op->output)));
     auto output_update = _sel(eval(aggexpr.op->pred), acc_expr, output_base);
-    assert(output_update->type == aggexpr.type);
+    CHECK(output_update->type == aggexpr.type);
     assign(agg_loop->output, output_update);
 
     switch_ctx(old_ctx);

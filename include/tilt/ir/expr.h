@@ -6,7 +6,6 @@
 #include <vector>
 #include <map>
 #include <utility>
-#include <iostream>
 
 #include "tilt/base/type.h"
 #include "tilt/base/log.h"
@@ -128,7 +127,7 @@ struct BinaryExpr : public NaryExpr {
 struct Not : public UnaryExpr {
     explicit Not(Expr a) : UnaryExpr(types::BOOL, MathOp::NOT, a) 
     {
-        CHECK(a->type.dtype.btype == BaseType::BOOL);
+        CHECK(a->type.dtype == types::BOOL);
     }
 };
 
@@ -137,21 +136,20 @@ struct Sqrt : public UnaryExpr {
 };
 
 struct Equals : public BinaryExpr {
-    Equals(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::EQ, a, b) 
-    {}
+    Equals(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::EQ, a, b) {}
 };
 
 struct And : public BinaryExpr {
     And(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::AND, a, b)
     {
-        CHECK(a->type.dtype.btype == BaseType::BOOL);
+        CHECK(a->type.dtype == types::BOOL);
     }
 };
 
 struct Or : public BinaryExpr {
     Or(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::OR, a, b)
     {
-        CHECK(a->type.dtype.btype == BaseType::BOOL);
+        CHECK(a->type.dtype == types::BOOL);
     }
 };
 

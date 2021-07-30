@@ -24,7 +24,7 @@ struct OpNode : public LStream {
         LStream(Type(output->type.dtype, iter)), iter(iter),
         inputs(move(inputs)), syms(move(syms)), pred(pred), output(output)
     {
-        assert(!type.is_valtype());
+        CHECK(!type.is_valtype());
     }
 
     void Accept(Visitor&) const final;
@@ -41,7 +41,7 @@ struct AggNode : public ValNode {
     AggNode(Op op, Val init, AccTy acc) :
         ValNode(init->type.dtype), op(op), init(init), acc(acc)
     {
-        assert(op->output->type.is_valtype());
+        CHECK(op->output->type.is_valtype());
     }
 
     void Accept(Visitor&) const final;
