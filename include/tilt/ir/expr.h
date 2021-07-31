@@ -34,8 +34,8 @@ struct IfElse : public ExprNode {
     IfElse(Expr cond, Expr true_body, Expr false_body) :
         ExprNode(true_body->type), cond(cond), true_body(true_body), false_body(false_body)
     {
-        CHECK(cond->type.dtype == types::BOOL);
-        CHECK(true_body->type.dtype == false_body->type.dtype);
+        ASSERT(cond->type.dtype == types::BOOL);
+        ASSERT(true_body->type.dtype == false_body->type.dtype);
     }
 
     void Accept(Visitor&) const final;
@@ -48,7 +48,7 @@ struct Get : public ValNode {
     Get(Expr input, size_t n) :
         ValNode(input->type.dtype.dtypes[n]), input(input), n(n)
     {
-        CHECK(input->type.dtype.is_struct());
+        ASSERT(input->type.dtype.is_struct());
     }
 
     void Accept(Visitor&) const final;
@@ -100,7 +100,7 @@ struct NaryExpr : public ValNode {
     NaryExpr(DataType dtype, MathOp op, vector<Expr> args) :
         ValNode(dtype), op(op), args(move(args))
     {
-        CHECK(!arg(0)->type.dtype.is_ptr() && !arg(0)->type.dtype.is_struct());
+        ASSERT(!arg(0)->type.dtype.is_ptr() && !arg(0)->type.dtype.is_struct());
     }
 
     Expr arg(size_t i) const { return args[i]; }
@@ -120,14 +120,14 @@ struct BinaryExpr : public NaryExpr {
     BinaryExpr(DataType dtype, MathOp op, Expr left, Expr right)
         : NaryExpr(dtype, op, vector<Expr>{left, right})
     {
-        CHECK(left->type == right->type);
+        ASSERT(left->type == right->type);
     }
 };
 
 struct Not : public UnaryExpr {
     explicit Not(Expr a) : UnaryExpr(types::BOOL, MathOp::NOT, a) 
     {
-        CHECK(a->type.dtype == types::BOOL);
+        ASSERT(a->type.dtype == types::BOOL);
     }
 };
 
@@ -142,14 +142,14 @@ struct Equals : public BinaryExpr {
 struct And : public BinaryExpr {
     And(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::AND, a, b)
     {
-        CHECK(a->type.dtype == types::BOOL);
+        ASSERT(a->type.dtype == types::BOOL);
     }
 };
 
 struct Or : public BinaryExpr {
     Or(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::OR, a, b)
     {
-        CHECK(a->type.dtype == types::BOOL);
+        ASSERT(a->type.dtype == types::BOOL);
     }
 };
 
@@ -196,7 +196,7 @@ struct Min : public BinaryExpr {
 struct Mod : public BinaryExpr {
     Mod(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MOD, a, b)
     {
-        CHECK(!a->type.dtype.is_float());
+        ASSERT(!a->type.dtype.is_float());
     }
 };
 

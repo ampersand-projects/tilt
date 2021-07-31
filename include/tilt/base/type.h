@@ -44,9 +44,9 @@ struct DataType {
         btype(btype), dtypes(dtypes), size(size)
     {
         switch (btype) {
-            case BaseType::STRUCT: CHECK(dtypes.size() > 0); break;
-            case BaseType::PTR: CHECK(dtypes.size() == 1); break;
-            default: CHECK(dtypes.size() == 0); break;
+            case BaseType::STRUCT: ASSERT(dtypes.size() > 0); break;
+            case BaseType::PTR: ASSERT(dtypes.size() == 1); break;
+            default: ASSERT(dtypes.size() == 0); break;
         }
     }
 
