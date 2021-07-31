@@ -34,5 +34,11 @@ void fsqrt_test();
 void dsqrt_test();
 void fpow_test();
 void dpow_test();
+void fceil_test();
+void dceil_test();
+void ffloor_test(); 
+void dfloor_test(); 
+void fabs_test(); 
+void dabs_test(); 
 
 #endif  // TEST_TEST_BASE_H_

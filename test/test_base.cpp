@@ -175,3 +175,45 @@ void dpow_test()
         [] (Expr s) { return _pow(s, _f64(2)); },
         [] (double s) { return std::pow(s, 2); });
 }
+
+void fceil_test()
+{
+    select_test<float, float>(
+        [] (Expr s) { return _ceil(s); },
+        [] (float s) { return static_cast<float>(std::ceil(s)); });
+}
+
+void dceil_test()
+{
+    select_test<double, double>(
+        [] (Expr s) { return _ceil(s); },
+        [] (double s) { return static_cast<double>(std::ceil(s)); });
+}
+
+void ffloor_test()
+{
+    select_test<float, float>(
+        [] (Expr s) { return _floor(s); },
+        [] (float s) { return static_cast<float>(std::floor(s)); });
+}
+
+void dfloor_test()
+{
+    select_test<double, double>(
+        [] (Expr s) { return _floor(s); },
+        [] (double s) { return static_cast<double>(std::floor(s)); });
+}
+
+void fabs_test()
+{
+    select_test<float, float>(
+        [] (Expr s) { return _abs(s); },
+        [] (float s) { return static_cast<float>(std::abs(s)); });
+}
+
+void dabs_test()
+{
+    select_test<double, double>(
+        [] (Expr s) { return _abs(s); },
+        [] (double s) { return static_cast<double>(std::abs(s)); });
+}
