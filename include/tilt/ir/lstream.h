@@ -1,7 +1,6 @@
 #ifndef INCLUDE_TILT_IR_LSTREAM_H_
 #define INCLUDE_TILT_IR_LSTREAM_H_
 
-#include <cassert>
 #include <utility>
 #include <memory>
 
@@ -18,7 +17,7 @@ struct LStream : public ExprNode {
 struct Point {
     const int64_t offset;
 
-    explicit Point(int64_t offset) : offset(offset) { assert(offset <= 0); }
+    explicit Point(int64_t offset) : offset(offset) { ASSERT(offset <= 0); }
     Point() : Point(0) {}
 
     bool operator<(const Point& o) const { return offset < o.offset; }
@@ -29,7 +28,7 @@ struct Window {
     Point start;
     Point end;
 
-    Window(Point start, Point end) : start(start), end(end) { assert(start < end); }
+    Window(Point start, Point end) : start(start), end(end) { ASSERT(start < end); }
     Window(int64_t start, int64_t end) : Window(Point(start), Point(end)) {}
 };
 

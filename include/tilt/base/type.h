@@ -6,7 +6,8 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <cassert>
+
+#include "tilt/base/log.h"
 
 using namespace std;
 
@@ -43,9 +44,9 @@ struct DataType {
         btype(btype), dtypes(dtypes), size(size)
     {
         switch (btype) {
-            case BaseType::STRUCT: assert(dtypes.size() > 0); break;
-            case BaseType::PTR: assert(dtypes.size() == 1); break;
-            default: assert(dtypes.size() == 0); break;
+            case BaseType::STRUCT: ASSERT(dtypes.size() > 0); break;
+            case BaseType::PTR: ASSERT(dtypes.size() == 1); break;
+            default: ASSERT(dtypes.size() == 0); break;
         }
     }
 
