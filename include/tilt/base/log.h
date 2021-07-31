@@ -11,4 +11,4 @@
 
 #define ASSERT(EXPR) CHECK(EXPR, "")
 
-#endif // INCLUDE_TILT_BASE_LOG_H_
+#endif  // INCLUDE_TILT_BASE_LOG_H_

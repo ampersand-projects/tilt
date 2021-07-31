@@ -125,7 +125,7 @@ struct BinaryExpr : public NaryExpr {
 };
 
 struct Not : public UnaryExpr {
-    explicit Not(Expr a) : UnaryExpr(types::BOOL, MathOp::NOT, a) 
+    explicit Not(Expr a) : UnaryExpr(types::BOOL, MathOp::NOT, a)
     {
         ASSERT(a->type.dtype == types::BOOL);
     }
