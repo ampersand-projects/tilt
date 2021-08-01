@@ -136,11 +136,15 @@ struct Sqrt : public UnaryExpr {
 };
 
 struct Ceil : public UnaryExpr {
-    explicit Ceil(Expr a) : UnaryExpr(a->type.dtype, MathOp::CEIL, a) {}
+    explicit Ceil(Expr a) : UnaryExpr(a->type.dtype, MathOp::CEIL, a) {
+        ASSERT(a->type.dtype.is_float());
+    }
 };
 
 struct Floor : public UnaryExpr {
-    explicit Floor(Expr a) : UnaryExpr(a->type.dtype, MathOp::FLOOR, a) {}
+    explicit Floor(Expr a) : UnaryExpr(a->type.dtype, MathOp::FLOOR, a) {
+        ASSERT(a->type.dtype.is_float());
+    }
 };
 
 struct Abs : public UnaryExpr {
@@ -213,7 +217,9 @@ struct Mod : public BinaryExpr {
 };
 
 struct Pow : public BinaryExpr {
-    Pow(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::POW, a, b) {}
+    Pow(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::POW, a, b) {
+        ASSERT(a->type.dtype.is_float());
+    }
 };
 
 }  // namespace tilt
