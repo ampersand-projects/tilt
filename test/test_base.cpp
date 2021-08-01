@@ -217,3 +217,10 @@ void dabs_test()
         [] (Expr s) { return _abs(s); },
         [] (double s) { return static_cast<double>(std::abs(s)); });
 }
+
+void iabs_test()
+{
+    select_test<int32_t, int32_t>(
+        [] (Expr s) { return _abs(s); },
+        [] (int32_t s) { return std::abs(s); });
+}

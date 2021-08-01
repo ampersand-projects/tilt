@@ -15,3 +15,4 @@ TEST(MathOpTests, FFloorOPTest) { ffloor_test(); }
 TEST(MathOpTests, DFloorOPTest) { dfloor_test(); }
 TEST(MathOpTests, FAbsOPTest) { fabs_test(); }
 TEST(MathOpTests, DAbsOPTest) { dabs_test(); }
+TEST(MathOpTests, IAbsOPTest) { iabs_test(); }
