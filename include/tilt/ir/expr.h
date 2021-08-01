@@ -135,6 +135,22 @@ struct Sqrt : public UnaryExpr {
     explicit Sqrt(Expr a) : UnaryExpr(a->type.dtype, MathOp::SQRT, a) {}
 };
 
+struct Ceil : public UnaryExpr {
+    explicit Ceil(Expr a) : UnaryExpr(a->type.dtype, MathOp::CEIL, a) {
+        ASSERT(a->type.dtype.is_float());
+    }
+};
+
+struct Floor : public UnaryExpr {
+    explicit Floor(Expr a) : UnaryExpr(a->type.dtype, MathOp::FLOOR, a) {
+        ASSERT(a->type.dtype.is_float());
+    }
+};
+
+struct Abs : public UnaryExpr {
+    explicit Abs(Expr a) : UnaryExpr(a->type.dtype, MathOp::ABS, a) {}
+};
+
 struct Equals : public BinaryExpr {
     Equals(Expr a, Expr b) : BinaryExpr(types::BOOL, MathOp::EQ, a, b) {}
 };
@@ -197,6 +213,12 @@ struct Mod : public BinaryExpr {
     Mod(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MOD, a, b)
     {
         ASSERT(!a->type.dtype.is_float());
+    }
+};
+
+struct Pow : public BinaryExpr {
+    Pow(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::POW, a, b) {
+        ASSERT(a->type.dtype.is_float());
     }
 };
 

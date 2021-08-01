@@ -64,6 +64,10 @@ void IRPrinter::Visit(const NaryExpr& e)
         case MathOp::MAX: emitfunc("max", {e.arg(0), e.arg(1)}); break;
         case MathOp::MIN: emitfunc("min", {e.arg(0), e.arg(1)}); break;
         case MathOp::SQRT: emitfunc("sqrt", {e.arg(0)}); break;
+        case MathOp::POW: emitfunc("pow", {e.arg(0), e.arg(1)}); break;
+        case MathOp::CEIL: emitfunc("ceil", {e.arg(0)}); break;
+        case MathOp::FLOOR: emitfunc("floor", {e.arg(0)}); break;
+        case MathOp::ABS: emitfunc("abs", {e.arg(0)}); break;
         case MathOp::EQ: emitbinary(e.arg(0), "==", e.arg(1)); break;
         case MathOp::NOT: emitunary("!", e.arg(0)); break;
         case MathOp::AND: emitbinary(e.arg(0), "&&", e.arg(1)); break;

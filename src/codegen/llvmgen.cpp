@@ -234,6 +234,20 @@ Value* LLVMGen::visit(const NaryExpr& e)
             return builder()->CreateSelect(le, left, right);
         }
         case MathOp::SQRT: return builder()->CreateIntrinsic(Intrinsic::sqrt, {lltype(e.arg(0))}, {eval(e.arg(0))});
+        case MathOp::POW: return builder()->CreateIntrinsic(
+            Intrinsic::pow, {lltype(e.arg(0))}, {eval(e.arg(0)), eval(e.arg(1))});
+        case MathOp::CEIL: return builder()->CreateIntrinsic(Intrinsic::ceil, {lltype(e.arg(0))}, {eval(e.arg(0))});
+        case MathOp::FLOOR: return builder()->CreateIntrinsic(Intrinsic::floor, {lltype(e.arg(0))}, {eval(e.arg(0))});
+        case MathOp::ABS: {
+            if (e.arg(0)->type.dtype.is_float()) {
+                return builder()->CreateIntrinsic(Intrinsic::fabs, {lltype(e.arg(0))}, {eval(e.arg(0))});
+            } else {
+                auto operand = eval(e.arg(0));
+                auto pred = builder()->CreateICmpSGE(operand, ConstantInt::get(lltype(types::INT32), 0));
+                auto neg = builder()->CreateNeg(operand);
+                return builder()->CreateSelect(pred, operand, neg);
+            }
+        }
         case MathOp::EQ: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFCmpOEQ(eval(e.arg(0)), eval(e.arg(1)));
