@@ -243,9 +243,9 @@ Value* LLVMGen::visit(const NaryExpr& e)
                 return builder()->CreateIntrinsic(Intrinsic::fabs, {lltype(e.arg(0))}, {eval(e.arg(0))});
             } else {
                 auto operand = eval(e.arg(0));
-                auto pos = builder()->CreateICmpSGE(operand, ConstantInt::get(lltype(types::INT32), 0));
+                auto pred = builder()->CreateICmpSGE(operand, ConstantInt::get(lltype(types::INT32), 0));
                 auto neg = builder()->CreateNeg(operand);
-                return builder()->CreateSelect(pos, operand, neg);
+                return builder()->CreateSelect(pred, operand, neg);
             }
         }
         case MathOp::EQ: {
