@@ -69,20 +69,17 @@ REGISTER_TILDER(_agg, AggNode)
 
 // Loop IR expressions
 REGISTER_TILDER(_time, Time)
-REGISTER_TILDER(_idx, Index)
+REGISTER_TILDER(_index, Index)
 REGISTER_TILDER(_reg, Region)
-REGISTER_TILDER(_get_time, GetTime)
-REGISTER_TILDER(_get_idx, GetIndex)
 REGISTER_TILDER(_fetch, Fetch)
 REGISTER_TILDER(_load, Load)
 REGISTER_TILDER(_store, Store)
 REGISTER_TILDER(_adv, Advance)
-REGISTER_TILDER(_next_time, NextTime)
+REGISTER_TILDER(_get_ckpt, GetCkpt)
 REGISTER_TILDER(_get_start_idx, GetStartIdx)
 REGISTER_TILDER(_get_end_idx, GetEndIdx)
 REGISTER_TILDER(_commit_data, CommitData)
 REGISTER_TILDER(_commit_null, CommitNull)
-REGISTER_TILDER(_alloc_idx, AllocIndex)
 REGISTER_TILDER(_alloc_reg, AllocRegion)
 REGISTER_TILDER(_make_reg, MakeRegion)
 REGISTER_TILDER(_loop, Loop)
@@ -101,7 +98,8 @@ Const _u64(uint64_t);
 Const _f32(float);
 Const _f64(double);
 Const _ch(char);
-Const _ts(int64_t);
+Const _ts(ts_t);
+Const _idx(idx_t);
 Const _true();
 Const _false();
 

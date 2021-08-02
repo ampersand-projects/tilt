@@ -33,6 +33,7 @@ enum class BaseType {
     // Loop IR types
     TIME,
     INDEX,
+    IVAL,
 };
 
 struct DataType {
@@ -166,7 +167,7 @@ static const DataType FLOAT32(BaseType::FLOAT32);
 static const DataType FLOAT64(BaseType::FLOAT64);
 static const DataType TIME(BaseType::TIME);
 static const DataType INDEX(BaseType::INDEX);
-static const DataType INDEX_PTR = DataType(BaseType::PTR, {types::INDEX});
+static const DataType IVAL(BaseType::IVAL);
 
 template<typename H> struct Converter { static const BaseType btype = BaseType::UNKNOWN; };
 template<> struct Converter<bool> { static const BaseType btype = BaseType::BOOL; };
@@ -209,15 +210,21 @@ DataType STRUCT()
 
 extern "C" {
 
-struct index_t {
-    int64_t t;
-    uint32_t i;
+typedef int64_t ts_t;
+typedef uint32_t idx_t;
+typedef uint32_t dur_t;
+
+struct ival_t {
+    ts_t t;
+    dur_t d;
 };
 
 struct region_t {
-    index_t si;
-    index_t ei;
-    index_t* tl;
+    ts_t st;
+    idx_t si;
+    ts_t et;
+    idx_t ei;
+    ival_t* tl;
     char* data;
 };
 

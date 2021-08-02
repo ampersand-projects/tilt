@@ -18,14 +18,11 @@ void SubLStream::Accept(Visitor& v) const { v.Visit(*this); }
 void Element::Accept(Visitor& v) const { v.Visit(*this); }
 void OpNode::Accept(Visitor& v) const { v.Visit(*this); }
 void AggNode::Accept(Visitor& v) const { v.Visit(*this); }
-void AllocIndex::Accept(Visitor& v) const { v.Visit(*this); }
-void GetTime::Accept(Visitor& v) const { v.Visit(*this); }
-void GetIndex::Accept(Visitor& v) const { v.Visit(*this); }
 void Fetch::Accept(Visitor& v) const { v.Visit(*this); }
 void Load::Accept(Visitor& v) const { v.Visit(*this); }
 void Store::Accept(Visitor& v) const { v.Visit(*this); }
 void Advance::Accept(Visitor& v) const { v.Visit(*this); }
-void NextTime::Accept(Visitor& v) const { v.Visit(*this); }
+void GetCkpt::Accept(Visitor& v) const { v.Visit(*this); }
 void GetStartIdx::Accept(Visitor& v) const { v.Visit(*this); }
 void GetEndIdx::Accept(Visitor& v) const { v.Visit(*this); }
 void CommitData::Accept(Visitor& v) const { v.Visit(*this); }

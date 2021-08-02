@@ -6,6 +6,7 @@
 #include "tilt/codegen/printer.h"
 #include "tilt/codegen/loopgen.h"
 #include "tilt/codegen/llvmgen.h"
+#include "tilt/codegen/vinstr.h"
 #include "tilt/engine/engine.h"
 #include "tilt/builder/tilder.h"
 
@@ -140,8 +141,7 @@ int main(int argc, char** argv)
 
     jit->AddModule(move(llmod));
 
-    auto loop_addr = (region_t* (*)(int64_t, int64_t, region_t*, region_t*)) jit->Lookup(loop->GetName());
-    auto init_region = (region_t* (*)(region_t*, int64_t, index_t*, char*)) jit->Lookup("init_region");
+    auto loop_addr = (region_t* (*)(ts_t, ts_t, region_t*, region_t*)) jit->Lookup(loop->GetName());
 
     int dlen = (argc > 1) ? atoi(argv[1]) : 30;
     uint32_t dur = 5;
@@ -151,19 +151,19 @@ int main(int argc, char** argv)
         int b;
     };
 
-    auto in_tl = new index_t[dlen];
+    auto in_tl = new ival_t[dlen];
     auto in_data = new Data[dlen];
     region_t in_reg;
     init_region(&in_reg, 0, in_tl, reinterpret_cast<char*>(in_data));
     for (int i = 0; i < dlen; i++) {
         auto t = dur*i;
-        in_reg.ei.t = t;
-        in_reg.ei.i++;
-        in_tl[in_reg.ei.i] = {t, dur};
-        in_data[in_reg.ei.i] = {i, 3};
+        in_reg.et = t;
+        in_reg.ei++;
+        in_tl[in_reg.ei] = {t, dur};
+        in_data[in_reg.ei] = {i, 3};
     }
 
-    auto out_tl = new index_t[dlen];
+    auto out_tl = new ival_t[dlen];
     auto out_data = new Data[dlen];
     region_t out_reg;
     init_region(&out_reg, 0, out_tl, reinterpret_cast<char*>(out_data));
@@ -175,8 +175,8 @@ int main(int argc, char** argv)
     int out_count = 0;
     for (int i = 0; i < dlen; i++) {
         if (argc == 1) {
-            cout << "(" << in_tl[i].t << "," << in_tl[i].i << ") " << in_data[i].a << "," << in_data[i].b << " -> "
-                << "(" << out_tl[i].t << "," << out_tl[i].i << ") " << out_data[i].a << "," << out_data[i].b << endl;
+            cout << "(" << in_tl[i].t << "," << in_tl[i].d << ") " << in_data[i].a << "," << in_data[i].b << " -> "
+                << "(" << out_tl[i].t << "," << out_tl[i].d << ") " << out_data[i].a << "," << out_data[i].b << endl;
         }
         out_count += ((out_data[i].a == in_data[i].a+10) && (out_data[i].b == 2));
     }

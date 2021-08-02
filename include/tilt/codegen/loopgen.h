@@ -32,6 +32,7 @@ public:
     static Looper Build(Sym, const OpNode*);
 
 private:
+    Expr get_timer(const Point);
     Indexer& create_idx(const Sym, const Point);
     void build_loop();
 
@@ -48,14 +49,11 @@ private:
     Expr visit(const Element&) final;
     Expr visit(const OpNode&) final;
     Expr visit(const AggNode&) final;
-    Expr visit(const AllocIndex&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const GetTime&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const GetIndex&) final { throw std::runtime_error("Invalid expression"); };
     Expr visit(const Fetch&) final { throw std::runtime_error("Invalid expression"); };
     Expr visit(const Load&) final { throw std::runtime_error("Invalid expression"); };
     Expr visit(const Store&) final { throw std::runtime_error("Invalid expression"); };
     Expr visit(const Advance&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const NextTime&) final { throw std::runtime_error("Invalid expression"); };
+    Expr visit(const GetCkpt&) final { throw std::runtime_error("Invalid expression"); };
     Expr visit(const GetStartIdx&) final { throw std::runtime_error("Invalid expression"); };
     Expr visit(const GetEndIdx&) final { throw std::runtime_error("Invalid expression"); };
     Expr visit(const CommitData&) final { throw std::runtime_error("Invalid expression"); };

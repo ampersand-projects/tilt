@@ -4,12 +4,8 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/DataLayout.h"
 
-using namespace std;
-using namespace std::placeholders;
 using namespace tilt;
 using namespace llvm;
-
-
 
 Function* LLVMGen::llfunc(const string name, llvm::Type* ret_type, vector<llvm::Type*> arg_types)
 {
@@ -72,9 +68,11 @@ llvm::Type* LLVMGen::lltype(const DataType& dtype)
         case BaseType::FLOAT64:
             return llvm::Type::getDoubleTy(llctx());
         case BaseType::TIME:
-            return llvm::Type::getInt64Ty(llctx());
+            return lltype(DataType(types::Converter<ts_t>::btype));
         case BaseType::INDEX:
-            return llmod()->getTypeByName("struct.index_t");
+            return lltype(DataType(types::Converter<idx_t>::btype));
+        case BaseType::IVAL:
+            return llmod()->getTypeByName("struct.ival_t");
         case BaseType::STRUCT: {
             vector<llvm::Type*> lltypes;
             for (auto dt : dtype.dtypes) {
@@ -163,16 +161,18 @@ Value* LLVMGen::visit(const New& _new)
 Value* LLVMGen::visit(const ConstNode& cnst)
 {
     switch (cnst.type.dtype.btype) {
-        case BaseType::BOOL: return (cnst.val ? ConstantInt::getTrue(llctx()) : ConstantInt::getFalse(llctx()));
+        case BaseType::BOOL:
+        case BaseType::CHAR:
         case BaseType::INT8:
         case BaseType::INT16:
         case BaseType::INT32:
-        case BaseType::INT64: return ConstantInt::getSigned(lltype(cnst), cnst.val);
+        case BaseType::INT64:
         case BaseType::UINT8:
         case BaseType::UINT16:
         case BaseType::UINT32:
         case BaseType::UINT64:
-        case BaseType::TIME: return ConstantInt::get(lltype(cnst), cnst.val);
+        case BaseType::TIME:
+        case BaseType::INDEX: return ConstantInt::get(lltype(cnst), cnst.val);
         case BaseType::FLOAT32:
         case BaseType::FLOAT64: return ConstantFP::get(lltype(cnst), cnst.val);
         default: throw std::runtime_error("Invalid constant type"); break;
@@ -295,24 +295,15 @@ Value* LLVMGen::visit(const Exists& exists)
     return builder()->CreateIsNotNull(eval(exists.sym));
 }
 
-Value* LLVMGen::visit(const GetTime& get_time)
-{
-    return llcall("get_time", lltype(get_time), { eval(get_time.idx) });
-}
-
-Value* LLVMGen::visit(const GetIndex& get_idx)
-{
-    return llcall("get_index", lltype(get_idx), { eval(get_idx.idx) });
-}
-
 Value* LLVMGen::visit(const Fetch& fetch)
 {
     auto& dtype = fetch.reg->type.dtype;
     auto reg_val = eval(fetch.reg);
+    auto time_val = eval(fetch.time);
     auto idx_val = eval(fetch.idx);
     auto size_val = llsizeof(lltype(dtype));
     auto ret_type = lltype(types::CHAR_PTR);
-    auto addr = llcall("fetch", ret_type, { reg_val, idx_val, size_val });
+    auto addr = llcall("fetch", ret_type, { reg_val, time_val, idx_val, size_val });
 
     return builder()->CreateBitCast(addr, lltype(fetch));
 }
@@ -322,9 +313,9 @@ Value* LLVMGen::visit(const Advance& adv)
     return llcall("advance", lltype(adv), { adv.reg, adv.idx, adv.time });
 }
 
-Value* LLVMGen::visit(const NextTime& next)
+Value* LLVMGen::visit(const GetCkpt& next)
 {
-    return llcall("next_time", lltype(next), { next.reg, next.idx });
+    return llcall("get_ckpt", lltype(next), { next.reg, next.time, next.idx });
 }
 
 Value* LLVMGen::visit(const GetStartIdx& start_idx)
@@ -347,14 +338,6 @@ Value* LLVMGen::visit(const CommitData& commit)
     return llcall("commit_data", lltype(commit), { commit.reg, commit.time });
 }
 
-Value* LLVMGen::visit(const AllocIndex& alloc_idx)
-{
-    auto init_val = builder()->CreateLoad(eval(alloc_idx.init_idx));
-    auto idx_ptr = builder()->CreateAlloca(lltype(types::INDEX));
-    builder()->CreateStore(init_val, idx_ptr);
-    return idx_ptr;
-}
-
 Value* LLVMGen::visit(const Load& load)
 {
     auto ptr_val = eval(load.ptr);
@@ -374,7 +357,7 @@ Value* LLVMGen::visit(const AllocRegion& alloc)
 {
     auto time_val = eval(alloc.start_time);
     auto size_val = eval(alloc.size);
-    auto tl_arr = builder()->CreateAlloca(lltype(types::INDEX), size_val);
+    auto tl_arr = builder()->CreateAlloca(lltype(types::IVAL), size_val);
     auto data_arr = builder()->CreateAlloca(lltype(alloc.type.dtype), size_val);
     auto char_arr = builder()->CreateBitCast(data_arr, lltype(types::CHAR_PTR));
 
@@ -386,11 +369,13 @@ Value* LLVMGen::visit(const AllocRegion& alloc)
 Value* LLVMGen::visit(const MakeRegion& make_reg)
 {
     auto in_reg_val = eval(make_reg.reg);
-    auto start_idx_val = eval(make_reg.start_idx);
-    auto end_idx_val = eval(make_reg.end_idx);
+    auto st_val = eval(make_reg.st);
+    auto si_val = eval(make_reg.si);
+    auto et_val = eval(make_reg.et);
+    auto ei_val = eval(make_reg.ei);
     auto reg_type = lltype(make_reg);
     auto out_reg_val = builder()->CreateAlloca(reg_type->getPointerElementType());
-    return llcall("make_region", reg_type, { out_reg_val, in_reg_val, start_idx_val, end_idx_val });
+    return llcall("make_region", reg_type, { out_reg_val, in_reg_val, st_val, si_val, et_val, ei_val });
 }
 
 Value* LLVMGen::visit(const Call& call)

@@ -48,14 +48,11 @@ public:
     void Visit(const Element&) override;
     void Visit(const OpNode&) override;
     void Visit(const AggNode&) override;
-    void Visit(const AllocIndex&) override;
-    void Visit(const GetTime&) override;
-    void Visit(const GetIndex&) override;
     void Visit(const Fetch&) override;
     void Visit(const Load&) override;
     void Visit(const Store&) override;
     void Visit(const Advance&) override;
-    void Visit(const NextTime&) override;
+    void Visit(const GetCkpt&) override;
     void Visit(const GetStartIdx&) override;
     void Visit(const GetEndIdx&) override;
     void Visit(const CommitData&) override;

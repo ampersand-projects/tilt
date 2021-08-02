@@ -20,7 +20,7 @@ struct Time : public Symbol {
 typedef shared_ptr<Time> Timer;
 
 struct Index : public Symbol {
-    explicit Index(string name) : Symbol(name, Type(types::INDEX_PTR)) {}
+    explicit Index(string name) : Symbol(name, Type(types::INDEX)) {}
 };
 typedef shared_ptr<Index> Indexer;
 
@@ -31,48 +31,17 @@ struct Region : public Symbol {
     }
 };
 
-struct AllocIndex : public ValNode {
-    Expr init_idx;
-
-    explicit AllocIndex(Expr init_idx) : ValNode(types::INDEX_PTR), init_idx(init_idx)
-    {
-        ASSERT(init_idx->type.dtype == types::INDEX_PTR);
-    }
-
-    void Accept(Visitor&) const final;
-};
-
-struct GetTime : public ValNode {
-    Expr idx;
-
-    explicit GetTime(Expr idx) : ValNode(types::TIME), idx(idx)
-    {
-        ASSERT(idx->type.dtype == types::INDEX_PTR);
-    }
-
-    void Accept(Visitor&) const final;
-};
-
-struct GetIndex : public ValNode {
-    Expr idx;
-
-    explicit GetIndex(Expr idx) : ValNode(types::UINT32), idx(idx)
-    {
-        ASSERT(idx->type.dtype == types::INDEX_PTR);
-    }
-
-    void Accept(Visitor&) const final;
-};
-
 struct Fetch : public ValNode {
     Expr reg;
+    Expr time;
     Expr idx;
 
-    Fetch(Expr reg, Expr idx) :
-        ValNode(DataType(BaseType::PTR, {reg->type.dtype})), reg(reg), idx(idx)
+    Fetch(Expr reg, Expr time, Expr idx) :
+        ValNode(DataType(BaseType::PTR, {reg->type.dtype})), reg(reg), time(time), idx(idx)
     {
         ASSERT(!reg->type.is_valtype());
-        ASSERT(idx->type.dtype == types::INDEX_PTR);
+        ASSERT(time->type.dtype == types::TIME);
+        ASSERT(idx->type.dtype == types::INDEX);
     }
 
     void Accept(Visitor&) const final;
@@ -81,7 +50,8 @@ struct Fetch : public ValNode {
 struct Load : public ValNode {
     Expr ptr;
 
-    explicit Load(Expr ptr) : ValNode(DataType(ptr->type.dtype.dtypes[0])), ptr(ptr)
+    explicit Load(Expr ptr) :
+        ValNode(DataType(ptr->type.dtype.dtypes[0])), ptr(ptr)
     {
         ASSERT(ptr->type.dtype.is_ptr());
     }
@@ -96,7 +66,9 @@ struct Store : public ExprNode {
 
     Store(Expr reg, Expr ptr, Expr data) :
         ExprNode(reg->type), reg(reg), ptr(ptr), data(data)
-    {}
+    {
+        ASSERT(ptr->type.dtype.is_ptr());
+    }
 
     void Accept(Visitor&) const final;
 };
@@ -107,25 +79,27 @@ struct Advance : public ValNode {
     Expr time;
 
     Advance(Expr reg, Expr idx, Expr time) :
-        ValNode(types::INDEX_PTR), reg(reg), idx(idx), time(time)
+        ValNode(types::INDEX), reg(reg), idx(idx), time(time)
     {
         ASSERT(!reg->type.is_valtype());
-        ASSERT(idx->type.dtype == types::INDEX_PTR);
+        ASSERT(idx->type.dtype == types::INDEX);
         ASSERT(time->type.dtype == types::TIME);
     }
 
     void Accept(Visitor&) const final;
 };
 
-struct NextTime : public ValNode {
+struct GetCkpt : public ValNode {
     Expr reg;
+    Expr time;
     Expr idx;
 
-    NextTime(Expr reg, Expr idx) :
-        ValNode(types::TIME), reg(reg), idx(idx)
+    GetCkpt(Expr reg, Expr time, Expr idx) :
+        ValNode(types::TIME), reg(reg), time(time), idx(idx)
     {
         ASSERT(!reg->type.is_valtype());
-        ASSERT(idx->type.dtype == types::INDEX_PTR);
+        ASSERT(time->type.dtype == types::TIME);
+        ASSERT(idx->type.dtype == types::INDEX);
     }
 
     void Accept(Visitor&) const final;
@@ -134,7 +108,7 @@ struct NextTime : public ValNode {
 struct GetStartIdx : public ValNode {
     Expr reg;
 
-    explicit GetStartIdx(Expr reg) : ValNode(types::INDEX_PTR), reg(reg)
+    explicit GetStartIdx(Expr reg) : ValNode(types::INDEX), reg(reg)
     {
         ASSERT(!reg->type.is_valtype());
     }
@@ -145,7 +119,7 @@ struct GetStartIdx : public ValNode {
 struct GetEndIdx : public ValNode {
     Expr reg;
 
-    explicit GetEndIdx(Expr reg) : ValNode(types::INDEX_PTR), reg(reg)
+    explicit GetEndIdx(Expr reg) : ValNode(types::INDEX), reg(reg)
     {
         ASSERT(!reg->type.is_valtype());
     }
@@ -189,7 +163,7 @@ struct AllocRegion : public ExprNode {
         ExprNode(type), size(size), start_time(start_time)
     {
         ASSERT(!type.is_valtype());
-        ASSERT(size->type.dtype == types::UINT32);
+        ASSERT(size->type.dtype == types::INDEX);
         ASSERT(start_time->type.dtype == types::TIME);
     }
 
@@ -198,15 +172,19 @@ struct AllocRegion : public ExprNode {
 
 struct MakeRegion : public ExprNode {
     Expr reg;
-    Expr start_idx;
-    Expr end_idx;
+    Expr st;
+    Expr si;
+    Expr et;
+    Expr ei;
 
-    MakeRegion(Expr reg, Expr start_idx, Expr end_idx) :
-        ExprNode(reg->type), reg(reg), start_idx(start_idx), end_idx(end_idx)
+    MakeRegion(Expr reg, Expr st, Expr si, Expr et, Expr ei) :
+        ExprNode(reg->type), reg(reg), st(st), si(si), et(et), ei(ei)
     {
         ASSERT(!reg->type.is_valtype());
-        ASSERT(start_idx->type.dtype == types::INDEX_PTR);
-        ASSERT(end_idx->type.dtype == types::INDEX_PTR);
+        ASSERT(st->type.dtype == types::TIME);
+        ASSERT(si->type.dtype == types::INDEX);
+        ASSERT(et->type.dtype == types::TIME);
+        ASSERT(ei->type.dtype == types::INDEX);
     }
 
     void Accept(Visitor&) const final;

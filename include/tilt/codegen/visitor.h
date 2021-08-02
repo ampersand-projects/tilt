@@ -29,14 +29,11 @@ public:
     /**
      * Loop IR
      */
-    virtual void Visit(const AllocIndex&) = 0;
-    virtual void Visit(const GetTime&) = 0;
-    virtual void Visit(const GetIndex&) = 0;
     virtual void Visit(const Fetch&) = 0;
     virtual void Visit(const Load&) = 0;
     virtual void Visit(const Store&) = 0;
     virtual void Visit(const Advance&) = 0;
-    virtual void Visit(const NextTime&) = 0;
+    virtual void Visit(const GetCkpt&) = 0;
     virtual void Visit(const GetStartIdx&) = 0;
     virtual void Visit(const GetEndIdx&) = 0;
     virtual void Visit(const CommitData&) = 0;

@@ -54,14 +54,11 @@ private:
     llvm::Value* visit(const Element&) final { throw std::runtime_error("Invalid expression"); }
     llvm::Value* visit(const OpNode&) final { throw std::runtime_error("Invalid expression"); }
     llvm::Value* visit(const AggNode&) final { throw std::runtime_error("Invalid expression"); }
-    llvm::Value* visit(const AllocIndex&) final;
-    llvm::Value* visit(const GetTime&) final;
-    llvm::Value* visit(const GetIndex&) final;
     llvm::Value* visit(const Fetch&) final;
     llvm::Value* visit(const Load&) final;
     llvm::Value* visit(const Store&) final;
     llvm::Value* visit(const Advance&) final;
-    llvm::Value* visit(const NextTime&) final;
+    llvm::Value* visit(const GetCkpt&) final;
     llvm::Value* visit(const GetStartIdx&) final;
     llvm::Value* visit(const GetEndIdx&) final;
     llvm::Value* visit(const CommitData&) final;

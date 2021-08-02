@@ -7,19 +7,28 @@ using namespace tilt;
 using namespace tilt::tilder;
 using namespace std;
 
+Expr LoopGen::get_timer(const Point pt)
+{
+    auto t_base = ctx().loop->state_bases[ctx().loop->t];
+    return _add(_add(t_base, _ts(ctx().op->iter.period)), _ts(pt.offset));
+}
+
 Indexer& LoopGen::create_idx(const Sym reg, const Point pt)
 {
     auto& pt_idx_map = ctx().pt_idx_maps[reg];
     if (pt_idx_map.find(pt) == pt_idx_map.end()) {
-        auto idx_base = _idx("i" + to_string(pt.offset) + "_base_" + reg->name);
-        assign(idx_base, _alloc_idx(_get_start_idx(reg)));
+        auto idx_base = _index("i" + to_string(pt.offset) + "_" + reg->name + "_base");
+        auto idx = _index("i" + to_string(pt.offset) + "_" + reg->name);
 
-        auto idx = _idx("i" + to_string(pt.offset) + "_" + reg->name);
-        auto time_expr = _add(ctx().loop->t, _ts(pt.offset));
+        // Index initializer
+        assign(idx_base, _get_start_idx(reg));
+
+        // Index updater
+        auto time_expr = get_timer(pt);
         auto adv_expr = _adv(reg, idx_base, time_expr);
         assign(idx, adv_expr);
-        pt_idx_map[pt] = idx;
 
+        pt_idx_map[pt] = idx;
         ctx().loop->idxs.push_back(idx);
         ctx().loop->state_bases[idx] = idx_base;
     }
@@ -64,33 +73,27 @@ void LoopGen::build_loop()
     auto pred_expr = eval(ctx().op->pred);
     auto out_expr = eval(ctx().op->output);
 
-    // Populate edge indices on the inputs
-    map<Indexer, Sym> edge_idxs;
-    for (const auto& [reg, pt_idx_map] : ctx().pt_idx_maps) {
-        auto& tail_idx = pt_idx_map.begin()->second;
-        auto& head_idx = pt_idx_map.rbegin()->second;
-        edge_idxs[tail_idx] = reg;
-        edge_idxs[head_idx] = reg;
-    }
+    // Expression to calculate the current loop counter time
+    auto t_cur = get_timer(_pt(0));
 
-    // Expression to calculate loop counter shift
     Expr delta = nullptr;
-    for (const auto& [idx, reg] : edge_idxs) {
-        const auto& base_idx = loop->state_bases.at(idx);
-        auto next_time_expr = _next_time(reg, base_idx);
-        auto cur_time_expr = _get_time(base_idx);
-        auto diff_expr = _sub(next_time_expr, cur_time_expr);
-        if (delta) {
-            delta = _min(delta, diff_expr);
-        } else {
-            delta = diff_expr;
+    for (const auto& [reg, pt_idx_map] : ctx().pt_idx_maps) {
+        for (const auto& [pt, idx] : pt_idx_map) {
+            auto idx_time = get_timer(pt);
+            auto idx_ckpt = _get_ckpt(reg, idx_time, idx);
+            auto diff_expr = _sub(idx_ckpt, idx_time);
+            if (delta) {
+                delta = _min(delta, diff_expr);
+            } else {
+                delta = diff_expr;
+            }
         }
     }
 
     // Loop counter update expression
-    auto p = _ts(ctx().op->iter.period);
-    auto t_incr = _max(p, _mul(_div(delta, p), p));
-    assign(loop->t, _min(t_end, _add(t_base, t_incr)));
+    auto t_period = _ts(ctx().op->iter.period);
+    auto t_incr = _mul(_div(delta, t_period), t_period);
+    assign(loop->t, _min(t_end, _add(t_cur, t_incr)));
 
     // Update loop output:
     //      1. Outer loop returns the output region of the inner loop
@@ -102,7 +105,7 @@ void LoopGen::build_loop()
         assign(new_reg_sym, new_reg);
 
         auto idx = _get_end_idx(new_reg_sym);
-        auto dptr = _fetch(new_reg_sym, idx);
+        auto dptr = _fetch(new_reg_sym, loop->t, idx);
         true_body = _store(new_reg_sym, dptr, out_expr);
     } else {
         true_body = out_expr;
@@ -174,16 +177,19 @@ Expr LoopGen::visit(const NaryExpr& e)
 Expr LoopGen::visit(const SubLStream& subls)
 {
     auto& reg = sym(subls.lstream);
-    auto& start_idx = create_idx(reg, subls.win.start);
-    auto& end_idx = create_idx(reg, subls.win.end);
-    return _make_reg(reg, start_idx, end_idx);
+    auto st = get_timer(subls.win.start);
+    auto& si = create_idx(reg, subls.win.start);
+    auto et = get_timer(subls.win.end);
+    auto& ei = create_idx(reg, subls.win.end);
+    return _make_reg(reg, st, si, et, ei);
 }
 
 Expr LoopGen::visit(const Element& elem)
 {
     auto& reg = sym(elem.lstream);
+    auto time = get_timer(elem.pt);
     auto& idx = create_idx(reg, elem.pt);
-    auto fetch = _fetch(reg, idx);
+    auto fetch = _fetch(reg, time, idx);
     auto ref_sym = fetch->sym(ctx().sym->name + "_ptr");
     assign(ref_sym, fetch);
     sym_ref(ctx().sym) = ref_sym;
@@ -203,12 +209,12 @@ Expr LoopGen::visit(const OpNode& op)
     auto t_end = outer_loop->t;
 
     vector<Expr> inputs;
-    Val size_expr = _u32(1);
+    Val size_expr = _idx(1);
     for (const auto& input : inner_op->inputs) {
         auto input_val = eval(input);
         inputs.push_back(input_val);
-        auto start = _get_idx(_get_start_idx(input_val));
-        auto end = _get_idx(_get_end_idx(input_val));
+        auto start = _get_start_idx(input_val);
+        auto end = _get_end_idx(input_val);
         size_expr = _add(size_expr, _sub(end, start));
     }
 
