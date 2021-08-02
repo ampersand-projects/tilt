@@ -214,8 +214,17 @@ Value* LLVMGen::visit(const NaryExpr& e)
         case MathOp::DIV: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFDiv(eval(e.arg(0)), eval(e.arg(1)));
-            } else {
+            } else if (e.arg(0)->type.dtype.is_signed()) {
                 return builder()->CreateSDiv(eval(e.arg(0)), eval(e.arg(1)));
+            } else {
+                return builder()->CreateUDiv(eval(e.arg(0)), eval(e.arg(1)));
+            }
+        }
+        case MathOp::MOD: {
+            if (e.arg(0)->type.dtype.is_signed()) {
+                return builder()->CreateSRem(eval(e.arg(0)), eval(e.arg(1)));
+            } else {
+                return builder()->CreateURem(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::MOD: return builder()->CreateSRem(eval(e.arg(0)), eval(e.arg(1)));
@@ -241,29 +250,37 @@ Value* LLVMGen::visit(const NaryExpr& e)
         case MathOp::LT: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFCmpOLT(eval(e.arg(0)), eval(e.arg(1)));
-            } else {
+            } else if (e.arg(0)->type.dtype.is_signed()) {
                 return builder()->CreateICmpSLT(eval(e.arg(0)), eval(e.arg(1)));
+            } else {
+                return builder()->CreateICmpULT(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::LTE: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFCmpOLE(eval(e.arg(0)), eval(e.arg(1)));
-            } else {
+            } else if (e.arg(0)->type.dtype.is_signed()) {
                 return builder()->CreateICmpSLE(eval(e.arg(0)), eval(e.arg(1)));
+            } else {
+                return builder()->CreateICmpULE(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::GT: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFCmpOGT(eval(e.arg(0)), eval(e.arg(1)));
-            } else {
+            } else if (e.arg(0)->type.dtype.is_signed()) {
                 return builder()->CreateICmpSGT(eval(e.arg(0)), eval(e.arg(1)));
+            } else {
+                return builder()->CreateICmpUGT(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::GTE: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFCmpOGE(eval(e.arg(0)), eval(e.arg(1)));
-            } else {
+            } else if (e.arg(0)->type.dtype.is_signed()) {
                 return builder()->CreateICmpSGE(eval(e.arg(0)), eval(e.arg(1)));
+            } else {
+                return builder()->CreateICmpUGE(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::NOT: return builder()->CreateNot(eval(e.arg(0)));
