@@ -191,46 +191,70 @@ Value* LLVMGen::visit(const NaryExpr& e)
 {
     switch (e.op) {
         case MathOp::ADD: {
-            if (e.arg(0)->type.dtype.is_float()) {
+            if (e.type.dtype.is_float()) {
                 return builder()->CreateFAdd(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateAdd(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::SUB: {
-            if (e.arg(0)->type.dtype.is_float()) {
+            if (e.type.dtype.is_float()) {
                 return builder()->CreateFSub(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateSub(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::MUL: {
-            if (e.arg(0)->type.dtype.is_float()) {
+            if (e.type.dtype.is_float()) {
                 return builder()->CreateFMul(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateMul(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::DIV: {
-            if (e.arg(0)->type.dtype.is_float()) {
+            if (e.type.dtype.is_float()) {
                 return builder()->CreateFDiv(eval(e.arg(0)), eval(e.arg(1)));
-            } else if (e.arg(0)->type.dtype.is_signed()) {
+            } else if (e.type.dtype.is_signed()) {
                 return builder()->CreateSDiv(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateUDiv(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::MOD: {
-            if (e.arg(0)->type.dtype.is_signed()) {
+            if (e.type.dtype.is_signed()) {
                 return builder()->CreateSRem(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateURem(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
+<<<<<<< HEAD
         case MathOp::MOD: return builder()->CreateSRem(eval(e.arg(0)), eval(e.arg(1)));
         case MathOp::NEG: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFNeg(eval(e.arg(0)));
+=======
+        case MathOp::MAX: {
+            auto left = eval(e.arg(0));
+            auto right = eval(e.arg(1));
+            Value* ge;
+            if (e.type.dtype.is_float()) {
+                ge = builder()->CreateFCmpOGE(left, right);
+            } else if (e.type.dtype.is_signed()) {
+                ge = builder()->CreateICmpSGE(left, right);
+            } else {
+                ge = builder()->CreateICmpUGE(left, right);
+            }
+            return builder()->CreateSelect(ge, left, right);
+        }
+        case MathOp::MIN: {
+            auto left = eval(e.arg(0));
+            auto right = eval(e.arg(1));
+            Value* le;
+            if (e.type.dtype.is_float()) {
+                le = builder()->CreateFCmpOLE(left, right);
+            } else if (e.type.dtype.is_signed()) {
+                le = builder()->CreateICmpSLE(left, right);
+>>>>>>> Move type checking to naryexpr from arguments
             } else {
                 return builder()->CreateNeg(eval(e.arg(0)));
             }
@@ -240,6 +264,19 @@ Value* LLVMGen::visit(const NaryExpr& e)
             Intrinsic::pow, {lltype(e.arg(0))}, {eval(e.arg(0)), eval(e.arg(1))});
         case MathOp::CEIL: return builder()->CreateIntrinsic(Intrinsic::ceil, {lltype(e.arg(0))}, {eval(e.arg(0))});
         case MathOp::FLOOR: return builder()->CreateIntrinsic(Intrinsic::floor, {lltype(e.arg(0))}, {eval(e.arg(0))});
+<<<<<<< HEAD
+=======
+        case MathOp::ABS: {
+            if (e.type.dtype.is_float()) {
+                return builder()->CreateIntrinsic(Intrinsic::fabs, {lltype(e.arg(0))}, {eval(e.arg(0))});
+            } else {
+                auto operand = eval(e.arg(0));
+                auto pred = builder()->CreateICmpSGE(operand, ConstantInt::get(lltype(types::INT32), 0));
+                auto neg = builder()->CreateNeg(operand);
+                return builder()->CreateSelect(pred, operand, neg);
+            }
+        }
+>>>>>>> Move type checking to naryexpr from arguments
         case MathOp::EQ: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFCmpOEQ(eval(e.arg(0)), eval(e.arg(1)));
