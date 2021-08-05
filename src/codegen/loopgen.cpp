@@ -111,7 +111,7 @@ void LoopGen::build_loop()
         true_body = out_expr;
     }
     auto false_body = _commit_null(output_base, loop->t);
-    assign(loop->output, _sel(pred_expr, true_body, false_body));
+    assign(loop->output, _ifelse(pred_expr, true_body, false_body));
 }
 
 Expr LoopGen::visit(const Symbol& symbol)
@@ -124,7 +124,7 @@ Expr LoopGen::visit(const IfElse& ifelse)
     auto cond = eval(ifelse.cond);
     auto true_body = eval(ifelse.true_body);
     auto false_body = eval(ifelse.false_body);
-    return _sel(cond, true_body, false_body);
+    return _ifelse(cond, true_body, false_body);
 }
 
 Expr LoopGen::visit(const Exists& exists)
@@ -256,7 +256,7 @@ Expr LoopGen::visit(const AggNode& aggexpr)
     agg_loop->output = _sym("output", aggexpr.type);
     agg_loop->state_bases[agg_loop->output] = output_base;
     auto acc_expr = eval(aggexpr.acc(output_base, sym(aggexpr.op->output)));
-    auto output_update = _sel(eval(aggexpr.op->pred), acc_expr, output_base);
+    auto output_update = _ifelse(eval(aggexpr.op->pred), acc_expr, output_base);
     ASSERT(output_update->type == aggexpr.type);
     assign(agg_loop->output, output_update);
 

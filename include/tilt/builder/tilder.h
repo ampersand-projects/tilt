@@ -64,7 +64,8 @@ REGISTER_TILDER(_op, OpNode)
 REGISTER_TILDER(_call, Call)
 REGISTER_TILDER(_get, Get)
 REGISTER_TILDER(_new, New)
-REGISTER_TILDER(_sel, IfElse)
+REGISTER_TILDER(_ifelse, IfElse)
+REGISTER_TILDER(_select, _Select)
 REGISTER_TILDER(_agg, AggNode)
 
 // Loop IR expressions
