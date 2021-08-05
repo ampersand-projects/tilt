@@ -6,6 +6,8 @@
 
 #include "tilt/ir/op.h"
 
+#include "gtest/gtest.h"
+
 using namespace std;
 using namespace tilt;
 
@@ -24,6 +26,19 @@ void op_test(Op, QueryFn<InTy, OutTy>, vector<Event<InTy>>);
 
 template<typename InTy, typename OutTy>
 void select_test(function<Expr(Expr)>, function<OutTy(InTy)>);
+
+namespace {
+
+template<typename T>
+void assert_eq(T exp, T act) { ASSERT_EQ(exp, act); }
+
+template<>
+void assert_eq(float exp, float act) { ASSERT_FLOAT_EQ(exp, act); }
+
+template<>
+void assert_eq(double exp, double act) { ASSERT_DOUBLE_EQ(exp, act); }
+
+}  // namespace
 
 // Math ops tests
 void iadd_test();

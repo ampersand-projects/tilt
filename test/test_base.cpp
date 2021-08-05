@@ -9,8 +9,6 @@
 #include "tilt/builder/tilder.h"
 #include "tilt/codegen/vinstr.h"
 
-#include "gtest/gtest.h"
-
 using namespace tilt;
 using namespace tilt::tilder;
 
@@ -72,9 +70,9 @@ void op_test(Op op, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
         auto out_et = out_st + out_tl[i].d;
         auto out_payload = out_data[i];
 
-        ASSERT_EQ(true_st, out_st);
-        ASSERT_EQ(true_et, out_et);
-        ASSERT_EQ(true_payload, out_payload);
+        assert_eq(true_st, out_st);
+        assert_eq(true_et, out_et);
+        assert_eq(true_payload, out_payload);
     }
 }
 
@@ -96,6 +94,7 @@ Op Select(Sym in, function<Expr(Expr)> sel_expr)
 template<typename InTy, typename OutTy>
 void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
 {
+    std::srand(time(nullptr));
     const size_t len = 1000;
     const unsigned int dur = 5;
 
@@ -104,7 +103,7 @@ void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
     for (size_t i = 0; i < len; i++) {
         int64_t st = dur * i;
         int64_t et = st + dur;
-        InTy payload = i;
+        InTy payload = static_cast<InTy>(std::rand() / static_cast<double>(RAND_MAX / 10000));
         input[i] = {st, et, payload};
     }
 
