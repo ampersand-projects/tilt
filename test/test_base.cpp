@@ -105,7 +105,7 @@ void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
     for (size_t i = 0; i < len; i++) {
         int64_t st = dur * i;
         int64_t et = st + dur;
-        InTy payload = static_cast<InTy>(std::rand() / static_cast<float>(RAND_MAX / 10000));
+        InTy payload = static_cast<InTy>(std::rand() / static_cast<double>(RAND_MAX / 10000));
         input[i] = {st, et, payload};
     }
 
