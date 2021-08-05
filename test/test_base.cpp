@@ -1,6 +1,6 @@
-#include <stdlib.h>
 #include <utility>
 #include <cmath>
+#include <cstdlib>
 
 #include "test_base.h"
 
@@ -97,16 +97,16 @@ Op Select(Sym in, function<Expr(Expr)> sel_expr)
 template<typename InTy, typename OutTy>
 void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
 {
+    std::srand(std::time(nullptr));
     const size_t len = 1000;
     const unsigned int dur = 5;
-    unsigned seed;
 
     auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter("in")));
     vector<Event<InTy>> input(len);
     for (size_t i = 0; i < len; i++) {
         int64_t st = dur * i;
         int64_t et = st + dur;
-        InTy payload = static_cast<InTy>(rand_r(&seed) % 10000);
+        InTy payload = static_cast<InTy>(std::rand() % 10000);
         input[i] = {st, et, payload};
     }
 
