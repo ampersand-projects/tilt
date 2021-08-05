@@ -106,7 +106,7 @@ void LoopGen::build_loop()
 
         auto idx = _get_end_idx(new_reg_sym);
         auto dptr = _fetch(new_reg_sym, loop->t, idx);
-        true_body = _store(new_reg_sym, dptr, out_expr);
+        true_body = _write(new_reg_sym, dptr, out_expr);
     } else {
         true_body = out_expr;
     }
@@ -135,12 +135,7 @@ Expr LoopGen::visit(const Select& select)
     return _sel(cond, true_body, false_body);
 }
 
-Expr LoopGen::visit(const Exists& exists)
-{
-    eval(exists.sym);
-    auto& sym_ptr = sym_ref(exists.sym);
-    return _exists(sym_ptr);
-}
+Expr LoopGen::visit(const Exists& exists) { return _exists(eval(exists.expr)); }
 
 Expr LoopGen::visit(const New& new_expr)
 {
@@ -174,16 +169,14 @@ Expr LoopGen::visit(const SubLStream& subls)
     return _make_reg(reg, st, si, et, ei);
 }
 
+Expr LoopGen::visit(const Read& read) { return _read(eval(read.ptr)); }
+
 Expr LoopGen::visit(const Element& elem)
 {
     auto& reg = sym(elem.lstream);
     auto time = get_timer(elem.pt);
     auto& idx = create_idx(reg, elem.pt);
-    auto fetch = _fetch(reg, time, idx);
-    auto ref_sym = fetch->sym(ctx().sym->name + "_ptr");
-    assign(ref_sym, fetch);
-    sym_ref(ctx().sym) = ref_sym;
-    return _load(ref_sym);
+    return _fetch(reg, time, idx);
 }
 
 Expr LoopGen::visit(const OpNode& op)

@@ -275,7 +275,7 @@ Value* LLVMGen::visit(const NaryExpr& e)
 
 Value* LLVMGen::visit(const Exists& exists)
 {
-    return builder()->CreateIsNotNull(eval(exists.sym));
+    return builder()->CreateIsNotNull(eval(exists.expr));
 }
 
 Value* LLVMGen::visit(const Fetch& fetch)
@@ -321,17 +321,17 @@ Value* LLVMGen::visit(const CommitData& commit)
     return llcall("commit_data", lltype(commit), { commit.reg, commit.time });
 }
 
-Value* LLVMGen::visit(const Load& load)
+Value* LLVMGen::visit(const Read& read)
 {
-    auto ptr_val = eval(load.ptr);
+    auto ptr_val = eval(read.ptr);
     return builder()->CreateLoad(ptr_val);
 }
 
-Value* LLVMGen::visit(const Store& store)
+Value* LLVMGen::visit(const Write& write)
 {
-    auto reg_val = eval(store.reg);
-    auto ptr_val = eval(store.ptr);
-    auto data_val = eval(store.data);
+    auto reg_val = eval(write.reg);
+    auto ptr_val = eval(write.ptr);
+    auto data_val = eval(write.data);
     builder()->CreateStore(data_val, ptr_val);
     return reg_val;
 }

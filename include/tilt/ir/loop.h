@@ -47,24 +47,12 @@ struct Fetch : public ValNode {
     void Accept(Visitor&) const final;
 };
 
-struct Load : public ValNode {
-    Expr ptr;
-
-    explicit Load(Expr ptr) :
-        ValNode(DataType(ptr->type.dtype.dtypes[0])), ptr(ptr)
-    {
-        ASSERT(ptr->type.dtype.is_ptr());
-    }
-
-    void Accept(Visitor&) const final;
-};
-
-struct Store : public ExprNode {
+struct Write : public ExprNode {
     Expr reg;
     Expr ptr;
     Expr data;
 
-    Store(Expr reg, Expr ptr, Expr data) :
+    Write(Expr reg, Expr ptr, Expr data) :
         ExprNode(reg->type), reg(reg), ptr(ptr), data(data)
     {
         ASSERT(ptr->type.dtype.is_ptr());

@@ -51,8 +51,8 @@ protected:
     virtual OutExprTy visit(const OpNode&) = 0;
     virtual OutExprTy visit(const AggNode&) = 0;
     virtual OutExprTy visit(const Fetch&) = 0;
-    virtual OutExprTy visit(const Load&) = 0;
-    virtual OutExprTy visit(const Store&) = 0;
+    virtual OutExprTy visit(const Read&) = 0;
+    virtual OutExprTy visit(const Write&) = 0;
     virtual OutExprTy visit(const Advance&) = 0;
     virtual OutExprTy visit(const GetCkpt&) = 0;
     virtual OutExprTy visit(const GetStartIdx&) = 0;
@@ -76,8 +76,8 @@ protected:
     void Visit(const OpNode& expr) final { val() = visit(expr); }
     void Visit(const AggNode& expr) final { val() = visit(expr); }
     void Visit(const Fetch& expr) final { val() = visit(expr); }
-    void Visit(const Load& expr) final { val() = visit(expr); }
-    void Visit(const Store& expr) final { val() = visit(expr); }
+    void Visit(const Read& expr) final { val() = visit(expr); }
+    void Visit(const Write& expr) final { val() = visit(expr); }
     void Visit(const Advance& expr) final { val() = visit(expr); }
     void Visit(const GetCkpt& expr) final { val() = visit(expr); }
     void Visit(const GetStartIdx& expr) final { val() = visit(expr); }

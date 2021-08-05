@@ -11,7 +11,7 @@ using namespace std;
 namespace tilt {
 
 struct LStream : public ExprNode {
-    explicit LStream(Type type) : ExprNode(move(type)) {}
+    explicit LStream(Type type) : ExprNode(move(type)) { ASSERT(!this->type.is_valtype()); }
 };
 
 struct Point {
@@ -48,8 +48,10 @@ struct Element : public ValNode {
     const Point pt;
 
     Element(Sym lstream, Point pt) :
-        ValNode(lstream->type.dtype), lstream(lstream), pt(pt)
-    {}
+        ValNode(lstream->type.dtype.ptr()), lstream(lstream), pt(pt)
+    {
+        ASSERT(!lstream->type.is_valtype());
+    }
 
     void Accept(Visitor&) const final;
 };

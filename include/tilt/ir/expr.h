@@ -41,6 +41,14 @@ struct Select : public ValNode {
     void Accept(Visitor&) const final;
 };
 
+struct Read : public ValNode {
+    Expr ptr;
+
+    explicit Read(Expr ptr) : ValNode(ptr->type.dtype.deref()), ptr(ptr) {}
+
+    void Accept(Visitor&) const final;
+};
+
 struct Get : public ValNode {
     Expr input;
     size_t n;
@@ -86,9 +94,9 @@ struct ConstNode : public ValNode {
 typedef shared_ptr<ConstNode> Const;
 
 struct Exists : public ValNode {
-    Sym sym;
+    Expr expr;
 
-    explicit Exists(Sym sym) : ValNode(types::BOOL), sym(sym) {}
+    explicit Exists(Expr expr) : ValNode(types::BOOL), expr(expr) {}
 
     void Accept(Visitor&) const final;
 };

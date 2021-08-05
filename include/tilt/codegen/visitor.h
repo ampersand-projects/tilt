@@ -15,6 +15,7 @@ public:
      */
     virtual void Visit(const Symbol&) = 0;
     virtual void Visit(const Call&) = 0;
+    virtual void Visit(const Read&) = 0;
     virtual void Visit(const IfElse&) = 0;
     virtual void Visit(const Select&) = 0;
     virtual void Visit(const Get&) = 0;
@@ -31,8 +32,7 @@ public:
      * Loop IR
      */
     virtual void Visit(const Fetch&) = 0;
-    virtual void Visit(const Load&) = 0;
-    virtual void Visit(const Store&) = 0;
+    virtual void Visit(const Write&) = 0;
     virtual void Visit(const Advance&) = 0;
     virtual void Visit(const GetCkpt&) = 0;
     virtual void Visit(const GetStartIdx&) = 0;

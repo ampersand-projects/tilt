@@ -24,14 +24,13 @@ string idx_str(int64_t idx)
 
 void IRPrinter::Visit(const Symbol& sym)
 {
-    if (!sym.type.is_valtype()) ostr << "~";
-    if (sym.type.dtype.is_ptr()) ostr << "*";
+    if (!sym.type.is_valtype()) { ostr << "~"; }
     ostr << sym.name;
 }
 
 void IRPrinter::Visit(const Exists& exists)
 {
-    emitunary(EXISTS, exists.sym);
+    emitunary(EXISTS, exists.expr);
 }
 
 void IRPrinter::Visit(const ConstNode& cnst)
@@ -148,14 +147,14 @@ void IRPrinter::Visit(const Fetch& fetch)
     emitfunc("fetch", { fetch.reg, fetch.time, fetch.idx });
 }
 
-void IRPrinter::Visit(const Load& load)
+void IRPrinter::Visit(const Read& read)
 {
-    emitfunc("load", { load.ptr });
+    emitunary("*", read.ptr);
 }
 
-void IRPrinter::Visit(const Store& store)
+void IRPrinter::Visit(const Write& write)
 {
-    emitfunc("store", { store.reg, store.ptr, store.data });
+    emitfunc("write", { write.reg, write.ptr, write.data });
 }
 
 void IRPrinter::Visit(const Advance& adv)

@@ -17,15 +17,15 @@ using namespace tilt::tilder;
 
 Expr Count(Sym win)
 {
-    auto cur = _elem(win, _pt(0));
-    auto cur_sym = cur->sym("cur");
+    auto e = _elem(win, _pt(0));
+    auto e_sym = e->sym("e");
     auto one = _f32(1);
     auto count_sel_sym = one->sym("count_sel");
     auto count_op = _op(
         _iter(0, 1),
         Params{ win },
-        SymTable{ {cur_sym, cur}, {count_sel_sym, one} },
-        _exists(cur_sym),
+        SymTable{ {e_sym, e}, {count_sel_sym, one} },
+        _exists(e_sym),
         count_sel_sym);
     auto count_init = _f32(0);
     auto count_acc = [](Expr a, Expr b) { return _add(a, b); };
@@ -35,14 +35,16 @@ Expr Count(Sym win)
 
 Expr Sum(Sym win)
 {
-    auto cur = _elem(win, _pt(0));
-    auto cur_sym = cur->sym("cur");
+    auto e = _elem(win, _pt(0));
+    auto e_sym = e->sym("e");
+    auto e_val = _read(e_sym);
+    auto e_val_sym = e_val->sym("e_val");
     auto count_op = _op(
         _iter(0, 1),
         Params{ win },
-        SymTable{ {cur_sym, cur} },
-        _exists(cur_sym),
-        cur_sym);
+        SymTable{ {e_sym, e}, {e_val_sym, e_val} },
+        _exists(e_sym),
+        e_val_sym);
     auto count_init = _f32(0);
     auto count_acc = [](Expr a, Expr b) { return _add(a, b); };
     auto count_expr = _agg(count_op, count_init, count_acc);
@@ -72,9 +74,13 @@ Op Join(Sym left, Sym right)
 {
     auto e_left = _elem(left, _pt(0));
     auto e_left_sym = e_left->sym("left");
+    auto e_left_val = _read(e_left_sym);
+    auto e_left_val_sym = e_left_val->sym("left_val");
     auto e_right = _elem(right, _pt(0));
     auto e_right_sym = e_right->sym("right");
-    auto norm = _sub(e_left_sym, e_right_sym);
+    auto e_right_val = _read(e_right_sym);
+    auto e_right_val_sym = e_right_val->sym("right_val");
+    auto norm = _sub(e_left_val_sym, e_right_val_sym);
     auto norm_sym = norm->sym("norm");
     auto left_exist = _exists(e_left_sym);
     auto right_exist = _exists(e_right_sym);
@@ -82,7 +88,13 @@ Op Join(Sym left, Sym right)
     auto join_op = _op(
         _iter(0, 1),
         Params{ left, right },
-        SymTable{ {e_left_sym, e_left}, {e_right_sym, e_right}, {norm_sym, norm} },
+        SymTable{
+            {e_left_sym, e_left},
+            {e_left_val_sym, e_left_val},
+            {e_right_sym, e_right},
+            {e_right_val_sym, e_right_val},
+            {norm_sym, norm},
+        },
         join_cond,
         norm_sym);
     return join_op;
@@ -91,13 +103,15 @@ Op Join(Sym left, Sym right)
 Op SelectSub(Sym in, Sym avg)
 {
     auto e = _elem(in, _pt(0));
-    auto e_sym = e->sym("sym");
-    auto res = _sub(e_sym, avg);
+    auto e_sym = e->sym("e");
+    auto e_val = _read(e_sym);
+    auto e_val_sym = e_val->sym("e_val");
+    auto res = _sub(e_val_sym, avg);
     auto res_sym = res->sym("res");
     auto sel_op = _op(
         _iter(0, 1),
         Params{in, avg},
-        SymTable{{e_sym, e}, {res_sym, res}},
+        SymTable{{e_sym, e}, {e_val_sym, e_val}, {res_sym, res}},
         _exists(e_sym),
         res_sym);
     return sel_op;
@@ -106,13 +120,15 @@ Op SelectSub(Sym in, Sym avg)
 Op SelectDiv(Sym in, Sym std)
 {
     auto e = _elem(in, _pt(0));
-    auto e_sym = e->sym("sym");
-    auto res = _div(e_sym, std);
+    auto e_sym = e->sym("e");
+    auto e_val = _read(e_sym);
+    auto e_val_sym = e_val->sym("e_val");
+    auto res = _div(e_val_sym, std);
     auto res_sym = res->sym("res");
     auto sel_op = _op(
         _iter(0, 1),
         Params{in, std},
-        SymTable{{e_sym, e}, {res_sym, res}},
+        SymTable{{e_sym, e}, {e_val_sym, e_val}, {res_sym, res}},
         _exists(e_sym),
         res_sym);
     return sel_op;
@@ -120,15 +136,17 @@ Op SelectDiv(Sym in, Sym std)
 
 Expr Average(Sym win)
 {
-    auto cur = _elem(win, _pt(0));
-    auto cur_sym = cur->sym("cur");
-    auto state = _new(vector<Expr>{cur_sym, _f32(1)});
+    auto e = _elem(win, _pt(0));
+    auto e_sym = e->sym("e");
+    auto e_val = _read(e_sym);
+    auto e_val_sym = e_val->sym("e_val");
+    auto state = _new(vector<Expr>{e_val_sym, _f32(1)});
     auto state_sym = state->sym("state");
     auto count_op = _op(
         _iter(0, 1),
         Params{ win },
-        SymTable{ {cur_sym, cur}, {state_sym, state} },
-        _exists(cur_sym),
+        SymTable{ {e_sym, e}, {e_val_sym, e_val}, {state_sym, state} },
+        _exists(e_sym),
         state_sym);
     auto count_init = _new(vector<Expr>{_f32(0), _f32(0)});
     auto count_acc = [](Expr a, Expr b) {
@@ -144,15 +162,17 @@ Expr Average(Sym win)
 
 Expr StdDev(Sym win)
 {
-    auto cur = _elem(win, _pt(0));
-    auto cur_sym = cur->sym("cur");
-    auto state = _new(vector<Expr>{_mul(cur_sym, cur_sym), _f32(1)});
+    auto e = _elem(win, _pt(0));
+    auto e_sym = e->sym("e");
+    auto e_val = _read(e_sym);
+    auto e_val_sym = e_val->sym("e_val");
+    auto state = _new(vector<Expr>{_mul(e_val_sym, e_val_sym), _f32(1)});
     auto state_sym = state->sym("state");
     auto count_op = _op(
         _iter(0, 1),
         Params{ win },
-        SymTable{ {cur_sym, cur}, {state_sym, state} },
-        _exists(cur_sym),
+        SymTable{ {e_sym, e}, {e_val_sym, e_val}, {state_sym, state} },
+        _exists(e_sym),
         state_sym);
     auto count_init = _new(vector<Expr>{_f32(0), _f32(0)});
     auto count_acc = [](Expr a, Expr b) {

@@ -19,7 +19,6 @@ private:
     const OpNode* op;
     Looper loop;
 
-    map<Sym, Sym> sym_ref_map;
     map<Sym, map<Point, Indexer>> pt_idx_maps;
 
     friend class LoopGen;
@@ -36,11 +35,10 @@ private:
     Indexer& create_idx(const Sym, const Point);
     void build_loop();
 
-    Sym& sym_ref(const Sym& sym) { return ctx().sym_ref_map[sym]; }
-
     Expr visit(const Symbol&) final;
     Expr visit(const IfElse&) final;
     Expr visit(const Select&) final;
+    Expr visit(const Read&) final;
     Expr visit(const Get&) final;
     Expr visit(const New&) final;
     Expr visit(const Exists&) final;
@@ -51,8 +49,7 @@ private:
     Expr visit(const OpNode&) final;
     Expr visit(const AggNode&) final;
     Expr visit(const Fetch&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const Load&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const Store&) final { throw std::runtime_error("Invalid expression"); };
+    Expr visit(const Write&) final { throw std::runtime_error("Invalid expression"); };
     Expr visit(const Advance&) final { throw std::runtime_error("Invalid expression"); };
     Expr visit(const GetCkpt&) final { throw std::runtime_error("Invalid expression"); };
     Expr visit(const GetStartIdx&) final { throw std::runtime_error("Invalid expression"); };

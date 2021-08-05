@@ -81,12 +81,14 @@ Op _Select(Sym in, function<Expr(Expr)> sel_expr)
 {
     auto e = _elem(in, _pt(0));
     auto e_sym = e->sym("e");
-    auto sel = sel_expr(_get(e_sym, 0));
+    auto e_val = _read(e_sym);
+    auto e_val_sym = e_val->sym("e_val");
+    auto sel = sel_expr(_get(e_val_sym, 0));
     auto sel_sym = sel->sym("sel");
     auto sel_op = _op(
         _iter(0, 1),
         Params{ in },
-        SymTable{ {e_sym, e}, {sel_sym, sel} },
+        SymTable{ {e_sym, e}, {e_val_sym, e_val}, {sel_sym, sel} },
         _exists(e_sym),
         sel_sym);
     return sel_op;

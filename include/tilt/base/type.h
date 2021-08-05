@@ -93,6 +93,14 @@ struct DataType {
             || (this->btype == BaseType::FLOAT32)
             || (this->btype == BaseType::FLOAT64);
     }
+
+    DataType ptr() const { return DataType(BaseType::PTR, {*this}); }
+
+    DataType deref() const
+    {
+        ASSERT(this->is_ptr());
+        return this->dtypes[0];
+    }
 };
 
 struct Iter {
