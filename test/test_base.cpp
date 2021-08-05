@@ -1,6 +1,5 @@
 #include <utility>
 #include <cmath>
-#include <cstdlib>
 
 #include "test_base.h"
 
@@ -97,7 +96,7 @@ Op Select(Sym in, function<Expr(Expr)> sel_expr)
 template<typename InTy, typename OutTy>
 void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
 {
-    std::srand(std::time(nullptr));
+    std::srand(time(nullptr));
     const size_t len = 1000;
     const unsigned int dur = 5;
 
@@ -106,7 +105,7 @@ void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
     for (size_t i = 0; i < len; i++) {
         int64_t st = dur * i;
         int64_t et = st + dur;
-        InTy payload = static_cast<InTy>(std::rand() % 10000);
+        InTy payload = static_cast<InTy>(std::rand() / static_cast<float>(RAND_MAX / 10000));
         input[i] = {st, et, payload};
     }
 
