@@ -14,6 +14,17 @@
 using namespace tilt;
 using namespace tilt::tilder;
 
+template<typename T>
+void assert_eq(T exp, T act){
+    if (typeid(T) == typeid(float)) {
+        ASSERT_FLOAT_EQ(exp, act);
+    } else if (typeid(T) == typeid(double)) {
+        ASSERT_DOUBLE_EQ(exp, act);
+    } else {
+        ASSERT_EQ(exp, act);
+    }
+}
+
 void run_op(Op op, ts_t st, ts_t et, region_t* out_reg, region_t* in_reg)
 {
     auto op_sym = op->sym("query");
@@ -72,9 +83,9 @@ void op_test(Op op, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
         auto out_et = out_st + out_tl[i].d;
         auto out_payload = out_data[i];
 
-        ASSERT_EQ(true_st, out_st);
-        ASSERT_EQ(true_et, out_et);
-        ASSERT_EQ(true_payload, out_payload);
+        assert_eq(true_st, out_st);
+        assert_eq(true_et, out_et);
+        assert_eq(true_payload, out_payload);
     }
 }
 
