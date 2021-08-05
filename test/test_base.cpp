@@ -9,19 +9,8 @@
 #include "tilt/builder/tilder.h"
 #include "tilt/codegen/vinstr.h"
 
-#include "gtest/gtest.h"
-
 using namespace tilt;
 using namespace tilt::tilder;
-
-template<typename T>
-void assert_eq(T exp, T act) { ASSERT_EQ(exp, act); }
-
-template<>
-void assert_eq(float exp, float act) { ASSERT_FLOAT_EQ(exp, act); }
-
-template<>
-void assert_eq(double exp, double act) { ASSERT_DOUBLE_EQ(exp, act); }
 
 void run_op(Op op, ts_t st, ts_t et, region_t* out_reg, region_t* in_reg)
 {
