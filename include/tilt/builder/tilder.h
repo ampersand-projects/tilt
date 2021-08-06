@@ -102,9 +102,9 @@ Const _idx(idx_t);
 Const _true();
 Const _false();
 
-shared_ptr<Select> _abs(Expr s);
-shared_ptr<Select> _max(Expr left, Expr right);
-shared_ptr<Select> _min(Expr left, Expr right);
+shared_ptr<Select> _abs(Expr);
+shared_ptr<Select> _max(Expr, Expr);
+shared_ptr<Select> _min(Expr, Expr);
 
 using _iter = Iter;
 using _pt = Point;

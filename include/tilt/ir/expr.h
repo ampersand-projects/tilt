@@ -51,7 +51,6 @@ struct Select : public ValNode {
     {
         ASSERT(cond->type.dtype == types::BOOL);
         ASSERT(true_body->type.dtype == false_body->type.dtype);
-        ASSERT(true_body->type.dtype.btype != BaseType::STRUCT);
     }
 
     void Accept(Visitor&) const final;

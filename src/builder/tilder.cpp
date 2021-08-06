@@ -21,6 +21,6 @@ Const _false() { return _const(BaseType::BOOL, 0); }
 
 shared_ptr<Select> _abs(Expr s) { return _sel(_gte(s, _const(s->type.dtype.btype, 0)), s, _neg(s)); }
 shared_ptr<Select> _max(Expr left, Expr right) { return _sel(_gte(left, right), left, right); }
-shared_ptr<Select> _min(Expr left, Expr right) { return _sel(_lt(left, right), left, right); }
+shared_ptr<Select> _min(Expr left, Expr right) { return _sel(_lte(left, right), left, right); }
 
 }  // namespace tilt::tilder

@@ -214,11 +214,13 @@ void IRPrinter::Visit(const IfElse& ifelse)
 
 void IRPrinter::Visit(const Select& select)
 {
+    ostr << "(";
     select.cond->Accept(*this);
     ostr << " ? ";
     select.true_body->Accept(*this);
     ostr << " : ";
     select.false_body->Accept(*this);
+    ostr << ")";
 }
 
 void IRPrinter::Visit(const Get& get)
