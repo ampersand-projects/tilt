@@ -259,7 +259,7 @@ int main(int argc, char** argv)
 
     jit->AddModule(move(llmod));
 
-    auto loop_addr = (region_t* (*)(ts_t, ts_t, region_t*, region_t*)) jit->Lookup(loop->GetName());
+    auto loop_addr = (region_t* (*)(ts_t, ts_t, region_t*, region_t*)) jit->Lookup(loop->get_name());
 
     uint32_t dur = 1;
 

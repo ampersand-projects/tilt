@@ -199,7 +199,7 @@ void IRPrinter::Visit(const MakeRegion& mr)
 
 void IRPrinter::Visit(const Call& call)
 {
-    emitfunc(call.fn->GetName(), call.args);
+    emitfunc(call.name, call.args);
 }
 
 void IRPrinter::Visit(const IfElse& ifelse)
@@ -241,7 +241,7 @@ void IRPrinter::Visit(const Loop& loop)
 
     vector<Expr> args;
     args.insert(args.end(), loop.inputs.begin(), loop.inputs.end());
-    emitfunc(loop.GetName(), args);
+    emitfunc(loop.get_name(), args);
     emitnewline();
 
     ostr << "{";

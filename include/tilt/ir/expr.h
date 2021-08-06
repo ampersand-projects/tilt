@@ -16,11 +16,11 @@ using namespace std;
 namespace tilt {
 
 struct Call : public ExprNode {
-    Func fn;
+    string name;
     vector<Expr> args;
 
-    Call(Func fn, vector<Expr> args) :
-        ExprNode(fn->type), fn(fn), args(move(args))
+    Call(string name, Type type, vector<Expr> args) :
+        ExprNode(type), name(name), args(move(args))
     {}
 
     void Accept(Visitor&) const final;

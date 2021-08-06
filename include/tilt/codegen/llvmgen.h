@@ -44,6 +44,7 @@ public:
 
 private:
     llvm::Value* visit(const Symbol&) final;
+    llvm::Value* visit(const Call&) final;
     llvm::Value* visit(const IfElse&) final;
     llvm::Value* visit(const Select&) final;
     llvm::Value* visit(const Get&) final;
@@ -66,7 +67,6 @@ private:
     llvm::Value* visit(const CommitNull&) final;
     llvm::Value* visit(const AllocRegion&) final;
     llvm::Value* visit(const MakeRegion&) final;
-    llvm::Value* visit(const Call&) final;
     llvm::Value* visit(const Loop&) final;
 
     void assign(const Sym& sym_ptr, llvm::Value* val) override

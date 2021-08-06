@@ -135,6 +135,15 @@ Expr LoopGen::visit(const Select& select)
     return _sel(cond, true_body, false_body);
 }
 
+Expr LoopGen::visit(const Call& call)
+{
+    vector<Expr> args;
+    for (const auto& arg : call.args) {
+        args.push_back(eval(arg));
+    }
+    return _call(call.name, call.type, move(args));
+}
+
 Expr LoopGen::visit(const Exists& exists) { return _exists(eval(exists.expr)); }
 
 Expr LoopGen::visit(const New& new_expr)
@@ -216,7 +225,7 @@ Expr LoopGen::visit(const OpNode& op)
     for (const auto& input : inputs) {
         args.push_back(input);
     }
-    return _call(inner_loop, move(args));
+    return _call(inner_loop->get_name(), inner_loop->type, move(args));
 }
 
 Expr LoopGen::visit(const AggNode& aggexpr)
@@ -254,7 +263,7 @@ Expr LoopGen::visit(const AggNode& aggexpr)
     for (const auto& input : aggexpr.op->inputs) {
         args.push_back(eval(input));
     }
-    return _call(agg_loop, args);
+    return _call(agg_loop->get_name(), agg_loop->type, args);
 }
 
 Looper LoopGen::Build(Sym sym, const OpNode* op)

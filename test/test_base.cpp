@@ -24,7 +24,7 @@ void run_op(Op op, ts_t st, ts_t et, region_t* out_reg, region_t* in_reg)
     auto llmod = LLVMGen::Build(loop, llctx);
     jit->AddModule(move(llmod));
 
-    auto loop_addr = (region_t* (*)(ts_t, ts_t, region_t*, region_t*)) jit->Lookup(loop->GetName());
+    auto loop_addr = (region_t* (*)(ts_t, ts_t, region_t*, region_t*)) jit->Lookup(loop->get_name());
 
     init_region(out_reg, st, out_reg->tl, out_reg->data);
 

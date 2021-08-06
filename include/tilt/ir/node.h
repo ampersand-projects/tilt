@@ -51,7 +51,7 @@ struct FuncNode : public ExprNode {
         ExprNode(output->type), name(name), inputs(move(inputs)), output(output), syms(move(syms))
     {}
 
-    virtual const string GetName() const = 0;
+    virtual const string get_name() const = 0;
 
 protected:
     FuncNode(string name, Type type) : ExprNode(move(type)), name(name) {}

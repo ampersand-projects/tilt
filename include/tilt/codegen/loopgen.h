@@ -36,6 +36,7 @@ private:
     void build_loop();
 
     Expr visit(const Symbol&) final;
+    Expr visit(const Call&) final;
     Expr visit(const IfElse&) final;
     Expr visit(const Select&) final;
     Expr visit(const Read&) final;
@@ -48,18 +49,17 @@ private:
     Expr visit(const Element&) final;
     Expr visit(const OpNode&) final;
     Expr visit(const AggNode&) final;
-    Expr visit(const Fetch&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const Write&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const Advance&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const GetCkpt&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const GetStartIdx&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const GetEndIdx&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const CommitData&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const CommitNull&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const AllocRegion&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const MakeRegion&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const Call&) final { throw std::runtime_error("Invalid expression"); };
-    Expr visit(const Loop&) final { throw std::runtime_error("Invalid expression"); };
+    Expr visit(const Fetch&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const Write&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const Advance&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const GetCkpt&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const GetStartIdx&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const GetEndIdx&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const CommitData&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const CommitNull&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const AllocRegion&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const MakeRegion&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const Loop&) final { throw runtime_error("Invalid expression"); };
 };
 
 }  // namespace tilt

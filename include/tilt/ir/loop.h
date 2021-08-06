@@ -212,7 +212,7 @@ struct Loop : public FuncNode {
     Loop(string name, Type type) : FuncNode(name, move(type)) {}
     explicit Loop(Sym sym) : Loop(sym->name, sym->type) {}
 
-    const string GetName() const override { return "loop_" + this->name; }
+    const string get_name() const override { return "loop_" + this->name; }
 
     void Accept(Visitor&) const final;
 };

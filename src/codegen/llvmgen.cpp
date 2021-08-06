@@ -363,7 +363,7 @@ Value* LLVMGen::visit(const MakeRegion& make_reg)
 
 Value* LLVMGen::visit(const Call& call)
 {
-    return llcall(call.fn->GetName(), lltype(call), call.args);
+    return llcall(call.name, lltype(call), call.args);
 }
 
 Value* LLVMGen::visit(const Loop& loop)
@@ -388,7 +388,7 @@ Value* LLVMGen::visit(const Loop& loop)
     for (const auto& input : loop.inputs) {
         args_type.push_back(lltype(input->type));
     }
-    auto loop_fn = llfunc(loop.GetName(), lltype(loop.output), args_type);
+    auto loop_fn = llfunc(loop.get_name(), lltype(loop.output), args_type);
     for (size_t i = 0; i < loop.inputs.size(); i++) {
         auto input = loop.inputs[i];
         assign(input, loop_fn->getArg(i));
