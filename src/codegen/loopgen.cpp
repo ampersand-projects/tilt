@@ -127,6 +127,14 @@ Expr LoopGen::visit(const IfElse& ifelse)
     return _ifelse(cond, true_body, false_body);
 }
 
+Expr LoopGen::visit(const Select& select)
+{
+    auto cond = eval(select.cond);
+    auto true_body = eval(select.true_body);
+    auto false_body = eval(select.false_body);
+    return _select(cond, true_body, false_body);
+}
+
 Expr LoopGen::visit(const Exists& exists)
 {
     eval(exists.sym);

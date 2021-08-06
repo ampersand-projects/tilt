@@ -214,6 +214,15 @@ void IRPrinter::Visit(const IfElse& ifelse)
     ifelse.false_body->Accept(*this);
 }
 
+void IRPrinter::Visit(const Select& select)
+{
+    select.cond->Accept(*this);
+    ostr << " ? ";
+    select.true_body->Accept(*this);
+    ostr << " : ";
+    select.false_body->Accept(*this);
+}
+
 void IRPrinter::Visit(const Get& get)
 {
     emitfunc("get", {get.input, tilder::_u64(get.n)});

@@ -140,6 +140,14 @@ Value* LLVMGen::visit(const IfElse& ifelse)
     return merge_phi;
 }
 
+Value* LLVMGen::visit(const Select& select)
+{
+    auto cond = eval(select.cond);
+    auto true_val = eval(select.true_body);
+    auto false_val = eval(select.false_body);
+    return builder()->CreateSelect(cond, true_val, false_val);
+}
+
 Value* LLVMGen::visit(const Get& get)
 {
     auto input = eval(get.input);

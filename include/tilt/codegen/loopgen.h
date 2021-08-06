@@ -40,6 +40,7 @@ private:
 
     Expr visit(const Symbol&) final;
     Expr visit(const IfElse&) final;
+    Expr visit(const Select&) final;
     Expr visit(const Get&) final;
     Expr visit(const New&) final;
     Expr visit(const Exists&) final;

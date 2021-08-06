@@ -40,6 +40,7 @@ public:
 protected:
     virtual OutExprTy visit(const Symbol&) = 0;
     virtual OutExprTy visit(const IfElse&) = 0;
+    virtual OutExprTy visit(const Select&) = 0;
     virtual OutExprTy visit(const Get&) = 0;
     virtual OutExprTy visit(const New&) = 0;
     virtual OutExprTy visit(const Exists&) = 0;
@@ -64,6 +65,7 @@ protected:
     virtual OutExprTy visit(const Loop&) = 0;
 
     void Visit(const IfElse& expr) final { val() = visit(expr); }
+    void Visit(const Select& expr) final { val() = visit(expr); }
     void Visit(const Get& expr) final { val() = visit(expr); }
     void Visit(const New& expr) final { val() = visit(expr); }
     void Visit(const Exists& expr) final { val() = visit(expr); }

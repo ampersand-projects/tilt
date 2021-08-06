@@ -39,6 +39,7 @@ public:
     void Visit(const Symbol&) override;
     void Visit(const Call&) override;
     void Visit(const IfElse&) override;
+    void Visit(const Select&) override;
     void Visit(const Get&) override;
     void Visit(const New&) override;
     void Visit(const Exists&) override;

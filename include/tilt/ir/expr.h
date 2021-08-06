@@ -41,12 +41,12 @@ struct IfElse : public ExprNode {
     void Accept(Visitor&) const final;
 };
 
-struct _Select : public ExprNode {
+struct Select : public ExprNode {
     Expr cond;
     Expr true_body;
     Expr false_body;
 
-    _Select(Expr cond, Expr true_body, Expr false_body) :
+    Select(Expr cond, Expr true_body, Expr false_body) :
         ExprNode(true_body->type), cond(cond), true_body(true_body), false_body(false_body)
     {
         ASSERT(cond->type.dtype == types::BOOL);

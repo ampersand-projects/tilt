@@ -78,7 +78,7 @@ void op_test(Op op, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
     }
 }
 
-Op Select(Sym in, function<Expr(Expr)> sel_expr)
+Op _Select(Sym in, function<Expr(Expr)> sel_expr)
 {
     auto e = _elem(in, _pt(0));
     auto e_sym = e->sym("e");
@@ -118,7 +118,7 @@ void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
         return move(out);
     };
 
-    auto sel_op = Select(in_sym, sel_expr);
+    auto sel_op = _Select(in_sym, sel_expr);
     op_test<InTy, OutTy>(sel_op, sel_query_fn, input);
 }
 
