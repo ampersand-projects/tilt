@@ -32,14 +32,12 @@ REGISTER_TILDER(_add, Add)
 REGISTER_TILDER(_sub, Sub)
 REGISTER_TILDER(_mul, Mul)
 REGISTER_TILDER(_div, Div)
+REGISTER_TILDER(_neg, Neg)
 REGISTER_TILDER(_mod, Mod)
-REGISTER_TILDER(_max, Max)
-REGISTER_TILDER(_min, Min)
 REGISTER_TILDER(_sqrt, Sqrt)
 REGISTER_TILDER(_pow, Pow)
 REGISTER_TILDER(_ceil, Ceil)
 REGISTER_TILDER(_floor, Floor)
-REGISTER_TILDER(_abs, Abs)
 REGISTER_TILDER(_lt, LessThan)
 REGISTER_TILDER(_lte, LessThanEqual)
 REGISTER_TILDER(_gt, GreaterThan)
@@ -65,7 +63,7 @@ REGISTER_TILDER(_call, Call)
 REGISTER_TILDER(_get, Get)
 REGISTER_TILDER(_new, New)
 REGISTER_TILDER(_ifelse, IfElse)
-REGISTER_TILDER(_select, Select)
+REGISTER_TILDER(_sel, Select)
 REGISTER_TILDER(_agg, AggNode)
 
 // Loop IR expressions
@@ -103,6 +101,10 @@ Const _ts(ts_t);
 Const _idx(idx_t);
 Const _true();
 Const _false();
+
+shared_ptr<Select> _abs(Expr s);
+shared_ptr<Select> _max(Expr left, Expr right);
+shared_ptr<Select> _min(Expr left, Expr right);
 
 using _iter = Iter;
 using _pt = Point;

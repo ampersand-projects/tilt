@@ -1,5 +1,6 @@
 #include <utility>
 #include <cmath>
+#include <algorithm>
 
 #include "test_base.h"
 
@@ -148,6 +149,48 @@ void fsub_test()
     select_test<float, float>(
         [] (Expr s) { return _sub(s, _f32(15)); },
         [] (float s) { return s - 15.0; });
+}
+
+void imax_test()
+{
+    select_test<int32_t, int32_t>(
+        [] (Expr s) { return _max(s, _i32(10)); },
+        [] (int32_t s) { return std::max(s, static_cast<int32_t>(10)); });
+}
+
+void umax_test()
+{
+    select_test<uint32_t, uint32_t>(
+        [] (Expr s) { return _max(s, _u32(10)); },
+        [] (uint32_t s) { return static_cast<uint32_t>(std::max(s, static_cast<uint32_t>(10))); });
+}
+
+void fmax_test()
+{
+    select_test<float, float>(
+        [] (Expr s) { return _max(s, _f32(10)); },
+        [] (float s) { return static_cast<float>(std::max(s, static_cast<float>(10))); });
+}
+
+void imin_test()
+{
+    select_test<int32_t, int32_t>(
+        [] (Expr s) { return _min(s, _i32(10)); },
+        [] (int32_t s) { return std::min(s, static_cast<int32_t>(10)); });
+}
+
+void umin_test()
+{
+    select_test<uint32_t, uint32_t>(
+        [] (Expr s) { return _min(s, _u32(10)); },
+        [] (uint32_t s) { return static_cast<uint32_t>(std::min(s, static_cast<uint32_t>(10))); });
+}
+
+void fmin_test()
+{
+    select_test<float, float>(
+        [] (Expr s) { return _min(s, _f32(10)); },
+        [] (float s) { return static_cast<float>(std::min(s, static_cast<float>(10))); });
 }
 
 void fsqrt_test()

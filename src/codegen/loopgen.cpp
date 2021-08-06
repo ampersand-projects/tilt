@@ -132,7 +132,7 @@ Expr LoopGen::visit(const Select& select)
     auto cond = eval(select.cond);
     auto true_body = eval(select.true_body);
     auto false_body = eval(select.false_body);
-    return _select(cond, true_body, false_body);
+    return _sel(cond, true_body, false_body);
 }
 
 Expr LoopGen::visit(const Exists& exists)
@@ -163,13 +163,11 @@ Expr LoopGen::visit(const NaryExpr& e)
         case MathOp::MUL: return _mul(eval(e.arg(0)), eval(e.arg(1)));
         case MathOp::DIV: return _div(eval(e.arg(0)), eval(e.arg(1)));
         case MathOp::MOD: return _mod(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::MAX: return _max(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::MIN: return _min(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::NEG: return _neg(eval(e.arg(0)));
         case MathOp::SQRT: return _sqrt(eval(e.arg(0)));
         case MathOp::POW: return _pow(eval(e.arg(0)), eval(e.arg(1)));
         case MathOp::CEIL: return _ceil(eval(e.arg(0)));
         case MathOp::FLOOR: return _floor(eval(e.arg(0)));
-        case MathOp::ABS: return _abs(eval(e.arg(0)));
         case MathOp::EQ: return _eq(eval(e.arg(0)), eval(e.arg(1)));
         case MathOp::NOT: return _not(eval(e.arg(0)));
         case MathOp::AND: return _and(eval(e.arg(0)), eval(e.arg(1)));
