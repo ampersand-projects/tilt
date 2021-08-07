@@ -162,14 +162,14 @@ void umax_test()
 {
     select_test<uint32_t, uint32_t>(
         [] (Expr s) { return _max(s, _u32(10)); },
-        [] (uint32_t s) { return static_cast<uint32_t>(std::max(s, 10u)); });
+        [] (uint32_t s) { return std::max(s, 10u); });
 }
 
 void fmax_test()
 {
     select_test<float, float>(
         [] (Expr s) { return _max(s, _f32(10)); },
-        [] (float s) { return static_cast<float>(std::max(s, 10.0f)); });
+        [] (float s) { return std::max(s, 10.0f); });
 }
 
 void imin_test()
@@ -183,21 +183,21 @@ void umin_test()
 {
     select_test<uint32_t, uint32_t>(
         [] (Expr s) { return _min(s, _u32(10)); },
-        [] (uint32_t s) { return static_cast<uint32_t>(std::min(s, 10u)); });
+        [] (uint32_t s) { return std::min(s, 10u); });
 }
 
 void fmin_test()
 {
     select_test<float, float>(
         [] (Expr s) { return _min(s, _f32(10)); },
-        [] (float s) { return static_cast<float>(std::min(s, 10.0f)); });
+        [] (float s) { return std::min(s, 10.0f); });
 }
 
 void fsqrt_test()
 {
     select_test<float, float>(
         [] (Expr s) { return _sqrt(s); },
-        [] (float s) { return static_cast<float>(std::sqrt(s)); });
+        [] (float s) { return std::sqrt(s); });
 }
 
 void dsqrt_test()
@@ -225,42 +225,42 @@ void fceil_test()
 {
     select_test<float, float>(
         [] (Expr s) { return _ceil(s); },
-        [] (float s) { return static_cast<float>(std::ceil(s)); });
+        [] (float s) { return std::ceil(s); });
 }
 
 void dceil_test()
 {
     select_test<double, double>(
         [] (Expr s) { return _ceil(s); },
-        [] (double s) { return static_cast<double>(std::ceil(s)); });
+        [] (double s) { return std::ceil(s); });
 }
 
 void ffloor_test()
 {
     select_test<float, float>(
         [] (Expr s) { return _floor(s); },
-        [] (float s) { return static_cast<float>(std::floor(s)); });
+        [] (float s) { return std::floor(s); });
 }
 
 void dfloor_test()
 {
     select_test<double, double>(
         [] (Expr s) { return _floor(s); },
-        [] (double s) { return static_cast<double>(std::floor(s)); });
+        [] (double s) { return std::floor(s); });
 }
 
 void fabs_test()
 {
     select_test<float, float>(
         [] (Expr s) { return _abs(s); },
-        [] (float s) { return static_cast<float>(std::abs(s)); });
+        [] (float s) { return std::abs(s); });
 }
 
 void dabs_test()
 {
     select_test<double, double>(
         [] (Expr s) { return _abs(s); },
-        [] (double s) { return static_cast<double>(std::abs(s)); });
+        [] (double s) { return std::abs(s); });
 }
 
 void iabs_test()

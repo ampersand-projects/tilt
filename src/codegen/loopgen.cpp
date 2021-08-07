@@ -158,10 +158,10 @@ Expr LoopGen::visit(const ConstNode& cnst) { return _const(cnst); }
 Expr LoopGen::visit(const NaryExpr& e)
 {
     vector<Expr> args;
-    for (Expr arg : e.args){
+    for (auto arg : e.args){
         args.push_back(eval(arg));
     }
-    return make_shared<NaryExpr>(e.type.dtype, e.op, args);
+    return make_shared<NaryExpr>(e.type.dtype, e.op, move(args));
 }
 
 Expr LoopGen::visit(const SubLStream& subls)
