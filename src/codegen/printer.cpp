@@ -62,13 +62,11 @@ void IRPrinter::Visit(const NaryExpr& e)
         case MathOp::MUL: emitbinary(e.arg(0), "*", e.arg(1)); break;
         case MathOp::DIV: emitbinary(e.arg(0), "/", e.arg(1)); break;
         case MathOp::MOD: emitbinary(e.arg(0), "%", e.arg(1)); break;
-        case MathOp::MAX: emitfunc("max", {e.arg(0), e.arg(1)}); break;
-        case MathOp::MIN: emitfunc("min", {e.arg(0), e.arg(1)}); break;
+        case MathOp::NEG: emitunary("-", {e.arg(0)}); break;
         case MathOp::SQRT: emitfunc("sqrt", {e.arg(0)}); break;
         case MathOp::POW: emitfunc("pow", {e.arg(0), e.arg(1)}); break;
         case MathOp::CEIL: emitfunc("ceil", {e.arg(0)}); break;
         case MathOp::FLOOR: emitfunc("floor", {e.arg(0)}); break;
-        case MathOp::ABS: emitfunc("abs", {e.arg(0)}); break;
         case MathOp::EQ: emitbinary(e.arg(0), "==", e.arg(1)); break;
         case MathOp::NOT: emitunary("!", e.arg(0)); break;
         case MathOp::AND: emitbinary(e.arg(0), "&&", e.arg(1)); break;
@@ -212,6 +210,17 @@ void IRPrinter::Visit(const IfElse& ifelse)
     ifelse.true_body->Accept(*this);
     ostr << " : ";
     ifelse.false_body->Accept(*this);
+}
+
+void IRPrinter::Visit(const Select& select)
+{
+    ostr << "(";
+    select.cond->Accept(*this);
+    ostr << " ? ";
+    select.true_body->Accept(*this);
+    ostr << " : ";
+    select.false_body->Accept(*this);
+    ostr << ")";
 }
 
 void IRPrinter::Visit(const Get& get)

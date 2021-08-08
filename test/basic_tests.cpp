@@ -4,6 +4,15 @@ TEST(MathOpTests, IAddOpTest) { iadd_test(); }
 TEST(MathOpTests, FAddOpTest) { fadd_test(); }
 TEST(MathOpTests, ISubOpTest) { isub_test(); }
 TEST(MathOpTests, FSubOpTest) { fsub_test(); }
+TEST(MathOpTests, IMaxOpTest) { imax_test(); }
+TEST(MathOpTests, UMaxOpTest) { umax_test(); }
+TEST(MathOpTests, FMaxOpTest) { fmax_test(); }
+TEST(MathOpTests, IMinOpTest) { imin_test(); }
+TEST(MathOpTests, UMinOpTest) { umin_test(); }
+TEST(MathOpTests, FMinOpTest) { fmin_test(); }
+TEST(MathOpTests, INegOpTest) { ineg_test(); }
+TEST(MathOpTests, FNegOpTest) { fneg_test(); }
+TEST(MathOpTests, DNegOpTest) { dneg_test(); }
 TEST(MathOpTests, FSqrtOpTest) { fsqrt_test(); }
 TEST(MathOpTests, DSqrtOpTest) { dsqrt_test(); }
 TEST(MathOpTests, FPowOPTest) { fpow_test(); }

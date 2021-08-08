@@ -16,6 +16,7 @@ public:
     virtual void Visit(const Symbol&) = 0;
     virtual void Visit(const Call&) = 0;
     virtual void Visit(const IfElse&) = 0;
+    virtual void Visit(const Select&) = 0;
     virtual void Visit(const Get&) = 0;
     virtual void Visit(const New&) = 0;
     virtual void Visit(const Exists&) = 0;

@@ -111,7 +111,7 @@ void LoopGen::build_loop()
         true_body = out_expr;
     }
     auto false_body = _commit_null(output_base, loop->t);
-    assign(loop->output, _sel(pred_expr, true_body, false_body));
+    assign(loop->output, _ifelse(pred_expr, true_body, false_body));
 }
 
 Expr LoopGen::visit(const Symbol& symbol)
@@ -124,6 +124,14 @@ Expr LoopGen::visit(const IfElse& ifelse)
     auto cond = eval(ifelse.cond);
     auto true_body = eval(ifelse.true_body);
     auto false_body = eval(ifelse.false_body);
+    return _ifelse(cond, true_body, false_body);
+}
+
+Expr LoopGen::visit(const Select& select)
+{
+    auto cond = eval(select.cond);
+    auto true_body = eval(select.true_body);
+    auto false_body = eval(select.false_body);
     return _sel(cond, true_body, false_body);
 }
 
@@ -149,29 +157,11 @@ Expr LoopGen::visit(const ConstNode& cnst) { return _const(cnst); }
 
 Expr LoopGen::visit(const NaryExpr& e)
 {
-    switch (e.op) {
-        case MathOp::ADD: return _add(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::SUB: return _sub(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::MUL: return _mul(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::DIV: return _div(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::MOD: return _mod(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::MAX: return _max(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::MIN: return _min(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::SQRT: return _sqrt(eval(e.arg(0)));
-        case MathOp::POW: return _pow(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::CEIL: return _ceil(eval(e.arg(0)));
-        case MathOp::FLOOR: return _floor(eval(e.arg(0)));
-        case MathOp::ABS: return _abs(eval(e.arg(0)));
-        case MathOp::EQ: return _eq(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::NOT: return _not(eval(e.arg(0)));
-        case MathOp::AND: return _and(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::OR: return _or(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::LT: return _lt(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::LTE: return _lte(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::GT: return _gt(eval(e.arg(0)), eval(e.arg(1)));
-        case MathOp::GTE: return _gte(eval(e.arg(0)), eval(e.arg(1)));
-        default: throw std::runtime_error("Invalid math operation"); break;
+    vector<Expr> args;
+    for (auto arg : e.args){
+        args.push_back(eval(arg));
     }
+    return make_shared<NaryExpr>(e.type.dtype, e.op, move(args));
 }
 
 Expr LoopGen::visit(const SubLStream& subls)
@@ -256,7 +246,7 @@ Expr LoopGen::visit(const AggNode& aggexpr)
     agg_loop->output = _sym("output", aggexpr.type);
     agg_loop->state_bases[agg_loop->output] = output_base;
     auto acc_expr = eval(aggexpr.acc(output_base, sym(aggexpr.op->output)));
-    auto output_update = _sel(eval(aggexpr.op->pred), acc_expr, output_base);
+    auto output_update = _ifelse(eval(aggexpr.op->pred), acc_expr, output_base);
     ASSERT(output_update->type == aggexpr.type);
     assign(agg_loop->output, output_update);
 

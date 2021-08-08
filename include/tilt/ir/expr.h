@@ -26,13 +26,13 @@ struct Call : public ExprNode {
     void Accept(Visitor&) const final;
 };
 
-struct IfElse : public ExprNode {
+struct Select : public ValNode {
     Expr cond;
     Expr true_body;
     Expr false_body;
 
-    IfElse(Expr cond, Expr true_body, Expr false_body) :
-        ExprNode(true_body->type), cond(cond), true_body(true_body), false_body(false_body)
+    Select(Expr cond, Expr true_body, Expr false_body) :
+        ValNode(true_body->type.dtype), cond(cond), true_body(true_body), false_body(false_body)
     {
         ASSERT(cond->type.dtype == types::BOOL);
         ASSERT(true_body->type.dtype == false_body->type.dtype);
@@ -131,6 +131,10 @@ struct Not : public UnaryExpr {
     }
 };
 
+struct Neg : public UnaryExpr {
+    explicit Neg(Expr a) : UnaryExpr(a->type.dtype, MathOp::NEG, a) {}
+};
+
 struct Sqrt : public UnaryExpr {
     explicit Sqrt(Expr a) : UnaryExpr(a->type.dtype, MathOp::SQRT, a) {}
 };
@@ -145,10 +149,6 @@ struct Floor : public UnaryExpr {
     explicit Floor(Expr a) : UnaryExpr(a->type.dtype, MathOp::FLOOR, a) {
         ASSERT(a->type.dtype.is_float());
     }
-};
-
-struct Abs : public UnaryExpr {
-    explicit Abs(Expr a) : UnaryExpr(a->type.dtype, MathOp::ABS, a) {}
 };
 
 struct Equals : public BinaryExpr {
@@ -199,14 +199,6 @@ struct Mul : public BinaryExpr {
 
 struct Div : public BinaryExpr {
     Div(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::DIV, a, b) {}
-};
-
-struct Max : public BinaryExpr {
-    Max(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MAX, a, b) {}
-};
-
-struct Min : public BinaryExpr {
-    Min(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MIN, a, b) {}
 };
 
 struct Mod : public BinaryExpr {
