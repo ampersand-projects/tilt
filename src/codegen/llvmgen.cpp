@@ -191,36 +191,44 @@ Value* LLVMGen::visit(const NaryExpr& e)
 {
     switch (e.op) {
         case MathOp::ADD: {
-            if (e.arg(0)->type.dtype.is_float()) {
+            if (e.type.dtype.is_float()) {
                 return builder()->CreateFAdd(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateAdd(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::SUB: {
-            if (e.arg(0)->type.dtype.is_float()) {
+            if (e.type.dtype.is_float()) {
                 return builder()->CreateFSub(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateSub(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::MUL: {
-            if (e.arg(0)->type.dtype.is_float()) {
+            if (e.type.dtype.is_float()) {
                 return builder()->CreateFMul(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateMul(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::DIV: {
-            if (e.arg(0)->type.dtype.is_float()) {
+            if (e.type.dtype.is_float()) {
                 return builder()->CreateFDiv(eval(e.arg(0)), eval(e.arg(1)));
-            } else {
+            } else if (e.type.dtype.is_signed()) {
                 return builder()->CreateSDiv(eval(e.arg(0)), eval(e.arg(1)));
+            } else {
+                return builder()->CreateUDiv(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
-        case MathOp::MOD: return builder()->CreateSRem(eval(e.arg(0)), eval(e.arg(1)));
+        case MathOp::MOD: {
+            if (e.type.dtype.is_signed()) {
+                return builder()->CreateSRem(eval(e.arg(0)), eval(e.arg(1)));
+            } else {
+                return builder()->CreateURem(eval(e.arg(0)), eval(e.arg(1)));
+            }
+        }
         case MathOp::NEG: {
-            if (e.arg(0)->type.dtype.is_float()) {
+            if (e.type.dtype.is_float()) {
                 return builder()->CreateFNeg(eval(e.arg(0)));
             } else {
                 return builder()->CreateNeg(eval(e.arg(0)));
@@ -241,29 +249,37 @@ Value* LLVMGen::visit(const NaryExpr& e)
         case MathOp::LT: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFCmpOLT(eval(e.arg(0)), eval(e.arg(1)));
-            } else {
+            } else if (e.arg(0)->type.dtype.is_signed()) {
                 return builder()->CreateICmpSLT(eval(e.arg(0)), eval(e.arg(1)));
+            } else {
+                return builder()->CreateICmpULT(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::LTE: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFCmpOLE(eval(e.arg(0)), eval(e.arg(1)));
-            } else {
+            } else if (e.arg(0)->type.dtype.is_signed()) {
                 return builder()->CreateICmpSLE(eval(e.arg(0)), eval(e.arg(1)));
+            } else {
+                return builder()->CreateICmpULE(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::GT: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFCmpOGT(eval(e.arg(0)), eval(e.arg(1)));
-            } else {
+            } else if (e.arg(0)->type.dtype.is_signed()) {
                 return builder()->CreateICmpSGT(eval(e.arg(0)), eval(e.arg(1)));
+            } else {
+                return builder()->CreateICmpUGT(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::GTE: {
             if (e.arg(0)->type.dtype.is_float()) {
                 return builder()->CreateFCmpOGE(eval(e.arg(0)), eval(e.arg(1)));
-            } else {
+            } else if (e.arg(0)->type.dtype.is_signed()) {
                 return builder()->CreateICmpSGE(eval(e.arg(0)), eval(e.arg(1)));
+            } else {
+                return builder()->CreateICmpUGE(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
         case MathOp::NOT: return builder()->CreateNot(eval(e.arg(0)));
