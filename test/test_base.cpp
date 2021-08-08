@@ -163,7 +163,7 @@ void fmul_test()
 {
     select_test<float, float>(
         [] (Expr s) { return _mul(s, _f32(10)); },
-        [] (float s) { return static_cast<float>(s * 10); });
+        [] (float s) { return s * 10.0f; });
 }
 
 void idiv_test()
@@ -177,14 +177,14 @@ void udiv_test()
 {
     select_test<uint32_t, uint32_t>(
         [] (Expr s) { return _div(s, _u32(10)); },
-        [] (uint32_t s) { return static_cast<uint32_t>(s / 10); });
+        [] (uint32_t s) { return s / 10u; });
 }
 
 void fdiv_test()
 {
     select_test<float, float>(
         [] (Expr s) { return _div(s, _f32(10)); },
-        [] (float s) { return static_cast<float>(s / 10); });
+        [] (float s) { return s / 10.0f; });
 }
 
 void imod_test()
@@ -198,7 +198,7 @@ void umod_test()
 {
     select_test<uint32_t, uint32_t>(
         [] (Expr s) { return _mod(s, _u32(10)); },
-        [] (uint32_t s) { return static_cast<uint32_t>(s % 10); });
+        [] (uint32_t s) { return s % 10u; });
 }
 
 void imax_test()
@@ -275,7 +275,7 @@ void dsqrt_test()
 {
     select_test<double, double>(
         [] (Expr s) { return _sqrt(s); },
-        [] (double s) { return static_cast<double>(std::sqrt(s)); });
+        [] (double s) { return std::sqrt(s); });
 }
 
 void fpow_test()
