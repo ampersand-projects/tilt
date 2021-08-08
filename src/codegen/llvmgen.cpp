@@ -228,7 +228,7 @@ Value* LLVMGen::visit(const NaryExpr& e)
             }
         }
         case MathOp::NEG: {
-            if (e.arg(0)->type.dtype.is_float()) {
+            if (e.type.dtype.is_float()) {
                 return builder()->CreateFNeg(eval(e.arg(0)));
             } else {
                 return builder()->CreateNeg(eval(e.arg(0)));
