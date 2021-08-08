@@ -11,6 +11,9 @@ TEST(MathOpTests, FMaxOpTest) { fmax_test(); }
 TEST(MathOpTests, IMinOpTest) { imin_test(); }
 TEST(MathOpTests, UMinOpTest) { umin_test(); }
 TEST(MathOpTests, FMinOpTest) { fmin_test(); }
+TEST(MathOpTests, INegOpTest) { ineg_test(); }
+TEST(MathOpTests, FNegOpTest) { fneg_test(); }
+TEST(MathOpTests, DNegOpTest) { dneg_test(); }
 TEST(MathOpTests, FSqrtOpTest) { fsqrt_test(); }
 TEST(MathOpTests, DSqrtOpTest) { dsqrt_test(); }
 TEST(MathOpTests, FPowOPTest) { fpow_test(); }

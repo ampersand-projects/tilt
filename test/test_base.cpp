@@ -193,6 +193,27 @@ void fmin_test()
         [] (float s) { return std::min(s, 10.0f); });
 }
 
+void ineg_test()
+{
+    select_test<int32_t, int32_t>(
+        [] (Expr s) { return _neg(s); },
+        [] (int32_t s) { return -s; });
+}
+
+void fneg_test()
+{
+    select_test<float, float>(
+        [] (Expr s) { return _neg(s); },
+        [] (float s) { return -s; });
+}
+
+void dneg_test()
+{
+    select_test<double, double>(
+        [] (Expr s) { return _neg(s); },
+        [] (double s) { return -s; });
+}
+
 void fsqrt_test()
 {
     select_test<float, float>(

@@ -190,6 +190,21 @@ struct MakeRegion : public ExprNode {
     void Accept(Visitor&) const final;
 };
 
+struct IfElse : public ExprNode {
+    Expr cond;
+    Expr true_body;
+    Expr false_body;
+
+    IfElse(Expr cond, Expr true_body, Expr false_body) :
+        ExprNode(true_body->type), cond(cond), true_body(true_body), false_body(false_body)
+    {
+        ASSERT(cond->type.dtype == types::BOOL);
+        ASSERT(true_body->type.dtype == false_body->type.dtype);
+    }
+
+    void Accept(Visitor&) const final;
+};
+
 struct Loop : public FuncNode {
     // Loop counter
     Timer t;
