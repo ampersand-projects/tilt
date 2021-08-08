@@ -266,7 +266,7 @@ int main(int argc, char** argv)
     auto in_tl = new ival_t[dlen];
     auto in_data = new float[dlen];
     region_t in_reg;
-    init_region(&in_reg, 0, in_tl, reinterpret_cast<char*>(in_data));
+    init_region(&in_reg, 0, get_buf_size(dlen), in_tl, reinterpret_cast<char*>(in_data));
     for (int i = 0; i < dlen; i++) {
         auto t = dur*i;
         in_reg.et = t;
@@ -278,8 +278,9 @@ int main(int argc, char** argv)
     auto out_tl = new ival_t[dlen];
     auto out_data = new float[dlen];
     region_t out_reg;
-    init_region(&out_reg, 0, out_tl, reinterpret_cast<char*>(out_data));
+    init_region(&out_reg, 0, get_buf_size(dlen), out_tl, reinterpret_cast<char*>(out_data));
 
+    cout << "Query execution: " << endl;
     auto start_time = high_resolution_clock::now();
     auto* res_reg = loop_addr(0, dur*dlen, &out_reg, &in_reg);
     auto end_time = high_resolution_clock::now();

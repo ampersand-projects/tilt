@@ -26,8 +26,6 @@ void run_op(Op op, ts_t st, ts_t et, region_t* out_reg, region_t* in_reg)
 
     auto loop_addr = (region_t* (*)(ts_t, ts_t, region_t*, region_t*)) jit->Lookup(loop->get_name());
 
-    init_region(out_reg, st, out_reg->tl, out_reg->data);
-
     loop_addr(st, et, out_reg, in_reg);
 }
 
@@ -42,24 +40,22 @@ void op_test(Op op, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
     auto out_et = true_out[input.size() - 1].et;
 
     region_t in_reg;
-    in_reg.st = in_st;
-    in_reg.si = 0;
-    in_reg.et = in_et;
-    in_reg.et = static_cast<idx_t>(input.size() - 1);
     auto in_tl = vector<ival_t>(input.size());
     auto in_data = vector<InTy>(input.size());
+    auto in_data_ptr = reinterpret_cast<char*>(in_data.data());
+    init_region(&in_reg, in_st, get_buf_size(input.size()), in_tl.data(), in_data_ptr);
     for (size_t i = 0; i < input.size(); i++) {
-        in_tl[i] = {input[i].st, static_cast<dur_t>(input[i].et - input[i].st)};
-        in_data[i] = input[i].payload;
+        in_reg.et = input[i].et;
+        in_reg.ei++;
+        in_tl[in_reg.ei] = {input[i].st, static_cast<dur_t>(input[i].et - input[i].st)};
+        in_data[in_reg.ei] = input[i].payload;
     }
-    in_reg.tl = in_tl.data();
-    in_reg.data = reinterpret_cast<char*>(in_data.data());
 
     region_t out_reg;
     auto out_tl = vector<ival_t>(true_out.size());
     auto out_data = vector<OutTy>(true_out.size());
-    out_reg.tl = out_tl.data();
-    out_reg.data = reinterpret_cast<char*>(out_data.data());
+    auto out_data_ptr = reinterpret_cast<char*>(out_data.data());
+    init_region(&out_reg, out_st, get_buf_size(true_out.size()), out_tl.data(), out_data_ptr);
 
     run_op(op, out_st, out_et, &out_reg, &in_reg);
 

@@ -230,6 +230,7 @@ struct region_t {
     idx_t si;
     ts_t et;
     idx_t ei;
+    uint32_t mask;
     ival_t* tl;
     char* data;
 };
