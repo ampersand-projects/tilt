@@ -344,6 +344,6 @@ void iabs_test()
 void sitofp_test()
 {
     select_test<int32_t, float>(
-        [] (Expr s) { return _cast(DataType(BaseType::FLOAT32, {BaseType::FLOAT32}), s)},
-        [] (int32_t s) { return static_cast<float>(s)});
+        [] (Expr s) { return _cast(DataType(BaseType::FLOAT32), s);},
+        [] (int32_t s) { return static_cast<float>(s);});
 }
