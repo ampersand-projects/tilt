@@ -202,7 +202,7 @@ Value* LLVMGen::visit(const Cast& e)
             return builder()->CreateCast(Instruction::IntToPtr, eval(e.arg), lltype(e.type.dtype));
         }
         else {
-            throw std::runtime_error("Invalid cast operation"); break;
+            throw std::runtime_error("Invalid cast operation");
         }
     }
     else if (input_type.is_float()){
@@ -213,7 +213,7 @@ Value* LLVMGen::visit(const Cast& e)
             return builder()->CreateCast(Instruction::FPToUI, eval(e.arg), lltype(e.type.dtype));
         }
         else {
-            throw std::runtime_error("Invalid cast operation"); break;
+            throw std::runtime_error("Invalid cast operation");
         }
     }
     else if (input_type.is_ptr()){
@@ -221,11 +221,11 @@ Value* LLVMGen::visit(const Cast& e)
             return builder()->CreateCast(Instruction::PtrToInt, eval(e.arg), lltype(e.type.dtype));
         }
         else {
-            throw std::runtime_error("Invalid cast operation"); break;
+            throw std::runtime_error("Invalid cast operation");
         }
     }
     else{
-        throw std::runtime_error("Invalid cast operation"); break;
+        throw std::runtime_error("Invalid cast operation");
     }
 }
 
