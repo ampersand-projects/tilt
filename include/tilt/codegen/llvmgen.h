@@ -51,6 +51,7 @@ private:
     llvm::Value* visit(const New&) final;
     llvm::Value* visit(const Exists&) final;
     llvm::Value* visit(const ConstNode&) final;
+    llvm::Value* visit(const Cast&) final;
     llvm::Value* visit(const NaryExpr&) final;
     llvm::Value* visit(const SubLStream&) final { throw std::runtime_error("Invalid expression"); }
     llvm::Value* visit(const Element&) final { throw std::runtime_error("Invalid expression"); }

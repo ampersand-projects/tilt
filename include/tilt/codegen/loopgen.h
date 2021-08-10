@@ -44,6 +44,7 @@ private:
     Expr visit(const New&) final;
     Expr visit(const Exists&) final;
     Expr visit(const ConstNode&) final;
+    Expr visit(const Cast&) final;
     Expr visit(const NaryExpr&) final;
     Expr visit(const SubLStream&) final;
     Expr visit(const Element&) final;

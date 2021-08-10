@@ -53,6 +53,11 @@ void IRPrinter::Visit(const ConstNode& cnst)
     }
 }
 
+void IRPrinter::Visit(const Cast& e)
+{
+    emitfunc("cast", {e.arg(0)});
+}
+
 void IRPrinter::Visit(const NaryExpr& e)
 {
     switch (e.op) {

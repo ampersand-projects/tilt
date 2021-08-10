@@ -44,6 +44,7 @@ public:
     void Visit(const New&) override;
     void Visit(const Exists&) override;
     void Visit(const ConstNode&) override;
+    void Visit(const Cast&) override;
     void Visit(const NaryExpr&) override;
     void Visit(const SubLStream&) override;
     void Visit(const Element&) override;

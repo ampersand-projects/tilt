@@ -43,6 +43,9 @@ REGISTER_TILDER(_lte, LessThanEqual)
 REGISTER_TILDER(_gt, GreaterThan)
 REGISTER_TILDER(_gte, GreaterThanEqual)
 
+//Cast expression
+REGISTER_TILDER(_cast, Cast)
+
 // Logical expressions
 REGISTER_TILDER(_exists, Exists)
 REGISTER_TILDER(_not, Not)
