@@ -45,6 +45,7 @@ protected:
     virtual OutExprTy visit(const New&) = 0;
     virtual OutExprTy visit(const Exists&) = 0;
     virtual OutExprTy visit(const ConstNode&) = 0;
+    virtual OutExprTy visit(const Cast&) = 0;
     virtual OutExprTy visit(const NaryExpr&) = 0;
     virtual OutExprTy visit(const SubLStream&) = 0;
     virtual OutExprTy visit(const Element&) = 0;
