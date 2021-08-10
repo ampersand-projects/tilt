@@ -14,6 +14,7 @@ void Get::Accept(Visitor& v) const { v.Visit(*this); }
 void New::Accept(Visitor& v) const { v.Visit(*this); }
 void Exists::Accept(Visitor& v) const { v.Visit(*this); }
 void ConstNode::Accept(Visitor& v) const { v.Visit(*this); }
+void Cast::Accept(Visitor& v) const { v.Visit(*this); }
 void NaryExpr::Accept(Visitor& v) const { v.Visit(*this); }
 void SubLStream::Accept(Visitor& v) const { v.Visit(*this); }
 void Element::Accept(Visitor& v) const { v.Visit(*this); }
