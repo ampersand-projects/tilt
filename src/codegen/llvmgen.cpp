@@ -189,17 +189,17 @@ Value* LLVMGen::visit(const ConstNode& cnst)
 
 Value* LLVMGen::visit(const Cast& e)
 {
-    DataType input_type = e.arg(0)->type.dtype;
+    DataType input_type = e.arg->type.dtype;
 
     if (input_type.is_int()){
         if (e.type.dtype.is_float() && input_type.is_signed()){
-            return builder()->CreateCast(Instruction::SIToFP, eval(e.arg(0)), lltype(e.type.dtype));
+            return builder()->CreateCast(Instruction::SIToFP, eval(e.arg), lltype(e.type.dtype));
         }
         else if (e.type.dtype.is_float() && !input_type.is_signed()){
-            return builder()->CreateCast(Instruction::UIToFP, eval(e.arg(0)), lltype(e.type.dtype));
+            return builder()->CreateCast(Instruction::UIToFP, eval(e.arg), lltype(e.type.dtype));
         }
         else if (e.type.dtype.is_ptr()){
-            return builder()->CreateCast(Instruction::IntToPtr, eval(e.arg(0)), lltype(e.type.dtype));
+            return builder()->CreateCast(Instruction::IntToPtr, eval(e.arg), lltype(e.type.dtype));
         }
         else {
             throw std::runtime_error("Invalid cast operation"); break;
@@ -207,10 +207,10 @@ Value* LLVMGen::visit(const Cast& e)
     }
     else if (input_type.is_float()){
         if (e.type.dtype.is_int() && e.type.dtype.is_signed()){
-            return builder()->CreateCast(Instruction::FPToSI, eval(e.arg(0)), lltype(e.type.dtype));
+            return builder()->CreateCast(Instruction::FPToSI, eval(e.arg), lltype(e.type.dtype));
         }
         else if (e.type.dtype.is_int() && !e.type.dtype.is_signed()){
-            return builder()->CreateCast(Instruction::FPToUI, eval(e.arg(0)), lltype(e.type.dtype));
+            return builder()->CreateCast(Instruction::FPToUI, eval(e.arg), lltype(e.type.dtype));
         }
         else {
             throw std::runtime_error("Invalid cast operation"); break;
@@ -218,7 +218,7 @@ Value* LLVMGen::visit(const Cast& e)
     }
     else if (input_type.is_ptr()){
         if (e.type.dtype.is_int()){
-            return builder()->CreateCast(Instruction::PtrToInt, eval(e.arg(0)), lltype(e.type.dtype));
+            return builder()->CreateCast(Instruction::PtrToInt, eval(e.arg), lltype(e.type.dtype));
         }
         else {
             throw std::runtime_error("Invalid cast operation"); break;
