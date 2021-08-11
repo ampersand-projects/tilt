@@ -340,3 +340,10 @@ void iabs_test()
         [] (Expr s) { return _abs(s); },
         [] (int32_t s) { return std::abs(s); });
 }
+
+void sitofp_test()
+{
+    select_test<int32_t, float>(
+        [] (Expr s) { return _cast(DataType(BaseType::FLOAT32), s);},
+        [] (int32_t s) { return static_cast<float>(s);});
+}

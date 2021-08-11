@@ -101,6 +101,14 @@ struct Exists : public ValNode {
     void Accept(Visitor&) const final;
 };
 
+struct Cast : public ValNode {
+    Expr arg;
+
+    Cast(DataType dtype, Expr arg) : ValNode(dtype), arg(arg) {}
+
+    void Accept(Visitor&) const final;
+};
+
 struct NaryExpr : public ValNode {
     MathOp op;
     vector<Expr> args;

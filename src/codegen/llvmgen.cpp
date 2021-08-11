@@ -3,6 +3,7 @@
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/DataLayout.h"
+#include "llvm/IR/InstrTypes.h"
 
 using namespace tilt;
 using namespace llvm;
@@ -186,6 +187,13 @@ Value* LLVMGen::visit(const ConstNode& cnst)
         default: throw std::runtime_error("Invalid constant type"); break;
     }
 }
+
+Value* LLVMGen::visit(const Cast& e)
+{
+    auto input = e.arg;
+    auto op = CastInst::getCastOpcode(eval(input), input->type.dtype.is_signed(), lltype(e), e.type.dtype.is_signed());
+    return builder()->CreateCast(op, eval(input), lltype(e));
+    }
 
 Value* LLVMGen::visit(const NaryExpr& e)
 {

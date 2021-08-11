@@ -53,6 +53,22 @@ void IRPrinter::Visit(const ConstNode& cnst)
     }
 }
 
+void IRPrinter::Visit(const Cast& e)
+{
+    string destty;
+    if (e.type.dtype.is_int()) {
+        if (e.type.dtype.is_signed()) {
+            destty = "sint";
+        } else {
+            destty = "uint";
+        }
+    } else if (e.type.dtype.is_float()) {
+        destty = "float";
+    }
+
+    emitcast(destty, e.arg);
+}
+
 void IRPrinter::Visit(const NaryExpr& e)
 {
     switch (e.op) {

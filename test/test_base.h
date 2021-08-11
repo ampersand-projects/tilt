@@ -72,4 +72,7 @@ void fabs_test();
 void dabs_test();
 void iabs_test();
 
+// Cast op test
+void sitofp_test();
+
 #endif  // TEST_TEST_BASE_H_
