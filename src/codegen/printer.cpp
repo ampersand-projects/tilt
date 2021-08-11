@@ -55,7 +55,19 @@ void IRPrinter::Visit(const ConstNode& cnst)
 
 void IRPrinter::Visit(const Cast& e)
 {
-    emitfunc("cast", {e.arg});
+    if (e.type.dtype.is_int()) {
+        if (e.type.dtype.is_signed()) {
+            emitfunc("cast_to_sint", {e.arg});
+        }
+        else {
+            emitfunc("cast_to_uint", {e.arg});
+        }   
+    }
+
+    else if (e.type.dtype.is_float()) {
+        emitfunc("cast_to_float", {e.arg});
+    }
+    
 }
 
 void IRPrinter::Visit(const NaryExpr& e)

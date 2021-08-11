@@ -101,7 +101,7 @@ struct Exists : public ValNode {
     void Accept(Visitor&) const final;
 };
 
-struct Cast : public ValNode{
+struct Cast : public ValNode {
     Expr arg;
 
     Cast(DataType dtype, Expr arg) : ValNode(dtype), arg(arg) {}

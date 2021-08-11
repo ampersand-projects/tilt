@@ -71,7 +71,7 @@ protected:
     void Visit(const New& expr) final { val() = visit(expr); }
     void Visit(const Exists& expr) final { val() = visit(expr); }
     void Visit(const ConstNode& expr) final { val() = visit(expr); }
-    void Visit(const Cast& expr) final {val() = visit(expr); }
+    void Visit(const Cast& expr) final { val() = visit(expr); }
     void Visit(const NaryExpr& expr) final { val() = visit(expr); }
     void Visit(const SubLStream& expr) final { val() = visit(expr); }
     void Visit(const Element& expr) final { val() = visit(expr); }

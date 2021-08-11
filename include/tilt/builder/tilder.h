@@ -43,9 +43,6 @@ REGISTER_TILDER(_lte, LessThanEqual)
 REGISTER_TILDER(_gt, GreaterThan)
 REGISTER_TILDER(_gte, GreaterThanEqual)
 
-//Cast expression
-REGISTER_TILDER(_cast, Cast)
-
 // Logical expressions
 REGISTER_TILDER(_exists, Exists)
 REGISTER_TILDER(_not, Not)
@@ -69,6 +66,7 @@ REGISTER_TILDER(_new, New)
 REGISTER_TILDER(_ifelse, IfElse)
 REGISTER_TILDER(_sel, Select)
 REGISTER_TILDER(_agg, AggNode)
+REGISTER_TILDER(_cast, Cast)
 
 // Loop IR expressions
 REGISTER_TILDER(_time, Time)

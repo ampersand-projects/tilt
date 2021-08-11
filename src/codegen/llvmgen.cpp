@@ -3,6 +3,7 @@
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/DataLayout.h"
+#include "llvm/IR/InstrTypes.h"
 
 using namespace tilt;
 using namespace llvm;
@@ -188,46 +189,10 @@ Value* LLVMGen::visit(const ConstNode& cnst)
 }
 
 Value* LLVMGen::visit(const Cast& e)
-{
-    DataType input_type = e.arg->type.dtype;
-
-    if (input_type.is_int()){
-        if (e.type.dtype.is_float() && input_type.is_signed()){
-            return builder()->CreateCast(Instruction::SIToFP, eval(e.arg), lltype(e.type.dtype));
-        }
-        else if (e.type.dtype.is_float() && !input_type.is_signed()){
-            return builder()->CreateCast(Instruction::UIToFP, eval(e.arg), lltype(e.type.dtype));
-        }
-        else if (e.type.dtype.is_ptr()){
-            return builder()->CreateCast(Instruction::IntToPtr, eval(e.arg), lltype(e.type.dtype));
-        }
-        else {
-            throw std::runtime_error("Invalid cast operation");
-        }
+{  
+    Instruction::CastOps op = CastInst::getCastOpcode(eval(e.arg), e.arg->type.dtype;.is_signed(), lltype(e.type.dtype), e.type.dtype.is_signed());
+    return builder()->CreateCast(op, eval(e.arg), lltype(e.type.dtype));
     }
-    else if (input_type.is_float()){
-        if (e.type.dtype.is_int() && e.type.dtype.is_signed()){
-            return builder()->CreateCast(Instruction::FPToSI, eval(e.arg), lltype(e.type.dtype));
-        }
-        else if (e.type.dtype.is_int() && !e.type.dtype.is_signed()){
-            return builder()->CreateCast(Instruction::FPToUI, eval(e.arg), lltype(e.type.dtype));
-        }
-        else {
-            throw std::runtime_error("Invalid cast operation");
-        }
-    }
-    else if (input_type.is_ptr()){
-        if (e.type.dtype.is_int()){
-            return builder()->CreateCast(Instruction::PtrToInt, eval(e.arg), lltype(e.type.dtype));
-        }
-        else {
-            throw std::runtime_error("Invalid cast operation");
-        }
-    }
-    else{
-        throw std::runtime_error("Invalid cast operation");
-    }
-}
 
 Value* LLVMGen::visit(const NaryExpr& e)
 {
