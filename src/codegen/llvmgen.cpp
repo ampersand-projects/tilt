@@ -190,7 +190,7 @@ Value* LLVMGen::visit(const ConstNode& cnst)
 
 Value* LLVMGen::visit(const Cast& e)
 {  
-    Instruction::CastOps op = CastInst::getCastOpcode(eval(e.arg), e.arg->type.dtype;.is_signed(), lltype(e.type.dtype), e.type.dtype.is_signed());
+    Instruction::CastOps op = CastInst::getCastOpcode(eval(e.arg), e.arg->type.dtype.is_signed(), lltype(e.type.dtype), e.type.dtype.is_signed());
     return builder()->CreateCast(op, eval(e.arg), lltype(e.type.dtype));
     }
 
