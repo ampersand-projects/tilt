@@ -38,7 +38,7 @@ struct Symbol : public ExprNode {
 
     Symbol(string name, Type type) : ExprNode(type), name(name) {}
 
-    void Accept(Visitor&) const final;
+    void Accept(Visitor&) const override;
 };
 
 struct FuncNode : public ExprNode {

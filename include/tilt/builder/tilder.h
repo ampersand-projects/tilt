@@ -26,6 +26,7 @@ struct _tilder : public shared_ptr<T> {
 
 // Symbol
 REGISTER_TILDER(_sym, Symbol)
+REGISTER_TILDER(_out, Out)
 
 // Arithmetic expressions
 REGISTER_TILDER(_add, Add)

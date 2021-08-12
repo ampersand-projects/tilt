@@ -116,6 +116,13 @@ void LoopGen::build_loop()
 
 Expr LoopGen::visit(const Symbol& symbol) { return get_sym(symbol); }
 
+Expr LoopGen::visit(const Out& out)
+{
+    auto out_reg = ctx().loop->inputs[2];
+    set_sym(out, out_reg);
+    return out_reg;
+}
+
 Expr LoopGen::visit(const IfElse& ifelse)
 {
     auto cond = eval(ifelse.cond);

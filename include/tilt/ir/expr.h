@@ -15,6 +15,12 @@ using namespace std;
 
 namespace tilt {
 
+struct Out : public Symbol {
+    explicit Out(Type type) : Symbol("", move(type)) {}
+
+    void Accept(Visitor&) const final;
+};
+
 struct Call : public ExprNode {
     string name;
     vector<Expr> args;

@@ -59,6 +59,7 @@ region_t* init_region(region_t* reg, ts_t t, uint32_t size, ival_t* tl, char* da
     reg->et = t;
     reg->ei = -1;
     reg->mask = size - 1;
+    tl[0] = {t, 0};
     reg->tl = tl;
     reg->data = data;
     return reg;

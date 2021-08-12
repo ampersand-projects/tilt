@@ -44,6 +44,7 @@ public:
 
 private:
     llvm::Value* visit(const Symbol&) final;
+    llvm::Value* visit(const Out&) final { throw std::runtime_error("Invalid expression"); }
     llvm::Value* visit(const Call&) final;
     llvm::Value* visit(const IfElse&) final;
     llvm::Value* visit(const Select&) final;

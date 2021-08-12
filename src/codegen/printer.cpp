@@ -28,6 +28,8 @@ void IRPrinter::Visit(const Symbol& sym)
     ostr << sym.name;
 }
 
+void IRPrinter::Visit(const Out& out) { Visit(static_cast<Symbol>(out)); }
+
 void IRPrinter::Visit(const Exists& exists)
 {
     emitunary(EXISTS, exists.expr);

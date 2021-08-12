@@ -14,6 +14,7 @@ public:
      * TiLT IR
      */
     virtual void Visit(const Symbol&) = 0;
+    virtual void Visit(const Out&) = 0;
     virtual void Visit(const Call&) = 0;
     virtual void Visit(const Read&) = 0;
     virtual void Visit(const IfElse&) = 0;

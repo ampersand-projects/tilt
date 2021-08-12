@@ -36,6 +36,7 @@ private:
     void build_loop();
 
     Expr visit(const Symbol&) final;
+    Expr visit(const Out&) final;
     Expr visit(const Call&) final;
     Expr visit(const IfElse&) final;
     Expr visit(const Select&) final;
