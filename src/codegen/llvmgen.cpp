@@ -220,11 +220,56 @@ Value* LLVMGen::visit(const NaryExpr& e)
                 return builder()->CreateUDiv(eval(e.arg(0)), eval(e.arg(1)));
             }
         }
+        case MathOp::MAX: {
+            auto left = eval(e.arg(0));
+            auto right = eval(e.arg(1));
+
+            Value* cond;
+            if (e.type.dtype.is_float()) {
+                cond = builder()->CreateFCmpOGE(left, right);
+            } else if (e.type.dtype.is_signed()) {
+                cond = builder()->CreateICmpSGE(left, right);
+            } else {
+                cond = builder()->CreateICmpUGE(left, right);
+            }
+            return builder()->CreateSelect(cond, left, right);
+        }
+        case MathOp::MIN: {
+            auto left = eval(e.arg(0));
+            auto right = eval(e.arg(1));
+
+            Value* cond;
+            if (e.type.dtype.is_float()) {
+                cond = builder()->CreateFCmpOLE(left, right);
+            } else if (e.type.dtype.is_signed()) {
+                cond = builder()->CreateICmpSLE(left, right);
+            } else {
+                cond = builder()->CreateICmpULE(left, right);
+            }
+            return builder()->CreateSelect(cond, left, right);
+        }
         case MathOp::MOD: {
             if (e.type.dtype.is_signed()) {
                 return builder()->CreateSRem(eval(e.arg(0)), eval(e.arg(1)));
             } else {
                 return builder()->CreateURem(eval(e.arg(0)), eval(e.arg(1)));
+            }
+        }
+        case MathOp::ABS: {
+            auto input = eval(e.arg(0));
+
+            if (e.type.dtype.is_float()) {
+                return builder()->CreateIntrinsic(Intrinsic::fabs, {lltype(e.arg(0))}, {input});
+            } else {
+                auto neg = builder()->CreateNeg(input);
+
+                Value* cond;
+                if (e.type.dtype.is_signed()) {
+                    cond = builder()->CreateICmpSGE(input, ConstantInt::get(lltype(types::INT32), 0));
+                } else {
+                    cond = builder()->CreateICmpUGE(input, ConstantInt::get(lltype(types::UINT32), 0));
+                }
+                return builder()->CreateSelect(cond, input, neg);
             }
         }
         case MathOp::NEG: {

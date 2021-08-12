@@ -32,6 +32,9 @@ REGISTER_TILDER(_add, Add)
 REGISTER_TILDER(_sub, Sub)
 REGISTER_TILDER(_mul, Mul)
 REGISTER_TILDER(_div, Div)
+REGISTER_TILDER(_max, Max)
+REGISTER_TILDER(_min, Min)
+REGISTER_TILDER(_abs, Abs)
 REGISTER_TILDER(_neg, Neg)
 REGISTER_TILDER(_mod, Mod)
 REGISTER_TILDER(_sqrt, Sqrt)
@@ -101,10 +104,6 @@ Const _ts(ts_t);
 Const _idx(idx_t);
 Const _true();
 Const _false();
-
-Expr _abs(Expr);
-Expr _max(Expr, Expr);
-Expr _min(Expr, Expr);
 
 using _iter = Iter;
 using _pt = Point;

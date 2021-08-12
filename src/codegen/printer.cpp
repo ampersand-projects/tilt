@@ -60,7 +60,10 @@ void IRPrinter::Visit(const NaryExpr& e)
         case MathOp::SUB: emitbinary(e.arg(0), "-", e.arg(1)); break;
         case MathOp::MUL: emitbinary(e.arg(0), "*", e.arg(1)); break;
         case MathOp::DIV: emitbinary(e.arg(0), "/", e.arg(1)); break;
+        case MathOp::MAX: emitfunc("max", {e.arg(0), e.arg(1)}); break;
+        case MathOp::MIN: emitfunc("max", {e.arg(0), e.arg(1)}); break;
         case MathOp::MOD: emitbinary(e.arg(0), "%", e.arg(1)); break;
+        case MathOp::ABS: ostr << "|"; e.arg(0)->Accept(*this); ostr << "|"; break;
         case MathOp::NEG: emitunary("-", {e.arg(0)}); break;
         case MathOp::SQRT: emitfunc("sqrt", {e.arg(0)}); break;
         case MathOp::POW: emitfunc("pow", {e.arg(0), e.arg(1)}); break;

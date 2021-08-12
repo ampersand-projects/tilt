@@ -139,6 +139,10 @@ struct Not : public UnaryExpr {
     }
 };
 
+struct Abs : public UnaryExpr {
+    explicit Abs(Expr a) : UnaryExpr(a->type.dtype, MathOp::ABS, a) {}
+};
+
 struct Neg : public UnaryExpr {
     explicit Neg(Expr a) : UnaryExpr(a->type.dtype, MathOp::NEG, a) {}
 };
@@ -207,6 +211,14 @@ struct Mul : public BinaryExpr {
 
 struct Div : public BinaryExpr {
     Div(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::DIV, a, b) {}
+};
+
+struct Max : public BinaryExpr {
+    Max(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MAX, a, b) {}
+};
+
+struct Min : public BinaryExpr {
+    Min(Expr a, Expr b) : BinaryExpr(a->type.dtype, MathOp::MIN, a, b) {}
 };
 
 struct Mod : public BinaryExpr {
