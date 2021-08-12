@@ -30,3 +30,9 @@ TEST(MathOpTests, DFloorOPTest) { dfloor_test(); }
 TEST(MathOpTests, FAbsOPTest) { fabs_test(); }
 TEST(MathOpTests, DAbsOPTest) { dabs_test(); }
 TEST(MathOpTests, IAbsOPTest) { iabs_test(); }
+TEST(CastOpTests, SIToFPTest) { sitofp_test(); }
+TEST(CastOpTests, UIToFPTest) { uitofp_test(); }
+TEST(CastOpTests, FPToSITest) { fptosi_test(); }
+TEST(CastOpTests, FPToUITest) { fptoui_test(); }
+TEST(CastOpTests, Int8ToInt32Test) { int8toint32_test(); }
+

@@ -159,6 +159,8 @@ Expr LoopGen::visit(const Get& get) { return _get(eval(get.input), get.n); }
 
 Expr LoopGen::visit(const ConstNode& cnst) { return _const(cnst); }
 
+Expr LoopGen::visit(const Cast& e) { return _cast(e.type.dtype, eval(e.arg)); }
+
 Expr LoopGen::visit(const NaryExpr& e)
 {
     vector<Expr> args;

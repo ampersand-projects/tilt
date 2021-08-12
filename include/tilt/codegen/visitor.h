@@ -22,6 +22,7 @@ public:
     virtual void Visit(const New&) = 0;
     virtual void Visit(const Exists&) = 0;
     virtual void Visit(const ConstNode&) = 0;
+    virtual void Visit(const Cast&) = 0;
     virtual void Visit(const NaryExpr&) = 0;
     virtual void Visit(const SubLStream&) = 0;
     virtual void Visit(const Element&) = 0;

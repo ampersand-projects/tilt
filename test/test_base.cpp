@@ -340,3 +340,39 @@ void iabs_test()
         [] (Expr s) { return _abs(s); },
         [] (int32_t s) { return std::abs(s); });
 }
+
+void sitofp_test()
+{
+    select_test<int32_t, float>(
+        [] (Expr s) { return _cast(types::FLOAT32, s); },
+        [] (int32_t s) { return static_cast<float>(s); });
+}
+
+void uitofp_test()
+{
+    select_test<uint32_t, float>(
+        [] (Expr s) { return _cast(types::FLOAT32, s); },
+        [] (uint32_t s) { return static_cast<float>(s); });
+}
+
+void fptosi_test()
+{
+    select_test<float, int32_t>(
+        [] (Expr s) { return _cast(types::INT32, s); },
+        [] (float s) { return static_cast<int32_t>(s); });
+}
+
+void fptoui_test()
+{
+    select_test<float, uint32_t>(
+        [] (Expr s) { return _cast(types::UINT32, s); },
+        [] (float s) { return static_cast<uint32_t>(s); });
+}
+
+void int8toint32_test()
+{
+    select_test<int8_t, int32_t>(
+        [] (Expr s) { return _cast(types::INT32, s); },
+        [] (int8_t s) { return static_cast<int32_t>(s); });
+}
+

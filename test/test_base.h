@@ -72,4 +72,11 @@ void fabs_test();
 void dabs_test();
 void iabs_test();
 
+// Cast op test
+void sitofp_test();
+void uitofp_test();
+void fptosi_test();
+void fptoui_test();
+void int8toint32_test();
+
 #endif  // TEST_TEST_BASE_H_

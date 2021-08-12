@@ -45,6 +45,7 @@ protected:
     virtual OutExprTy visit(const New&) = 0;
     virtual OutExprTy visit(const Exists&) = 0;
     virtual OutExprTy visit(const ConstNode&) = 0;
+    virtual OutExprTy visit(const Cast&) = 0;
     virtual OutExprTy visit(const NaryExpr&) = 0;
     virtual OutExprTy visit(const SubLStream&) = 0;
     virtual OutExprTy visit(const Element&) = 0;
@@ -70,6 +71,7 @@ protected:
     void Visit(const New& expr) final { val() = visit(expr); }
     void Visit(const Exists& expr) final { val() = visit(expr); }
     void Visit(const ConstNode& expr) final { val() = visit(expr); }
+    void Visit(const Cast& expr) final { val() = visit(expr); }
     void Visit(const NaryExpr& expr) final { val() = visit(expr); }
     void Visit(const SubLStream& expr) final { val() = visit(expr); }
     void Visit(const Element& expr) final { val() = visit(expr); }
