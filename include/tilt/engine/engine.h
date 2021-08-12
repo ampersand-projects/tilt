@@ -35,15 +35,19 @@ public:
         optimizer(es, compiler, optimize_module),
         dl(move(dl)), mangler(es, this->dl),
         ctx(make_unique<LLVMContext>()),
+        _llmod(make_unique<Module>("vinst", GetCtx())),
         jd(es.createBareJITDylib("__tilt_dylib"))
     {
         jd.addGenerator(cantFail(DynamicLibrarySearchGenerator::GetForCurrentProcess(dl.getGlobalPrefix())));
+        register_vinstrs();
     }
 
     static ExecEngine* Get();
     void AddModule(unique_ptr<Module>);
     LLVMContext& GetCtx();
+    Module* llmod() { return _llmod.get(); }
     intptr_t Lookup(StringRef);
+    void register_vinstrs();
 
 private:
     static Expected<ThreadSafeModule> optimize_module(ThreadSafeModule, const MaterializationResponsibility&);
@@ -56,6 +60,7 @@ private:
     DataLayout dl;
     MangleAndInterner mangler;
     ThreadSafeContext ctx;
+    unique_ptr<Module> _llmod;
 
     JITDylib& jd;
 };
