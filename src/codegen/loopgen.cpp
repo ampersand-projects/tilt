@@ -21,12 +21,12 @@ Indexer& LoopGen::create_idx(const Sym reg, const Point pt)
         auto idx = _index("i" + to_string(pt.offset) + "_" + reg->name);
 
         // Index initializer
-        assign(idx_base, _get_start_idx(reg));
+        set_expr(idx_base, _get_start_idx(reg));
 
         // Index updater
         auto time_expr = get_timer(pt);
         auto adv_expr = _adv(reg, idx_base, time_expr);
-        assign(idx, adv_expr);
+        set_expr(idx, adv_expr);
 
         pt_idx_map[pt] = idx;
         ctx().loop->idxs.push_back(idx);
@@ -51,12 +51,12 @@ void LoopGen::build_loop()
     for (auto& in : ctx().op->inputs) {
         auto in_reg = _sym(in->name, in->type);
         loop->inputs.push_back(in_reg);
-        sym(in) = in_reg;
+        set_sym(in, in_reg);
     }
 
     // Create loop counter
     auto t_base = _time("t_base");
-    assign(t_base, t_start);
+    set_expr(t_base, t_start);
     loop->t = _time("t");
     loop->state_bases[loop->t] = t_base;
 
@@ -65,7 +65,7 @@ void LoopGen::build_loop()
 
     // Create loop return value
     auto output_base = _reg("output_base", ctx().op->type);
-    assign(output_base, out_arg);
+    set_expr(output_base, out_arg);
     loop->output = _reg("output", ctx().op->type);
     loop->state_bases[loop->output] = output_base;
 
@@ -93,7 +93,7 @@ void LoopGen::build_loop()
     // Loop counter update expression
     auto t_period = _ts(ctx().op->iter.period);
     auto t_incr = _mul(_div(delta, t_period), t_period);
-    assign(loop->t, _min(t_end, _add(t_cur, t_incr)));
+    set_expr(loop->t, _min(t_end, _add(t_cur, t_incr)));
 
     // Update loop output:
     //      1. Outer loop returns the output region of the inner loop
@@ -102,7 +102,7 @@ void LoopGen::build_loop()
     if (out_expr->type.is_valtype()) {
         auto new_reg = _commit_data(output_base, loop->t);
         auto new_reg_sym = new_reg->sym("new_reg");
-        assign(new_reg_sym, new_reg);
+        set_expr(new_reg_sym, new_reg);
 
         auto idx = _get_end_idx(new_reg_sym);
         auto dptr = _fetch(new_reg_sym, loop->t, idx);
@@ -111,13 +111,10 @@ void LoopGen::build_loop()
         true_body = out_expr;
     }
     auto false_body = _commit_null(output_base, loop->t);
-    assign(loop->output, _ifelse(pred_expr, true_body, false_body));
+    set_expr(loop->output, _ifelse(pred_expr, true_body, false_body));
 }
 
-Expr LoopGen::visit(const Symbol& symbol)
-{
-    return sym(get_sym(symbol));
-}
+Expr LoopGen::visit(const Symbol& symbol) { return get_sym(symbol); }
 
 Expr LoopGen::visit(const IfElse& ifelse)
 {
@@ -172,7 +169,8 @@ Expr LoopGen::visit(const NaryExpr& e)
 
 Expr LoopGen::visit(const SubLStream& subls)
 {
-    auto& reg = sym(subls.lstream);
+    eval(subls.lstream);
+    auto& reg = get_sym(subls.lstream);
     auto st = get_timer(subls.win.start);
     auto& si = create_idx(reg, subls.win.start);
     auto et = get_timer(subls.win.end);
@@ -184,7 +182,8 @@ Expr LoopGen::visit(const Read& read) { return _read(eval(read.ptr)); }
 
 Expr LoopGen::visit(const Element& elem)
 {
-    auto& reg = sym(elem.lstream);
+    eval(elem.lstream);
+    auto& reg = get_sym(elem.lstream);
     auto time = get_timer(elem.pt);
     auto& idx = create_idx(reg, elem.pt);
     return _fetch(reg, time, idx);
@@ -220,7 +219,7 @@ Expr LoopGen::visit(const OpNode& op)
     } else {
         auto out_reg = _alloc_reg(op.type, size_expr, t_start);
         out_sym = out_reg->sym(ctx().sym->name + "_reg");
-        assign(out_sym, out_reg);
+        set_expr(out_sym, out_reg);
     }
 
     vector<Expr> args = {t_start, t_end, out_sym};
@@ -246,13 +245,13 @@ Expr LoopGen::visit(const AggNode& aggexpr)
     agg_loop->state_bases.erase(agg_loop->output);
 
     auto output_base = _sym("output_base", aggexpr.type);
-    assign(output_base, out_arg);
+    set_expr(output_base, out_arg);
     agg_loop->output = _sym("output", aggexpr.type);
     agg_loop->state_bases[agg_loop->output] = output_base;
-    auto acc_expr = eval(aggexpr.acc(output_base, sym(aggexpr.op->output)));
+    auto acc_expr = eval(aggexpr.acc(output_base, get_sym(aggexpr.op->output)));
     auto output_update = _ifelse(eval(aggexpr.op->pred), acc_expr, output_base);
     ASSERT(output_update->type == aggexpr.type);
-    assign(agg_loop->output, output_update);
+    set_expr(agg_loop->output, output_update);
 
     switch_ctx(old_ctx);
 

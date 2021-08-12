@@ -97,12 +97,7 @@ llvm::Type* LLVMGen::lltype(const Type& type)
     }
 }
 
-Value* LLVMGen::visit(const Symbol& symbol)
-{
-    auto sym_ptr = sym(get_sym(symbol));
-    auto& m = *(ctx().out_sym_tbl);
-    return m[sym_ptr];
-}
+Value* LLVMGen::visit(const Symbol& symbol) { return get_expr(get_sym(symbol)); }
 
 Value* LLVMGen::visit(const IfElse& ifelse)
 {
@@ -458,7 +453,7 @@ Value* LLVMGen::visit(const Loop& loop)
     auto loop_fn = llfunc(loop.get_name(), lltype(loop.output), args_type);
     for (size_t i = 0; i < loop.inputs.size(); i++) {
         auto input = loop.inputs[i];
-        assign(input, loop_fn->getArg(i));
+        set_expr(input, loop_fn->getArg(i));
     }
 
     // Initialization of loop states
@@ -475,7 +470,7 @@ Value* LLVMGen::visit(const Loop& loop)
     builder()->SetInsertPoint(header_bb);
     for (const auto& [base_sym, val] : base_inits) {
         auto base = builder()->CreatePHI(lltype(base_sym->type), 2, base_sym->name);
-        assign(base_sym, base);
+        set_expr(base_sym, base);
         base->addIncoming(val, preheader_bb);
     }
 

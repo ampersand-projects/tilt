@@ -95,20 +95,27 @@ protected:
 
     CtxTy& switch_ctx(CtxTy& new_ctx) { swap(new_ctx, irctx); return new_ctx; }
 
-    virtual void assign(const Sym& sym_ptr, OutExprTy val)
-    {
-        sym(sym_ptr) = sym_ptr;
-        auto& m = *(ctx().out_sym_tbl);
-        m[sym_ptr] = val;
-    }
-
-    Sym& sym(const Sym& in_sym) { return ctx().sym_map[in_sym]; }
-
-    Sym get_sym(const Symbol& symbol)
+    Sym tmp_sym(const Symbol& symbol)
     {
         shared_ptr<Symbol> tmp_sym(const_cast<Symbol*>(&symbol), [](Symbol*) {});
         return tmp_sym;
     }
+
+    OutExprTy get_expr(const Sym& sym) { auto& m = *(ctx().out_sym_tbl); return m.at(sym); }
+    OutExprTy get_expr(const Symbol& symbol) { return get_expr(tmp_sym(symbol)); }
+
+    virtual void set_expr(const Sym& sym, OutExprTy val)
+    {
+        set_sym(sym, sym);
+        auto& m = *(ctx().out_sym_tbl);
+        m[sym] = val;
+    }
+    void set_expr(const Symbol& symbol, OutExprTy val) { set_expr(tmp_sym(symbol), val); }
+
+    Sym& get_sym(const Sym& in_sym) { return ctx().sym_map.at(in_sym); }
+    Sym& get_sym(const Symbol& symbol) { return get_sym(tmp_sym(symbol)); }
+    void set_sym(const Sym& in_sym, const Sym out_sym) { ctx().sym_map[in_sym] = out_sym; }
+    void set_sym(const Symbol& in_symbol, const Sym out_sym) { set_sym(tmp_sym(in_symbol), out_sym); }
 
     OutExprTy& val() { return ctx().val; }
 
@@ -125,18 +132,18 @@ protected:
 
     void Visit(const Symbol& symbol) final
     {
-        auto tmp_sym = get_sym(symbol);
+        auto tmp = tmp_sym(symbol);
 
-        if (ctx().sym_map.find(tmp_sym) == ctx().sym_map.end()) {
-            auto expr = ctx().in_sym_tbl->at(tmp_sym);
+        if (ctx().sym_map.find(tmp) == ctx().sym_map.end()) {
+            auto expr = ctx().in_sym_tbl->at(tmp);
 
-            swap(ctx().sym, tmp_sym);
+            swap(ctx().sym, tmp);
             auto value = eval(expr);
-            swap(tmp_sym, ctx().sym);
+            swap(tmp, ctx().sym);
 
             auto sym_clone = tilder::_sym(symbol);
-            sym(tmp_sym) = sym_clone;
-            this->assign(sym_clone, value);
+            set_sym(tmp, sym_clone);
+            this->set_expr(sym_clone, value);
         }
 
         val() = visit(symbol);

@@ -70,9 +70,9 @@ private:
     llvm::Value* visit(const MakeRegion&) final;
     llvm::Value* visit(const Loop&) final;
 
-    void assign(const Sym& sym_ptr, llvm::Value* val) override
+    void set_expr(const Sym& sym_ptr, llvm::Value* val) override
     {
-        IRGen::assign(sym_ptr, val);
+        IRGen::set_expr(sym_ptr, val);
         val->setName(sym_ptr->name);
     }
 
