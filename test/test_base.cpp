@@ -369,3 +369,10 @@ void fptoui_test()
         [] (float s) { return static_cast<uint32_t>(s); });
 }
 
+void int8toint32_test()
+{
+    select_test<int8_t, int32_t>(
+        [] (Expr s) { return _cast(types::INT32, s); },
+        [] (int8_t s) { return static_cast<int32_t>(s); });
+}
+
