@@ -32,3 +32,6 @@ TEST(MathOpTests, DAbsOPTest) { dabs_test(); }
 TEST(MathOpTests, IAbsOPTest) { iabs_test(); }
 
 TEST(CastOpTests, SIToFPTest) { sitofp_test(); }
+TEST(CastOpTests, UIToFPTest) { uitofp_test(); }
+TEST(CastOpTests, FPToSITest) { fptosi_test(); }
+TEST(CastOpTests, FPToUITest) { fptoui_test(); }

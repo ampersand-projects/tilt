@@ -56,17 +56,22 @@ void IRPrinter::Visit(const ConstNode& cnst)
 void IRPrinter::Visit(const Cast& e)
 {
     string destty;
-    if (e.type.dtype.is_int()) {
-        if (e.type.dtype.is_signed()) {
-            destty = "sint";
-        } else {
-            destty = "uint";
-        }
-    } else if (e.type.dtype.is_float()) {
-        destty = "float";
+    switch (e.type.dtype.btype) {
+        case BaseType::INT8: destty = "INT8"; break;
+        case BaseType::INT16: destty = "INT16"; break;
+        case BaseType::INT32: destty = "INT32"; break;
+        case BaseType::INT64: destty = "INT64"; break;
+        case BaseType::UINT8: destty = "UINT8"; break;
+        case BaseType::UINT16: destty = "UINT16"; break;
+        case BaseType::UINT32: destty = "UINT32"; break;
+        case BaseType::UINT64: destty = "UINT64"; break;
+        case BaseType::FLOAT32: destty = "FLOAT32"; break;
+        case BaseType::FLOAT64: destty = "FLOAT64"; break;
+        default: throw std::runtime_error("Invalid destination type for cast"); break;
     }
 
-    emitcast(destty, e.arg);
+    ostr << "(" << destty << ") ";
+    e.arg->Accept(*this);
 }
 
 void IRPrinter::Visit(const NaryExpr& e)

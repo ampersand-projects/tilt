@@ -104,7 +104,10 @@ struct Exists : public ValNode {
 struct Cast : public ValNode {
     Expr arg;
 
-    Cast(DataType dtype, Expr arg) : ValNode(dtype), arg(arg) {}
+    Cast(DataType dtype, Expr arg) : ValNode(dtype), arg(arg)
+    {
+        ASSERT(!arg->type.dtype.is_struct() && !dtype.is_struct());
+    }
 
     void Accept(Visitor&) const final;
 };

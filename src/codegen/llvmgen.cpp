@@ -190,10 +190,11 @@ Value* LLVMGen::visit(const ConstNode& cnst)
 
 Value* LLVMGen::visit(const Cast& e)
 {
-    auto input = e.arg;
-    auto op = CastInst::getCastOpcode(eval(input), input->type.dtype.is_signed(), lltype(e), e.type.dtype.is_signed());
-    return builder()->CreateCast(op, eval(input), lltype(e));
-    }
+    auto input_val = eval(e.arg);
+    auto dest_type = lltype(e);
+    auto op = CastInst::getCastOpcode(input_val, e.arg->type.dtype.is_signed(), dest_type, e.type.dtype.is_signed());
+    return builder()->CreateCast(op, input_val, dest_type);
+}
 
 Value* LLVMGen::visit(const NaryExpr& e)
 {

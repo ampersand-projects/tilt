@@ -108,12 +108,6 @@ private:
         ostr << ")";
     }
 
-    void emitcast(const string destty, const Expr a)
-    {
-        ostr << "(" << destty << ") ";
-        a->Accept(*this);
-    }
-
     IRPrinterCtx ctx;
     size_t tabstop;
     ostringstream ostr;

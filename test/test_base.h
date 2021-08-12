@@ -74,5 +74,8 @@ void iabs_test();
 
 // Cast op test
 void sitofp_test();
+void uitofp_test();
+void fptosi_test();
+void fptoui_test();
 
 #endif  // TEST_TEST_BASE_H_
