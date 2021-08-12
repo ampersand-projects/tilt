@@ -234,15 +234,48 @@ Op Norm(Sym in, int64_t len)
     return query_op;
 }
 
+Op MovingSum(Sym in)
+{
+    auto e = _elem(in, _pt(0));
+    auto e_sym = e->sym("e");
+    auto e_val = _read(e_sym);
+    auto e_val_sym = e_val->sym("e_val");
+    auto p = _elem(in, _pt(-3));
+    auto p_sym = p->sym("p");
+    auto p_val = _ifelse(_exists(p_sym), _read(p_sym), _i32(0));
+    auto p_val_sym = p_val->sym("p_val");
+    auto o = _elem(_out(tilt::Type(types::INT32, _iter(0, -1))), _pt(-1));
+    auto o_sym = o->sym("o");
+    auto o_val = _ifelse(_exists(o_sym), _read(o_sym), _i32(0));
+    auto o_val_sym = o_val->sym("o_val");
+    auto res = _sub(_add(e_val_sym, o_val_sym), p_val_sym);
+    auto res_sym = res->sym("res");
+    auto sel_op = _op(
+        _iter(0, 1),
+        Params{in},
+        SymTable{
+            {e_sym, e},
+            {e_val_sym, e_val},
+            {p_sym, p},
+            {p_val_sym, p_val},
+            {o_sym, o},
+            {o_val_sym, o_val},
+            {res_sym, res},
+        },
+        _exists(e_sym),
+        res_sym);
+    return sel_op;
+}
+
 int main(int argc, char** argv)
 {
     int dlen = (argc > 1) ? atoi(argv[1]) : 30;
     int len = (argc > 2) ? atoi(argv[2]) : 10;
 
     // input stream
-    auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter("in")));
+    auto in_sym = _sym("in", tilt::Type(types::INT32, _iter("in")));
 
-    auto query_op = Norm(in_sym, len);
+    auto query_op = MovingSum(in_sym);
     auto query_op_sym = query_op->sym("query");
     cout << endl << "TiLT IR:" << endl;
     cout << IRPrinter::Build(query_op) << endl;
@@ -264,7 +297,7 @@ int main(int argc, char** argv)
     uint32_t dur = 1;
 
     auto in_tl = new ival_t[dlen];
-    auto in_data = new float[dlen];
+    auto in_data = new int[dlen];
     region_t in_reg;
     init_region(&in_reg, 0, get_buf_size(dlen), in_tl, reinterpret_cast<char*>(in_data));
     for (int i = 0; i < dlen; i++) {
@@ -272,11 +305,11 @@ int main(int argc, char** argv)
         in_reg.et = t;
         in_reg.ei++;
         in_tl[in_reg.ei] = {t, dur};
-        in_data[in_reg.ei] = i%1000;
+        in_data[in_reg.ei] = i%1000 + 5;
     }
 
     auto out_tl = new ival_t[dlen];
-    auto out_data = new float[dlen];
+    auto out_data = new int[dlen];
     region_t out_reg;
     init_region(&out_reg, 0, get_buf_size(dlen), out_tl, reinterpret_cast<char*>(out_data));
 

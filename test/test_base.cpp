@@ -3,11 +3,11 @@
 #include <algorithm>
 
 #include "test_base.h"
+#include "test_query.h"
 
 #include "tilt/codegen/loopgen.h"
 #include "tilt/codegen/llvmgen.h"
 #include "tilt/engine/engine.h"
-#include "tilt/builder/tilder.h"
 #include "tilt/codegen/vinstr.h"
 
 using namespace tilt;
@@ -73,31 +73,11 @@ void op_test(Op op, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
     }
 }
 
-Op _Select(Sym in, function<Expr(Expr)> sel_expr)
-{
-    auto e = _elem(in, _pt(0));
-    auto e_sym = e->sym("e");
-    auto e_val = _read(e_sym);
-    auto e_val_sym = e_val->sym("e_val");
-    auto sel = sel_expr(_get(e_val_sym, 0));
-    auto sel_sym = sel->sym("sel");
-    auto sel_op = _op(
-        _iter(0, 1),
-        Params{ in },
-        SymTable{ {e_sym, e}, {e_val_sym, e_val}, {sel_sym, sel} },
-        _exists(e_sym),
-        sel_sym);
-    return sel_op;
-}
-
 template<typename InTy, typename OutTy>
-void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
+void unary_op_test(Op op, QueryFn<InTy, OutTy> query_fn, size_t len, int64_t dur)
 {
     std::srand(time(nullptr));
-    const size_t len = 1000;
-    const unsigned int dur = 5;
 
-    auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter("in")));
     vector<Event<InTy>> input(len);
     for (size_t i = 0; i < len; i++) {
         int64_t st = dur * i;
@@ -105,6 +85,18 @@ void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
         InTy payload = static_cast<InTy>(std::rand() / static_cast<double>(RAND_MAX / 10000));
         input[i] = {st, et, payload};
     }
+
+    op_test<InTy, OutTy>(op, query_fn, input);
+}
+
+template<typename InTy, typename OutTy>
+void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
+{
+    size_t len = 1000;
+    int64_t dur = 5;
+
+    auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter("in")));
+    auto sel_op = _Select(in_sym, sel_expr);
 
     auto sel_query_fn = [sel_fn] (vector<Event<InTy>> in) {
         vector<Event<OutTy>> out;
@@ -116,8 +108,7 @@ void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
         return move(out);
     };
 
-    auto sel_op = _Select(in_sym, sel_expr);
-    op_test<InTy, OutTy>(sel_op, sel_query_fn, input);
+    unary_op_test<InTy, OutTy>(sel_op, sel_query_fn, len, dur);
 }
 
 void iadd_test()
@@ -372,3 +363,29 @@ void int8toint32_test()
         [] (int8_t s) { return static_cast<int32_t>(s); });
 }
 
+void moving_sum_test()
+{
+    size_t len = 30;
+    int64_t dur = 1;
+    int64_t w = 10;
+
+    auto in_sym = _sym("in", tilt::Type(types::INT32, _iter("in")));
+    auto mov_op = _MovingSum(in_sym, dur, w);
+
+    auto mov_query_fn = [w] (vector<Event<int32_t>> in) {
+        vector<Event<int32_t>> out(in.size());
+
+        for (int i = 0; i < in.size(); i++) {
+            auto out_i = i - 1;
+            auto tail_i = i - w;
+            auto payload = in[i].payload
+                    - ((tail_i < 0) ? 0 : in[tail_i].payload)
+                    + ((out_i < 0) ? 0 : out[out_i].payload);
+            out[i] = {in[i].st, in[i].et, payload};
+        }
+
+        return move(out);
+    };
+
+    unary_op_test<int32_t, int32_t>(mov_op, mov_query_fn, len, dur);
+}

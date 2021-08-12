@@ -79,4 +79,7 @@ void fptosi_test();
 void fptoui_test();
 void int8toint32_test();
 
+// Stateful op tests
+void moving_sum_test();
+
 #endif  // TEST_TEST_BASE_H_
