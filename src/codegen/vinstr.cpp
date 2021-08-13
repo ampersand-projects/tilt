@@ -74,27 +74,17 @@ region_t* commit_null(region_t* reg, ts_t t)
     return reg;
 }
 
+void register_types(region_t* reg, ival_t* tl){}
+
 }  // extern "C"
 
-void ExecEngine::register_vinstrs()
+void ExecEngine::register_struct_types()
 {
-    llvm::Linker::linkModules(*llmod(), easy::get_module(GetCtx(), get_start_idx, _1));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(GetCtx(), get_end_idx, _1));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(GetCtx(), get_ckpt, _1, _2, _3));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(GetCtx(), advance, _1, _2, _3));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(GetCtx(), fetch, _1, _2, _3, _4));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(GetCtx(), make_region, _1, _2, _3, _4, _5, _6));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(GetCtx(), init_region, _1, _2, _3, _4));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(GetCtx(), commit_data, _1, _2));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(GetCtx(), commit_null, _1, _2));
+    easy::get_module(GetCtx(), register_types, _1, _2);
 }
 
 void LLVMGen::register_vinstrs()
 {
-    auto type_region = llmod()->getTypeByName("struct.region_t");
-    auto type_ival = llmod()->getTypeByName("struct.ival_t");
-    new llvm::GlobalVariable(*llmod(), type_region, false, llvm::GlobalVariable::CommonLinkage, llvm::Constant::getNullValue(type_region), "1");
-    new llvm::GlobalVariable(*llmod(), type_ival, false, llvm::GlobalVariable::CommonLinkage, llvm::Constant::getNullValue(type_ival), "2");
     llvm::Linker::linkModules(*llmod(), easy::get_module(llctx(), get_start_idx, _1));
     llvm::Linker::linkModules(*llmod(), easy::get_module(llctx(), get_end_idx, _1));
     llvm::Linker::linkModules(*llmod(), easy::get_module(llctx(), get_ckpt, _1, _2, _3));

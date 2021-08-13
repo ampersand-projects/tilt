@@ -516,5 +516,6 @@ unique_ptr<llvm::Module> LLVMGen::Build(const Looper loop, llvm::LLVMContext& ll
     LLVMGenCtx ctx(loop.get(), &llctx);
     LLVMGen llgen(move(ctx));
     loop->Accept(llgen);
+    llgen.register_vinstrs();
     return move(llgen._llmod);
 }

@@ -39,7 +39,7 @@ public:
         jd(es.createBareJITDylib("__tilt_dylib"))
     {
         jd.addGenerator(cantFail(DynamicLibrarySearchGenerator::GetForCurrentProcess(dl.getGlobalPrefix())));
-        register_vinstrs();
+        register_struct_types();
     }
 
     static ExecEngine* Get();
@@ -47,9 +47,10 @@ public:
     LLVMContext& GetCtx();
     Module* llmod() { return _llmod.get(); }
     intptr_t Lookup(StringRef);
-    void register_vinstrs();
 
 private:
+    void register_struct_types();
+    
     static Expected<ThreadSafeModule> optimize_module(ThreadSafeModule, const MaterializationResponsibility&);
 
     ExecutionSession es;
