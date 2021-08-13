@@ -13,7 +13,6 @@ Const _u32(uint32_t v) { return _const(BaseType::UINT32, v); }
 Const _u64(uint64_t v) { return _const(BaseType::UINT64, v); }
 Const _f32(float v) { return _const(BaseType::FLOAT32, v); }
 Const _f64(double v) { return _const(BaseType::FLOAT64, v); }
-Const _ch(char v) { return _const(BaseType::CHAR, v); }
 Const _ts(int64_t v) { return _const(BaseType::TIME, v); }
 Const _idx(idx_t v) { return _const(BaseType::INDEX, v); }
 Const _true() { return _const(BaseType::BOOL, 1); }
