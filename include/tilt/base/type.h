@@ -177,6 +177,7 @@ static const DataType IVAL(BaseType::IVAL);
 
 template<typename H> struct Converter { static const BaseType btype = BaseType::UNKNOWN; };
 template<> struct Converter<bool> { static const BaseType btype = BaseType::BOOL; };
+template<> struct Converter<char> { static const BaseType btype = BaseType::INT8; };
 template<> struct Converter<int8_t> { static const BaseType btype = BaseType::INT8; };
 template<> struct Converter<int16_t> { static const BaseType btype = BaseType::INT16; };
 template<> struct Converter<int32_t> { static const BaseType btype = BaseType::INT32; };
