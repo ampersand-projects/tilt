@@ -10,13 +10,8 @@ using namespace llvm;
 
 Function* LLVMGen::llfunc(const string name, llvm::Type* ret_type, vector<llvm::Type*> arg_types)
 {
-    auto fn = llmod()->getFunction(name);
-    if (!fn) {
-        auto fn_type = FunctionType::get(ret_type, arg_types, false);
-        fn = Function::Create(fn_type, Function::ExternalLinkage, name, llmod());
-    }
-
-    return fn;
+    auto fn_type = FunctionType::get(ret_type, arg_types, false);
+    return Function::Create(fn_type, Function::ExternalLinkage, name, llmod());
 }
 
 Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<Value*> arg_vals)
@@ -25,7 +20,9 @@ Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<Value*> a
     for (const auto& arg_val : arg_vals) {
         arg_types.push_back(arg_val->getType());
     }
-    auto fn = llfunc(name, ret_type, arg_types);
+
+    auto fn_type = FunctionType::get(ret_type, arg_types, false);
+    auto fn = llmod()->getOrInsertFunction(name, fn_type);
     return builder()->CreateCall(fn, arg_vals);
 }
 
