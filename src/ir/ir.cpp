@@ -21,7 +21,7 @@ void NaryExpr::Accept(Visitor& v) const { v.Visit(*this); }
 void SubLStream::Accept(Visitor& v) const { v.Visit(*this); }
 void Element::Accept(Visitor& v) const { v.Visit(*this); }
 void OpNode::Accept(Visitor& v) const { v.Visit(*this); }
-void AggNode::Accept(Visitor& v) const { v.Visit(*this); }
+void Reduce::Accept(Visitor& v) const { v.Visit(*this); }
 void Fetch::Accept(Visitor& v) const { v.Visit(*this); }
 void Read::Accept(Visitor& v) const { v.Visit(*this); }
 void Write::Accept(Visitor& v) const { v.Visit(*this); }

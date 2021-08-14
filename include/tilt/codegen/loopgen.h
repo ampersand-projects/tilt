@@ -40,6 +40,7 @@ private:
     Index& get_idx(const Sym, const Point);
     Sym get_ref(const Sym sym) { return ctx().sym_ref.at(sym); }
     void set_ref(Sym sym, Sym ref) { ctx().sym_ref[sym] = ref; }
+    void build_tloop(function<Expr()>, function<Expr()>);
     void build_loop();
 
     Expr visit(const Symbol&) final;
@@ -57,7 +58,7 @@ private:
     Expr visit(const SubLStream&) final;
     Expr visit(const Element&) final;
     Expr visit(const OpNode&) final;
-    Expr visit(const AggNode&) final;
+    Expr visit(const Reduce&) final;
     Expr visit(const Fetch&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const Read&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const Write&) final { throw runtime_error("Invalid expression"); };

@@ -51,7 +51,7 @@ public:
     void Visit(const SubLStream&) override;
     void Visit(const Element&) override;
     void Visit(const OpNode&) override;
-    void Visit(const AggNode&) override;
+    void Visit(const Reduce&) override;
     void Visit(const Fetch&) override;
     void Visit(const Read&) override;
     void Visit(const Write&) override;

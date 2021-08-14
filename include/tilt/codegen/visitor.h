@@ -29,7 +29,7 @@ public:
     virtual void Visit(const SubLStream&) = 0;
     virtual void Visit(const Element&) = 0;
     virtual void Visit(const OpNode&) = 0;
-    virtual void Visit(const AggNode&) = 0;
+    virtual void Visit(const Reduce&) = 0;
 
     /**
      * Loop IR

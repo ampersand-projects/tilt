@@ -66,7 +66,7 @@ Index& LoopGen::get_idx(const Sym reg, const Point pt)
     return pt_idx_map[pt];
 }
 
-void LoopGen::build_loop()
+void LoopGen::build_tloop(function<Expr()> true_body, function<Expr()> false_body)
 {
     auto loop = ctx().loop;
     auto name = loop->name;
@@ -74,7 +74,7 @@ void LoopGen::build_loop()
     // Loop function arguments
     auto t_start = _time("t_start");
     auto t_end = _time("t_end");
-    auto out_arg = _reg(name, ctx().op->type);
+    auto out_arg = _sym(name, ctx().loop->type);
     loop->inputs.push_back(t_start);
     loop->inputs.push_back(t_end);
     loop->inputs.push_back(out_arg);
@@ -96,14 +96,14 @@ void LoopGen::build_loop()
     loop->exit_cond = _eq(t_base, t_end);
 
     // Create loop return value
-    auto output_base = _reg("output_base", ctx().op->type);
+    auto output_base = _sym("output_base", ctx().loop->type);
     set_expr(output_base, out_arg);
-    loop->output = _reg("output", ctx().op->type);
+    loop->output = _sym("output", ctx().loop->type);
     loop->state_bases[loop->output] = output_base;
 
     // Evaluate loop body
     auto pred_expr = eval(ctx().op->pred);
-    auto out_expr = eval(ctx().op->output);
+    eval(ctx().op->output);
 
     // Loop counter update expression
     Expr delta = nullptr;
@@ -118,23 +118,40 @@ void LoopGen::build_loop()
     auto t_incr = _mul(_div(delta, t_period), t_period);
     set_expr(loop->t, _min(t_end, _add(get_timer(_pt(0)), t_incr)));
 
-    // Update loop output:
-    //      1. Outer loop returns the output region of the inner loop
-    //      2. Inner loop updates the output region
-    Expr true_body = nullptr;
-    if (out_expr->type.is_val()) {
-        auto new_reg = _commit_data(output_base, loop->t);
-        auto new_reg_sym = _sym("new_reg", new_reg);
-        set_expr(new_reg_sym, new_reg);
+    // Create loop output
+    set_expr(loop->output, _ifelse(pred_expr, true_body(), false_body()));
+}
 
-        auto idx = _get_end_idx(new_reg_sym);
-        auto dptr = _fetch(new_reg_sym, loop->t, idx);
-        true_body = _write(new_reg_sym, dptr, out_expr);
-    } else {
-        true_body = out_expr;
-    }
-    auto false_body = _commit_null(output_base, loop->t);
-    set_expr(loop->output, _ifelse(pred_expr, true_body, false_body));
+void LoopGen::build_loop()
+{
+    auto true_body = [&]() -> Expr {
+        auto loop = ctx().loop;
+        auto output_base = loop->state_bases[loop->output];
+        auto out_expr = get_sym(ctx().op->output);
+
+        // Update loop output:
+        //      1. Outer loop returns the output region of the inner loop
+        //      2. Inner loop updates the output region
+        if (out_expr->type.is_val()) {
+            auto new_reg = _commit_data(output_base, loop->t);
+            auto new_reg_sym = _sym("new_reg", new_reg);
+            set_expr(new_reg_sym, new_reg);
+
+            auto idx = _get_end_idx(new_reg_sym);
+            auto dptr = _fetch(new_reg_sym, loop->t, idx);
+            return _write(new_reg_sym, dptr, out_expr);
+        } else {
+            return out_expr;
+        }
+    };
+
+    auto false_body = [&]() -> Expr {
+        auto loop = ctx().loop;
+        auto output_base = loop->state_bases[loop->output];
+        return _commit_null(output_base, loop->t);
+    };
+
+    build_tloop(true_body, false_body);
 }
 
 Expr LoopGen::visit(const Symbol& symbol) { return get_sym(symbol); }
@@ -298,42 +315,49 @@ Expr LoopGen::visit(const OpNode& op)
     return _call(inner_loop->get_name(), inner_loop->type, move(args));
 }
 
-Expr LoopGen::visit(const AggNode& aggexpr)
+Expr LoopGen::visit(const Reduce& red)
 {
-    auto agg_loop = _loop(ctx().sym);
-    LoopGenCtx new_ctx(ctx().sym, aggexpr.op.get(), agg_loop);
+    auto e = _elem(red.lstream, _pt(0));
+    auto e_sym = _sym("e", e);
+    auto red_op = _op(
+        _iter(0, 1),
+        Params{red.lstream},
+        SymTable{
+            {e_sym, e}
+        },
+        _exists(e_sym),
+        e_sym);
+
+    auto red_loop = _loop(ctx().sym);
+    LoopGenCtx new_ctx(ctx().sym, red_op.get(), red_loop);
 
     auto& old_ctx = switch_ctx(new_ctx);
-    build_loop();
 
-    // Redefine output argument and states
-    auto out_arg = _sym(ctx().sym->name, aggexpr.type);
-    agg_loop->inputs[2] = out_arg;
-    agg_loop->syms.erase(agg_loop->state_bases[agg_loop->output]);
-    agg_loop->syms.erase(agg_loop->output);
-    agg_loop->state_bases.erase(agg_loop->output);
+    auto true_body = [&]() -> Expr {
+        auto loop = ctx().loop;
+        auto output_base = loop->state_bases[loop->output];
+        auto t = loop->t;
+        auto t_base = loop->state_bases[t];
+        auto out_sym = get_sym(ctx().op->output);
+        return eval(red.acc(output_base, t_base, t, out_sym));
+    };
 
-    auto output_base = _sym("output_base", aggexpr.type);
-    set_expr(output_base, out_arg);
-    agg_loop->output = _sym("output", aggexpr.type);
-    agg_loop->state_bases[agg_loop->output] = output_base;
-    auto acc_expr = eval(aggexpr.acc(output_base, get_sym(aggexpr.op->output)));
-    auto output_update = _ifelse(eval(aggexpr.op->pred), acc_expr, output_base);
-    ASSERT(output_update->type == aggexpr.type);
-    set_expr(agg_loop->output, output_update);
-
+    auto false_body = [&]() -> Expr {
+        auto loop = ctx().loop;
+        auto output_base = loop->state_bases[loop->output];
+        return output_base;
+    };
+    build_tloop(true_body, false_body);
     switch_ctx(old_ctx);
 
     auto outer_loop = ctx().loop;
-    outer_loop->inner_loops.push_back(agg_loop);
-    auto t_start = outer_loop->state_bases[outer_loop->t];
-    auto t_end = outer_loop->t;
+    outer_loop->inner_loops.push_back(red_loop);
 
-    vector<Expr> args = { t_start, t_end, eval(aggexpr.init) };
-    for (const auto& input : aggexpr.op->inputs) {
-        args.push_back(eval(input));
-    }
-    return _call(agg_loop->get_name(), agg_loop->type, args);
+    auto red_input = eval(red.lstream);
+    auto t_start = _get_start_time(red_input);
+    auto t_end = _get_end_time(red_input);
+    vector<Expr> args = { t_start, t_end, eval(red.state), red_input };
+    return _call(red_loop->get_name(), red_loop->type, args);
 }
 
 Loop LoopGen::Build(Sym sym, const OpNode* op)

@@ -60,7 +60,7 @@ private:
     llvm::Value* visit(const SubLStream&) final { throw std::runtime_error("Invalid expression"); }
     llvm::Value* visit(const Element&) final { throw std::runtime_error("Invalid expression"); }
     llvm::Value* visit(const OpNode&) final { throw std::runtime_error("Invalid expression"); }
-    llvm::Value* visit(const AggNode&) final { throw std::runtime_error("Invalid expression"); }
+    llvm::Value* visit(const Reduce&) final { throw std::runtime_error("Invalid expression"); }
     llvm::Value* visit(const Fetch&) final;
     llvm::Value* visit(const Read&) final;
     llvm::Value* visit(const Write&) final;

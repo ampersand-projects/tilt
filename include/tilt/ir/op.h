@@ -29,17 +29,21 @@ struct OpNode : public LStream {
 };
 typedef shared_ptr<OpNode> Op;
 
-typedef function<Expr(Expr, Expr)> AccTy;
+// Accumulate function type (state, st, et, data) -> state
+typedef function<Expr(Expr, Expr, Expr, Expr)> AccTy;
 
-struct AggNode : public ValNode {
-    Op op;
-    Val init;
+struct Reduce : public ValNode {
+    Sym lstream;
+    Val state;
     AccTy acc;
 
-    AggNode(Op op, Val init, AccTy acc) :
-        ValNode(init->type.dtype), op(op), init(init), acc(acc)
+    Reduce(Sym lstream, Val state, AccTy acc) :
+        ValNode(state->type.dtype), lstream(lstream), state(state), acc(acc)
     {
-        ASSERT(op->output->type.is_val());
+        auto st = make_shared<Symbol>("st", Type(types::TIME));
+        auto et = make_shared<Symbol>("et", Type(types::TIME));
+        auto data = make_shared<Symbol>("data", Type(lstream->type.dtype));
+        ASSERT(acc(state, st, et, data)->type == Type(state->type.dtype));
     }
 
     void Accept(Visitor&) const final;

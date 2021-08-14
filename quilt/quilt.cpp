@@ -24,36 +24,14 @@ Op _Select(_sym in, function<Expr(Expr)> sel_expr)
 
 Expr _Count(_sym win)
 {
-    auto e = win[_pt(0)];
-    auto e_sym = _sym("e", e);
-    auto one = _f32(1);
-    auto count_sel_sym = _sym("count_sel", one);
-    auto count_op = _op(
-        _iter(0, 1),
-        Params{ win },
-        SymTable{ {e_sym, e}, {count_sel_sym, one} },
-        _exists(e_sym),
-        count_sel_sym);
-    auto count_init = _f32(0);
-    auto count_acc = [](Expr a, Expr b) { return _add(a, b); };
-    auto count_expr = _agg(count_op, count_init, count_acc);
-    return count_expr;
+    auto acc = [](Expr s, Expr st, Expr et, Expr d) { return _add(s, _f32(1)); };
+    return _red(win, _f32(0), acc);
 }
 
 Expr _Sum(_sym win)
 {
-    auto e = win[_pt(0)];
-    auto e_sym = _sym("e", e);
-    auto count_op = _op(
-        _iter(0, 1),
-        Params{ win },
-        SymTable{ {e_sym, e} },
-        _exists(e_sym),
-        e_sym);
-    auto count_init = _f32(0);
-    auto count_acc = [](Expr a, Expr b) { return _add(a, b); };
-    auto count_expr = _agg(count_op, count_init, count_acc);
-    return count_expr;
+    auto acc = [](Expr s, Expr st, Expr et, Expr d) { return _add(s, d); };
+    return _red(win, _f32(0), acc);
 }
 
 Op _WindowAvg(_sym in, int64_t w)
@@ -131,50 +109,22 @@ Op _SelectDiv(_sym in, _sym std)
 
 Expr _Average(_sym win)
 {
-    auto e = win[_pt(0)];
-    auto e_sym = _sym("e", e);
-    auto state = _new(vector<Expr>{e_sym, _f32(1)});
-    auto state_sym = _sym("state", state);
-    auto count_op = _op(
-        _iter(0, 1),
-        Params{ win },
-        SymTable{ {e_sym, e}, {state_sym, state} },
-        _exists(e_sym),
-        state_sym);
-    auto count_init = _new(vector<Expr>{_f32(0), _f32(0)});
-    auto count_acc = [](Expr a, Expr b) {
-        auto sum = _get(a, 0);
-        auto count = _get(a, 1);
-        auto e = _get(b, 0);
-        auto c = _get(b, 1);
-        return _new(vector<Expr>{_add(sum, e), _add(count, c)});
+    auto acc = [](Expr s, Expr st, Expr et, Expr d) {
+        auto sum = _get(s, 0);
+        auto count = _get(s, 1);
+        return _new(vector<Expr>{_add(sum, d), _add(count, _f32(1))});
     };
-    auto count_expr = _agg(count_op, count_init, count_acc);
-    return count_expr;
+    return _red(win, _new(vector<Expr>{_f32(0), _f32(0)}), acc);
 }
 
 Expr _StdDev(_sym win)
 {
-    auto e = win[_pt(0)];
-    auto e_sym = _sym("e", e);
-    auto state = _new(vector<Expr>{_mul(e_sym, e_sym), _f32(1)});
-    auto state_sym = _sym("state", state);
-    auto count_op = _op(
-        _iter(0, 1),
-        Params{ win },
-        SymTable{ {e_sym, e}, {state_sym, state} },
-        _exists(e_sym),
-        state_sym);
-    auto count_init = _new(vector<Expr>{_f32(0), _f32(0)});
-    auto count_acc = [](Expr a, Expr b) {
-        auto sum = _get(a, 0);
-        auto count = _get(a, 1);
-        auto e = _get(b, 0);
-        auto c = _get(b, 1);
-        return _new(vector<Expr>{_add(sum, e), _add(count, c)});
+    auto acc = [](Expr s, Expr st, Expr et, Expr d) {
+        auto sum = _get(s, 0);
+        auto count = _get(s, 1);
+        return _new(vector<Expr>{_add(sum, _mul(d, d)), _add(count, _f32(1))});
     };
-    auto count_expr = _agg(count_op, count_init, count_acc);
-    return count_expr;
+    return _red(win, _new(vector<Expr>{_f32(0), _f32(0)}), acc);
 }
 
 Op _Norm(_sym in, int64_t len)

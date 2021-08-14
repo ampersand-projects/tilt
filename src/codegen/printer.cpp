@@ -4,6 +4,7 @@
 #include "tilt/builder/tilder.h"
 
 using namespace tilt;
+using namespace tilt::tilder;
 using namespace std;
 
 static const auto EXISTS = "\u2203";
@@ -154,23 +155,28 @@ void IRPrinter::Visit(const OpNode& op)
     exit_op();
 }
 
-void IRPrinter::Visit(const AggNode& agg)
+void IRPrinter::Visit(const Reduce& red)
 {
-    ostr << "[init: s = ";
-    agg.init->Accept(*this);
-    ostr << "] ";
+    auto state_str = IRPrinter::Build(red.state);
 
-    ostr << "[acc: s = ";
-    auto state_sym = tilder::_sym("s", agg.init);
-    auto output_sym = tilder::_sym("o", agg.op->output);
-    auto acc_expr = agg.acc(state_sym, output_sym);
-    acc_expr->Accept(*this);
-    ostr << "] {";
-
-    enter_block();
-    agg.op->Accept(*this);
-    exit_block();
-    ostr << "}";
+    auto e = _elem(red.lstream, _pt(0));
+    auto e_sym = _sym("e", e);
+    auto state_init_sym = _sym("state = " + state_str, red.state);
+    auto state_sym = _sym("state", red.state);
+    auto t_name = "t" + to_string(ctx.nesting + 1);
+    auto t = _sym(t_name, Type(types::TIME));
+    auto t_base = _sym("^" + t_name, Type(types::TIME));
+    auto res = red.acc(state_sym, t_base, t, e_sym);
+    auto red_op = _op(
+        _iter(0, 1),
+        Params{red.lstream, state_init_sym},
+        SymTable{
+            {e_sym, e},
+            {state_sym, res},
+        },
+        _exists(e_sym),
+        state_sym);
+    red_op->Accept(*this);
 }
 
 void IRPrinter::Visit(const Fetch& fetch)
@@ -265,7 +271,7 @@ void IRPrinter::Visit(const Select& select)
 
 void IRPrinter::Visit(const Get& get)
 {
-    emitfunc("get", {get.input, tilder::_u64(get.n)});
+    emitfunc("get", {get.input, _u64(get.n)});
 }
 
 void IRPrinter::Visit(const New& _new)

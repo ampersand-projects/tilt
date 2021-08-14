@@ -24,13 +24,6 @@ struct IndexNode : public Symbol {
 };
 typedef shared_ptr<IndexNode> Index;
 
-struct Region : public Symbol {
-    Region(string name, Type type) : Symbol(name, move(type))
-    {
-        ASSERT(!type.is_val());
-    }
-};
-
 struct Fetch : public ValNode {
     Expr reg;
     Expr time;

@@ -51,7 +51,7 @@ protected:
     virtual OutExprTy visit(const SubLStream&) = 0;
     virtual OutExprTy visit(const Element&) = 0;
     virtual OutExprTy visit(const OpNode&) = 0;
-    virtual OutExprTy visit(const AggNode&) = 0;
+    virtual OutExprTy visit(const Reduce&) = 0;
     virtual OutExprTy visit(const Fetch&) = 0;
     virtual OutExprTy visit(const Read&) = 0;
     virtual OutExprTy visit(const Write&) = 0;
@@ -81,7 +81,7 @@ protected:
     void Visit(const SubLStream& expr) final { val() = visit(expr); }
     void Visit(const Element& expr) final { val() = visit(expr); }
     void Visit(const OpNode& expr) final { val() = visit(expr); }
-    void Visit(const AggNode& expr) final { val() = visit(expr); }
+    void Visit(const Reduce& expr) final { val() = visit(expr); }
     void Visit(const Fetch& expr) final { val() = visit(expr); }
     void Visit(const Read& expr) final { val() = visit(expr); }
     void Visit(const Write& expr) final { val() = visit(expr); }
