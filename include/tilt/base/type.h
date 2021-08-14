@@ -15,7 +15,6 @@ namespace tilt {
 
 enum class BaseType {
     BOOL,
-    CHAR,
     INT8,
     INT16,
     INT32,
@@ -161,8 +160,6 @@ enum class MathOp {
 namespace tilt::types {
 
 static const DataType BOOL(BaseType::BOOL);
-static const DataType CHAR(BaseType::CHAR);
-static const DataType CHAR_PTR = DataType(BaseType::PTR, {types::CHAR});
 static const DataType INT8(BaseType::INT8);
 static const DataType INT16(BaseType::INT16);
 static const DataType INT32(BaseType::INT32);
@@ -173,13 +170,14 @@ static const DataType UINT32(BaseType::UINT32);
 static const DataType UINT64(BaseType::UINT64);
 static const DataType FLOAT32(BaseType::FLOAT32);
 static const DataType FLOAT64(BaseType::FLOAT64);
+static const DataType CHAR_PTR = DataType(BaseType::PTR, {types::INT8});
 static const DataType TIME(BaseType::TIME);
 static const DataType INDEX(BaseType::INDEX);
 static const DataType IVAL(BaseType::IVAL);
 
 template<typename H> struct Converter { static const BaseType btype = BaseType::UNKNOWN; };
 template<> struct Converter<bool> { static const BaseType btype = BaseType::BOOL; };
-template<> struct Converter<char> { static const BaseType btype = BaseType::CHAR; };
+template<> struct Converter<char> { static const BaseType btype = BaseType::INT8; };
 template<> struct Converter<int8_t> { static const BaseType btype = BaseType::INT8; };
 template<> struct Converter<int16_t> { static const BaseType btype = BaseType::INT16; };
 template<> struct Converter<int32_t> { static const BaseType btype = BaseType::INT32; };

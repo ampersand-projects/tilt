@@ -50,8 +50,6 @@ llvm::Type* LLVMGen::lltype(const DataType& dtype)
     switch (dtype.btype) {
         case BaseType::BOOL:
             return llvm::Type::getInt1Ty(llctx());
-        case BaseType::CHAR:
-            return llvm::Type::getInt8Ty(llctx());
         case BaseType::INT8:
         case BaseType::UINT8:
             return llvm::Type::getInt8Ty(llctx());
@@ -171,7 +169,6 @@ Value* LLVMGen::visit(const ConstNode& cnst)
 {
     switch (cnst.type.dtype.btype) {
         case BaseType::BOOL:
-        case BaseType::CHAR:
         case BaseType::INT8:
         case BaseType::INT16:
         case BaseType::INT32:
