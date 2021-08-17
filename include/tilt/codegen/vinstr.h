@@ -3,7 +3,7 @@
 
 #include "tilt/base/type.h"
 
-#define TILT_VINSTR_ATTR __attribute__((always_inline, visibility ("internal")))
+#define TILT_VINSTR_ATTR __attribute__((always_inline))
 
 #define REGISTER_VINSTR(dest, ctx, vinst_name, ...) \
     llvm::Linker::linkModules(dest, easy::get_module(ctx, vinst_name, __VA_ARGS__)); \
