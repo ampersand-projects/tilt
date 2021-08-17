@@ -1,17 +1,17 @@
 #include "test_base.h"
 
-TEST(MathOpTests, IAddOpTest) { add_test(); }
-TEST(MathOpTests, ISubOpTest) { sub_test(); }
-TEST(MathOpTests, IMulOpTest) { mul_test(); }
-TEST(MathOpTests, IDivOpTest) { div_test(); }
-TEST(MathOpTests, IModOpTest) { mod_test(); }
-TEST(MathOpTests, IMaxOpTest) { max_test(); }
-TEST(MathOpTests, IMinOpTest) { min_test(); }
-TEST(MathOpTests, DNegOpTest) { neg_test(); }
-TEST(MathOpTests, FSqrtOpTest) { sqrt_test(); }
-TEST(MathOpTests, FPowOPTest) { pow_test(); }
-TEST(MathOpTests, FCeilOPTest) { ceil_test(); }
-TEST(MathOpTests, FFloorOPTest) { floor_test(); }
-TEST(MathOpTests, FAbsOPTest) { abs_test(); }
-TEST(CastOpTests, Int8ToInt32Test) { cast_test(); }
+TEST(MathOpTests, AddOpTest) { add_test(); }
+TEST(MathOpTests, SubOpTest) { sub_test(); }
+TEST(MathOpTests, MulOpTest) { mul_test(); }
+TEST(MathOpTests, DivOpTest) { div_test(); }
+TEST(MathOpTests, ModOpTest) { mod_test(); }
+TEST(MathOpTests, MaxOpTest) { max_test(); }
+TEST(MathOpTests, MinOpTest) { min_test(); }
+TEST(MathOpTests, NegOpTest) { neg_test(); }
+TEST(MathOpTests, SqrtOpTest) { sqrt_test(); }
+TEST(MathOpTests, PowOPTest) { pow_test(); }
+TEST(MathOpTests, CeilOPTest) { ceil_test(); }
+TEST(MathOpTests, FloorOPTest) { floor_test(); }
+TEST(MathOpTests, AbsOPTest) { abs_test(); }
+TEST(CastOpTests, CastTest) { cast_test(); }
 TEST(StatefulOpTest, MovingSumTest) { moving_sum_test(); }

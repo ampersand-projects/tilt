@@ -1,6 +1,7 @@
 #include <utility>
 #include <cmath>
 #include <algorithm>
+#include <string>
 
 #include "test_base.h"
 #include "test_query.h"
@@ -13,7 +14,7 @@
 using namespace tilt;
 using namespace tilt::tilder;
 
-void run_op(Op op, ts_t st, ts_t et, region_t* out_reg, region_t* in_reg, string query_name)
+void run_op(string query_name, Op op, ts_t st, ts_t et, region_t* out_reg, region_t* in_reg)
 {
     auto op_sym = op->sym(query_name);
     auto loop = LoopGen::Build(op_sym, op.get());
@@ -30,7 +31,7 @@ void run_op(Op op, ts_t st, ts_t et, region_t* out_reg, region_t* in_reg, string
 }
 
 template<typename InTy, typename OutTy>
-void op_test(Op op, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input, string query_name)
+void op_test(string query_name, Op op, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
 {
     auto in_st = input[0].st;
     auto in_et = input[input.size() - 1].et;
@@ -57,7 +58,7 @@ void op_test(Op op, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input, st
     auto out_data_ptr = reinterpret_cast<char*>(out_data.data());
     init_region(&out_reg, out_st, get_buf_size(true_out.size()), out_tl.data(), out_data_ptr);
 
-    run_op(op, out_st, out_et, &out_reg, &in_reg, query_name);
+    run_op(query_name, op, out_st, out_et, &out_reg, &in_reg);
 
     for (size_t i = 0; i < true_out.size(); i++) {
         auto true_st = true_out[i].st;
@@ -74,7 +75,7 @@ void op_test(Op op, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input, st
 }
 
 template<typename InTy, typename OutTy>
-void unary_op_test(Op op, QueryFn<InTy, OutTy> query_fn, size_t len, int64_t dur, string query_name)
+void unary_op_test(string query_name, Op op, QueryFn<InTy, OutTy> query_fn, size_t len, int64_t dur)
 {
     std::srand(time(nullptr));
 
@@ -86,11 +87,11 @@ void unary_op_test(Op op, QueryFn<InTy, OutTy> query_fn, size_t len, int64_t dur
         input[i] = {st, et, payload};
     }
 
-    op_test<InTy, OutTy>(op, query_fn, input, query_name);
+    op_test<InTy, OutTy>(query_name, op, query_fn, input);
 }
 
 template<typename InTy, typename OutTy>
-void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn, string query_name)
+void select_test(string query_name, function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
 {
     size_t len = 1000;
     int64_t dur = 5;
@@ -108,171 +109,171 @@ void select_test(function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn, st
         return move(out);
     };
 
-    unary_op_test<InTy, OutTy>(sel_op, sel_query_fn, len, dur, query_name);
+    unary_op_test<InTy, OutTy>(query_name, sel_op, sel_query_fn, len, dur);
 }
 
 void add_test()
 {
-    select_test<int32_t, int32_t>(
+    select_test<int32_t, int32_t>("iadd",
         [] (Expr s) { return _add(s, _i32(10)); },
-        [] (int32_t s) { return s + 10; }, "iadd");
-    select_test<float, float>(
+        [] (int32_t s) { return s + 10; });
+    select_test<float, float>("fadd",
         [] (Expr s) { return _add(s, _f32(5)); },
-        [] (float s) { return s + 5.0; }, "fadd");
+        [] (float s) { return s + 5.0; });
 }
 
 void sub_test()
 {
-    select_test<int32_t, int32_t>(
+    select_test<int32_t, int32_t>("isub",
         [] (Expr s) { return _sub(s, _i32(10)); },
-        [] (int32_t s) { return s - 10; }, "isub");
-    select_test<float, float>(
+        [] (int32_t s) { return s - 10; });
+    select_test<float, float>("fsub",
         [] (Expr s) { return _sub(s, _f32(15)); },
-        [] (float s) { return s - 15.0; }, "fsub");
+        [] (float s) { return s - 15.0; });
 }
 
 void mul_test()
 {
-    select_test<int32_t, int32_t>(
+    select_test<int32_t, int32_t>("imul",
         [] (Expr s) { return _mul(s, _i32(10)); },
-        [] (int32_t s) { return s * 10; }, "imul");
-    select_test<float, float>(
+        [] (int32_t s) { return s * 10; });
+    select_test<float, float>("fmul",
         [] (Expr s) { return _mul(s, _f32(10)); },
-        [] (float s) { return s * 10.0f; }, "fmul");
+        [] (float s) { return s * 10.0f; });
 }
 
 void div_test()
 {
-    select_test<int32_t, int32_t>(
+    select_test<int32_t, int32_t>("idiv",
         [] (Expr s) { return _div(s, _i32(10)); },
-        [] (int32_t s) { return s / 10; }, "idiv");
-    select_test<uint32_t, uint32_t>(
+        [] (int32_t s) { return s / 10; });
+    select_test<uint32_t, uint32_t>("udiv",
         [] (Expr s) { return _div(s, _u32(10)); },
-        [] (uint32_t s) { return s / 10u; }, "udiv");
-    select_test<float, float>(
+        [] (uint32_t s) { return s / 10u; });
+    select_test<float, float>("fdiv",
         [] (Expr s) { return _div(s, _f32(10)); },
-        [] (float s) { return s / 10.0f; }, "fdiv");
+        [] (float s) { return s / 10.0f; });
 }
 
 void mod_test()
 {
-    select_test<int32_t, int32_t>(
+    select_test<int32_t, int32_t>("imod",
         [] (Expr s) { return _mod(s, _i32(10)); },
-        [] (int32_t s) { return s % 10; }, "imod");
-    select_test<uint32_t, uint32_t>(
+        [] (int32_t s) { return s % 10; });
+    select_test<uint32_t, uint32_t>("umod",
         [] (Expr s) { return _mod(s, _u32(10)); },
-        [] (uint32_t s) { return s % 10u; }, "umod");
+        [] (uint32_t s) { return s % 10u; });
 }
 
 void max_test()
 {
-    select_test<int32_t, int32_t>(
+    select_test<int32_t, int32_t>("imax",
         [] (Expr s) { return _max(s, _i32(10)); },
-        [] (int32_t s) { return std::max(s, 10); }, "imax");
-    select_test<uint32_t, uint32_t>(
+        [] (int32_t s) { return std::max(s, 10); });
+    select_test<uint32_t, uint32_t>("umax",
         [] (Expr s) { return _max(s, _u32(10)); },
-        [] (uint32_t s) { return std::max(s, 10u); }, "umax");
-    select_test<float, float>(
+        [] (uint32_t s) { return std::max(s, 10u); });
+    select_test<float, float>("fmax",
         [] (Expr s) { return _max(s, _f32(10)); },
-        [] (float s) { return std::max(s, 10.0f); }, "fmax");
+        [] (float s) { return std::max(s, 10.0f); });
 }
 
 void min_test()
 {
-    select_test<int32_t, int32_t>(
+    select_test<int32_t, int32_t>("imin",
         [] (Expr s) { return _min(s, _i32(10)); },
-        [] (int32_t s) { return std::min(s, 10); }, "imin");
-    select_test<uint32_t, uint32_t>(
+        [] (int32_t s) { return std::min(s, 10); });
+    select_test<uint32_t, uint32_t>("umin",
         [] (Expr s) { return _min(s, _u32(10)); },
-        [] (uint32_t s) { return std::min(s, 10u); }, "umin");
-    select_test<float, float>(
+        [] (uint32_t s) { return std::min(s, 10u); });
+    select_test<float, float>("fmin",
         [] (Expr s) { return _min(s, _f32(10)); },
-        [] (float s) { return std::min(s, 10.0f); }, "fmin");
+        [] (float s) { return std::min(s, 10.0f); });
 }
 
 void neg_test()
 {
-    select_test<int32_t, int32_t>(
+    select_test<int32_t, int32_t>("ineg",
         [] (Expr s) { return _neg(s); },
-        [] (int32_t s) { return -s; }, "ineg");
-    select_test<float, float>(
+        [] (int32_t s) { return -s; });
+    select_test<float, float>("fneg",
         [] (Expr s) { return _neg(s); },
-        [] (float s) { return -s; }, "fneg");
-    select_test<double, double>(
+        [] (float s) { return -s; });
+    select_test<double, double>("dneg",
         [] (Expr s) { return _neg(s); },
-        [] (double s) { return -s; }, "dneg");
+        [] (double s) { return -s; });
 }
 
 void sqrt_test()
 {
-    select_test<float, float>(
+    select_test<float, float>("fsqrt",
         [] (Expr s) { return _sqrt(s); },
-        [] (float s) { return std::sqrt(s); }, "fsqrt");
-    select_test<double, double>(
+        [] (float s) { return std::sqrt(s); });
+    select_test<double, double>("dsqrt",
         [] (Expr s) { return _sqrt(s); },
-        [] (double s) { return std::sqrt(s); }, "dsqrt");
+        [] (double s) { return std::sqrt(s); });
 }
 
 void pow_test()
 {
-    select_test<float, float>(
+    select_test<float, float>("fpow",
         [] (Expr s) { return _pow(s, _f32(2)); },
-        [] (float s) { return std::pow(s, 2); }, "fpow");
-    select_test<double, double>(
+        [] (float s) { return std::pow(s, 2); });
+    select_test<double, double>("dpow",
         [] (Expr s) { return _pow(s, _f64(2)); },
-        [] (double s) { return std::pow(s, 2); }, "dpow");
+        [] (double s) { return std::pow(s, 2); });
 }
 
 void ceil_test()
 {
-    select_test<float, float>(
+    select_test<float, float>("fceil",
         [] (Expr s) { return _ceil(s); },
-        [] (float s) { return std::ceil(s); }, "fceil");
-    select_test<double, double>(
+        [] (float s) { return std::ceil(s); });
+    select_test<double, double>("dceil",
         [] (Expr s) { return _ceil(s); },
-        [] (double s) { return std::ceil(s); }, "dceil");
+        [] (double s) { return std::ceil(s); });
 }
 
 void floor_test()
 {
-    select_test<float, float>(
+    select_test<float, float>("ffloor",
         [] (Expr s) { return _floor(s); },
-        [] (float s) { return std::floor(s); }, "ffloor");
-    select_test<double, double>(
+        [] (float s) { return std::floor(s); });
+    select_test<double, double>("dfloor",
         [] (Expr s) { return _floor(s); },
-        [] (double s) { return std::floor(s); }, "dfloor");
+        [] (double s) { return std::floor(s); });
 }
 
 void abs_test()
 {
-    select_test<float, float>(
+    select_test<float, float>("fabs",
         [] (Expr s) { return _abs(s); },
-        [] (float s) { return std::abs(s); }, "fabs");
-    select_test<double, double>(
+        [] (float s) { return std::abs(s); });
+    select_test<double, double>("dabs",
         [] (Expr s) { return _abs(s); },
-        [] (double s) { return std::abs(s); }, "dabs");
-    select_test<int32_t, int32_t>(
+        [] (double s) { return std::abs(s); });
+    select_test<int32_t, int32_t>("iabs",
         [] (Expr s) { return _abs(s); },
-        [] (int32_t s) { return std::abs(s); }, "iabs");
+        [] (int32_t s) { return std::abs(s); });
 }
 
 void cast_test()
 {
-    select_test<int32_t, float>(
+    select_test<int32_t, float>("sitofp",
         [] (Expr s) { return _cast(types::FLOAT32, s); },
-        [] (int32_t s) { return static_cast<float>(s); }, "sitofp");
-    select_test<uint32_t, float>(
+        [] (int32_t s) { return static_cast<float>(s); });
+    select_test<uint32_t, float>("uitofp",
         [] (Expr s) { return _cast(types::FLOAT32, s); },
-        [] (uint32_t s) { return static_cast<float>(s); }, "uitofp");
-    select_test<float, int32_t>(
+        [] (uint32_t s) { return static_cast<float>(s); });
+    select_test<float, int32_t>("fptosi",
         [] (Expr s) { return _cast(types::INT32, s); },
-        [] (float s) { return static_cast<int32_t>(s); }, "fptosi");
-    select_test<float, uint32_t>(
+        [] (float s) { return static_cast<int32_t>(s); });
+    select_test<float, uint32_t>("fptoui",
         [] (Expr s) { return _cast(types::UINT32, s); },
-        [] (float s) { return static_cast<uint32_t>(s); }, "fptoui");
-    select_test<int8_t, int32_t>(
+        [] (float s) { return static_cast<uint32_t>(s); });
+    select_test<int8_t, int32_t>("int8toint32",
         [] (Expr s) { return _cast(types::INT32, s); },
-        [] (int8_t s) { return static_cast<int32_t>(s); }, "int8toint32");
+        [] (int8_t s) { return static_cast<int32_t>(s); });
 }
 
 void moving_sum_test()
@@ -299,5 +300,5 @@ void moving_sum_test()
         return move(out);
     };
 
-    unary_op_test<int32_t, int32_t>(mov_op, mov_query_fn, len, dur, "moving_sum");
+    unary_op_test<int32_t, int32_t>("moving_sum", mov_op, mov_query_fn, len, dur);
 }

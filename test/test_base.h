@@ -3,7 +3,6 @@
 
 #include <functional>
 #include <vector>
-#include <string>
 
 #include "tilt/ir/op.h"
 
