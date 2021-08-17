@@ -41,43 +41,22 @@ void assert_eq(double exp, double act) { ASSERT_DOUBLE_EQ(exp, act); }
 }  // namespace
 
 // Math ops tests
-void iadd_test();
-void fadd_test();
-void isub_test();
-void fsub_test();
-void imul_test();
-void fmul_test();
-void idiv_test();
-void udiv_test();
-void fdiv_test();
-void imod_test();
-void imax_test();
-void umax_test();
-void fmax_test();
-void imin_test();
-void umin_test();
-void fmin_test();
-void ineg_test();
-void fneg_test();
-void dneg_test();
-void fsqrt_test();
-void dsqrt_test();
-void fpow_test();
-void dpow_test();
-void fceil_test();
-void dceil_test();
-void ffloor_test();
-void dfloor_test();
-void fabs_test();
-void dabs_test();
-void iabs_test();
+void add_test();
+void sub_test();
+void mul_test();
+void div_test();
+void mod_test();
+void max_test();
+void min_test();
+void neg_test();
+void sqrt_test();
+void pow_test();
+void ceil_test();
+void floor_test();
+void abs_test();
 
 // Cast op test
-void sitofp_test();
-void uitofp_test();
-void fptosi_test();
-void fptoui_test();
-void int8toint32_test();
+void cast_test();
 
 // Stateful op tests
 void moving_sum_test();
