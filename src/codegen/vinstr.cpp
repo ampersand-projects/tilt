@@ -87,6 +87,7 @@ region_t* commit_null(region_t* reg, ts_t t)
 
 void LLVMGen::register_vinstrs()
 {
+    REGISTER_VINSTR(*llmod(), llctx(), get_buf_size, _1);
     REGISTER_VINSTR(*llmod(), llctx(), get_start_idx, _1);
     REGISTER_VINSTR(*llmod(), llctx(), get_end_idx, _1);
     REGISTER_VINSTR(*llmod(), llctx(), get_ckpt, _1, _2, _3);
