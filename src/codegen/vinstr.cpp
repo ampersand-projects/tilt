@@ -77,15 +77,15 @@ region_t* commit_null(region_t* reg, ts_t t)
 
 void LLVMGen::register_vinstrs()
 {
-    llvm::Linker::linkModules(*llmod(), easy::get_module(llctx(), get_start_idx, _1));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(llctx(), get_end_idx, _1));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(llctx(), get_ckpt, _1, _2, _3));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(llctx(), advance, _1, _2, _3));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(llctx(), fetch, _1, _2, _3, _4));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(llctx(), make_region, _1, _2, _3, _4, _5, _6));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(llctx(), init_region, _1, _2, _3, _4));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(llctx(), commit_data, _1, _2));
-    llvm::Linker::linkModules(*llmod(), easy::get_module(llctx(), commit_null, _1, _2));
+    REGISTER_VINSTR(*llmod(), llctx(), get_start_idx, _1);
+    REGISTER_VINSTR(*llmod(), llctx(), get_end_idx, _1);
+    REGISTER_VINSTR(*llmod(), llctx(), get_ckpt, _1, _2, _3);
+    REGISTER_VINSTR(*llmod(), llctx(), advance, _1, _2, _3);
+    REGISTER_VINSTR(*llmod(), llctx(), fetch, _1, _2, _3, _4);
+    REGISTER_VINSTR(*llmod(), llctx(), make_region, _1, _2, _3, _4, _5, _6);
+    REGISTER_VINSTR(*llmod(), llctx(), init_region, _1, _2, _3, _4);
+    REGISTER_VINSTR(*llmod(), llctx(), commit_data, _1, _2);
+    REGISTER_VINSTR(*llmod(), llctx(), commit_null, _1, _2);
 }
 
 }  // namespace tilt
