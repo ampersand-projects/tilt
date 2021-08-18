@@ -59,6 +59,8 @@ protected:
     virtual OutExprTy visit(const GetCkpt&) = 0;
     virtual OutExprTy visit(const GetStartIdx&) = 0;
     virtual OutExprTy visit(const GetEndIdx&) = 0;
+    virtual OutExprTy visit(const GetStartTime&) = 0;
+    virtual OutExprTy visit(const GetEndTime&) = 0;
     virtual OutExprTy visit(const CommitData&) = 0;
     virtual OutExprTy visit(const CommitNull&) = 0;
     virtual OutExprTy visit(const AllocRegion&) = 0;
@@ -86,6 +88,8 @@ protected:
     void Visit(const GetCkpt& expr) final { val() = visit(expr); }
     void Visit(const GetStartIdx& expr) final { val() = visit(expr); }
     void Visit(const GetEndIdx& expr) final { val() = visit(expr); }
+    void Visit(const GetStartTime& expr) final { val() = visit(expr); }
+    void Visit(const GetEndTime& expr) final { val() = visit(expr); }
     void Visit(const CommitData& expr) final { val() = visit(expr); }
     void Visit(const CommitNull& expr) final { val() = visit(expr); }
     void Visit(const AllocRegion& expr) final { val() = visit(expr); }

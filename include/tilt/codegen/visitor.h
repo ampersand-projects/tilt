@@ -39,6 +39,8 @@ public:
     virtual void Visit(const GetCkpt&) = 0;
     virtual void Visit(const GetStartIdx&) = 0;
     virtual void Visit(const GetEndIdx&) = 0;
+    virtual void Visit(const GetStartTime&) = 0;
+    virtual void Visit(const GetEndTime&) = 0;
     virtual void Visit(const CommitData&) = 0;
     virtual void Visit(const CommitNull&) = 0;
     virtual void Visit(const AllocRegion&) = 0;

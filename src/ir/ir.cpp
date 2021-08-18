@@ -28,6 +28,8 @@ void Advance::Accept(Visitor& v) const { v.Visit(*this); }
 void GetCkpt::Accept(Visitor& v) const { v.Visit(*this); }
 void GetStartIdx::Accept(Visitor& v) const { v.Visit(*this); }
 void GetEndIdx::Accept(Visitor& v) const { v.Visit(*this); }
+void GetStartTime::Accept(Visitor& v) const { v.Visit(*this); }
+void GetEndTime::Accept(Visitor& v) const { v.Visit(*this); }
 void CommitData::Accept(Visitor& v) const { v.Visit(*this); }
 void CommitNull::Accept(Visitor& v) const { v.Visit(*this); }
 void AllocRegion::Accept(Visitor& v) const { v.Visit(*this); }

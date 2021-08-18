@@ -148,7 +148,23 @@ Expr LoopGen::visit(const Call& call)
     return _call(call.name, call.type, move(args));
 }
 
-Expr LoopGen::visit(const Exists& exists) { return _exists(eval(exists.expr)); }
+Expr LoopGen::visit(const Exists& exists)
+{
+    eval(exists.sym);
+    if (exists.sym->type.is_valtype()) {
+        auto ptr_sym = get_ref(exists.sym);
+        return _exists(ptr_sym);
+    } else {
+        auto reg = get_sym(exists.sym);
+        auto si = _get_start_idx(reg);
+        auto ei = _get_end_idx(reg);
+        auto st = _get_start_time(reg);
+        auto win_ptr = _fetch(reg, st, si);
+        auto win_ptr_sym = win_ptr->sym(reg->name + "_ptr");
+        set_expr(win_ptr_sym, win_ptr);
+        return _or(_not(_eq(si, ei)), _exists(win_ptr_sym));
+    }
+}
 
 Expr LoopGen::visit(const New& new_expr)
 {
@@ -168,7 +184,7 @@ Expr LoopGen::visit(const Cast& e) { return _cast(e.type.dtype, eval(e.arg)); }
 Expr LoopGen::visit(const NaryExpr& e)
 {
     vector<Expr> args;
-    for (auto arg : e.args){
+    for (auto arg : e.args) {
         args.push_back(eval(arg));
     }
     return make_shared<NaryExpr>(e.type.dtype, e.op, move(args));
@@ -185,15 +201,19 @@ Expr LoopGen::visit(const SubLStream& subls)
     return _make_reg(reg, st, si, et, ei);
 }
 
-Expr LoopGen::visit(const Read& read) { return _read(eval(read.ptr)); }
-
 Expr LoopGen::visit(const Element& elem)
 {
     eval(elem.lstream);
     auto& reg = get_sym(elem.lstream);
     auto time = get_timer(elem.pt);
     auto& idx = create_idx(reg, elem.pt);
-    return _fetch(reg, time, idx);
+
+    auto ptr = _fetch(reg, time, idx);
+    auto ptr_sym = ptr->sym(ctx().sym->name + "_ptr");
+    set_expr(ptr_sym, ptr);
+    set_ref(ctx().sym, ptr_sym);
+
+    return _read(ptr_sym);
 }
 
 Expr LoopGen::visit(const OpNode& op)

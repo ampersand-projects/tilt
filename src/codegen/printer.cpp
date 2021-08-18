@@ -32,7 +32,7 @@ void IRPrinter::Visit(const Out& out) { Visit(static_cast<Symbol>(out)); }
 
 void IRPrinter::Visit(const Exists& exists)
 {
-    emitunary(EXISTS, exists.expr);
+    emitunary(EXISTS, exists.sym);
 }
 
 void IRPrinter::Visit(const ConstNode& cnst)
@@ -202,6 +202,16 @@ void IRPrinter::Visit(const GetStartIdx& gsi)
 void IRPrinter::Visit(const GetEndIdx& gei)
 {
     emitfunc("get_end_idx", { gei.reg });
+}
+
+void IRPrinter::Visit(const GetStartTime& gst)
+{
+    emitfunc("get_start_time", { gst.reg });
+}
+
+void IRPrinter::Visit(const GetEndTime& get)
+{
+    emitfunc("get_end_time", { get.reg });
 }
 
 void IRPrinter::Visit(const CommitData& commit)

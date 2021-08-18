@@ -334,7 +334,7 @@ Value* LLVMGen::visit(const NaryExpr& e)
 
 Value* LLVMGen::visit(const Exists& exists)
 {
-    return builder()->CreateIsNotNull(eval(exists.expr));
+    return builder()->CreateIsNotNull(eval(exists.sym));
 }
 
 Value* LLVMGen::visit(const Fetch& fetch)
@@ -368,6 +368,16 @@ Value* LLVMGen::visit(const GetStartIdx& start_idx)
 Value* LLVMGen::visit(const GetEndIdx& end_idx)
 {
     return llcall("get_end_idx", lltype(end_idx), { end_idx.reg });
+}
+
+Value* LLVMGen::visit(const GetStartTime& start_time)
+{
+    return llcall("get_start_time", lltype(start_time), { start_time.reg });
+}
+
+Value* LLVMGen::visit(const GetEndTime& end_time)
+{
+    return llcall("get_end_time", lltype(end_time), { end_time.reg });
 }
 
 Value* LLVMGen::visit(const CommitNull& commit)

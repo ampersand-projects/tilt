@@ -20,6 +20,7 @@ private:
     Looper loop;
 
     map<Sym, map<Point, Indexer>> pt_idx_maps;
+    map<Sym, Sym> sym_ref;
 
     friend class LoopGen;
 };
@@ -33,6 +34,8 @@ public:
 private:
     Expr get_timer(const Point);
     Indexer& create_idx(const Sym, const Point);
+    Sym get_ref(const Sym sym) { return ctx().sym_ref.at(sym); }
+    void set_ref(Sym sym, Sym ref) { ctx().sym_ref[sym] = ref; }
     void build_loop();
 
     Expr visit(const Symbol&) final;
@@ -40,7 +43,6 @@ private:
     Expr visit(const Call&) final;
     Expr visit(const IfElse&) final;
     Expr visit(const Select&) final;
-    Expr visit(const Read&) final;
     Expr visit(const Get&) final;
     Expr visit(const New&) final;
     Expr visit(const Exists&) final;
@@ -52,11 +54,14 @@ private:
     Expr visit(const OpNode&) final;
     Expr visit(const AggNode&) final;
     Expr visit(const Fetch&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const Read&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const Write&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const Advance&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const GetCkpt&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const GetStartIdx&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const GetEndIdx&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const GetStartTime&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const GetEndTime&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const CommitData&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const CommitNull&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const AllocRegion&) final { throw runtime_error("Invalid expression"); };

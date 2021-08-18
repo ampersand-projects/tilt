@@ -58,6 +58,8 @@ public:
     void Visit(const GetCkpt&) override;
     void Visit(const GetStartIdx&) override;
     void Visit(const GetEndIdx&) override;
+    void Visit(const GetStartTime&) override;
+    void Visit(const GetEndTime&) override;
     void Visit(const CommitData&) override;
     void Visit(const CommitNull&) override;
     void Visit(const AllocRegion&) override;

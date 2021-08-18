@@ -21,6 +21,10 @@ idx_t get_start_idx(region_t* reg) { return reg->si; }
 
 idx_t get_end_idx(region_t* reg) { return reg->ei; }
 
+ts_t get_start_time(region_t* reg) { return reg->st; }
+
+ts_t get_end_time(region_t* reg) { return reg->et; }
+
 int64_t get_ckpt(region_t* reg, ts_t t, idx_t i)
 {
     auto civl = reg->tl[i & reg->mask];
@@ -90,6 +94,8 @@ void LLVMGen::register_vinstrs()
     REGISTER_VINSTR(*llmod(), llctx(), get_buf_size, _1);
     REGISTER_VINSTR(*llmod(), llctx(), get_start_idx, _1);
     REGISTER_VINSTR(*llmod(), llctx(), get_end_idx, _1);
+    REGISTER_VINSTR(*llmod(), llctx(), get_start_time, _1);
+    REGISTER_VINSTR(*llmod(), llctx(), get_end_time, _1);
     REGISTER_VINSTR(*llmod(), llctx(), get_ckpt, _1, _2, _3);
     REGISTER_VINSTR(*llmod(), llctx(), advance, _1, _2, _3);
     REGISTER_VINSTR(*llmod(), llctx(), fetch, _1, _2, _3, _4);

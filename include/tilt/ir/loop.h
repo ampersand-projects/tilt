@@ -37,12 +37,20 @@ struct Fetch : public ValNode {
     Expr idx;
 
     Fetch(Expr reg, Expr time, Expr idx) :
-        ValNode(DataType(BaseType::PTR, {reg->type.dtype})), reg(reg), time(time), idx(idx)
+        ValNode(reg->type.dtype.ptr()), reg(reg), time(time), idx(idx)
     {
         ASSERT(!reg->type.is_valtype());
         ASSERT(time->type.dtype == types::TIME);
         ASSERT(idx->type.dtype == types::INDEX);
     }
+
+    void Accept(Visitor&) const final;
+};
+
+struct Read : public ValNode {
+    Expr ptr;
+
+    explicit Read(Expr ptr) : ValNode(ptr->type.dtype.deref()), ptr(ptr) {}
 
     void Accept(Visitor&) const final;
 };
@@ -108,6 +116,28 @@ struct GetEndIdx : public ValNode {
     Expr reg;
 
     explicit GetEndIdx(Expr reg) : ValNode(types::INDEX), reg(reg)
+    {
+        ASSERT(!reg->type.is_valtype());
+    }
+
+    void Accept(Visitor&) const final;
+};
+
+struct GetStartTime : public ValNode {
+    Expr reg;
+
+    explicit GetStartTime(Expr reg) : ValNode(types::TIME), reg(reg)
+    {
+        ASSERT(!reg->type.is_valtype());
+    }
+
+    void Accept(Visitor&) const final;
+};
+
+struct GetEndTime : public ValNode {
+    Expr reg;
+
+    explicit GetEndTime(Expr reg) : ValNode(types::TIME), reg(reg)
     {
         ASSERT(!reg->type.is_valtype());
     }

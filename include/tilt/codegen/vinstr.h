@@ -15,6 +15,8 @@ extern "C" {
 TILT_VINSTR_ATTR uint32_t get_buf_size(idx_t);
 TILT_VINSTR_ATTR idx_t get_start_idx(region_t*);
 TILT_VINSTR_ATTR idx_t get_end_idx(region_t*);
+TILT_VINSTR_ATTR ts_t get_start_time(region_t*);
+TILT_VINSTR_ATTR ts_t get_end_time(region_t*);
 TILT_VINSTR_ATTR ts_t get_ckpt(region_t*, ts_t, idx_t);
 TILT_VINSTR_ATTR idx_t advance(region_t*, idx_t, ts_t);
 TILT_VINSTR_ATTR char* fetch(region_t*, ts_t, idx_t, uint32_t);

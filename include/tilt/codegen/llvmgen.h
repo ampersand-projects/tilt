@@ -65,6 +65,8 @@ private:
     llvm::Value* visit(const GetCkpt&) final;
     llvm::Value* visit(const GetStartIdx&) final;
     llvm::Value* visit(const GetEndIdx&) final;
+    llvm::Value* visit(const GetStartTime&) final;
+    llvm::Value* visit(const GetEndTime&) final;
     llvm::Value* visit(const CommitData&) final;
     llvm::Value* visit(const CommitNull&) final;
     llvm::Value* visit(const AllocRegion&) final;
