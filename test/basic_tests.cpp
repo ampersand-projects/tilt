@@ -15,3 +15,4 @@ TEST(MathOpTests, FloorOPTest) { floor_test(); }
 TEST(MathOpTests, AbsOPTest) { abs_test(); }
 TEST(CastOpTests, CastTest) { cast_test(); }
 TEST(StatefulOpTest, MovingSumTest) { moving_sum_test(); }
+TEST(StatefulOpTest, NormTest) { norm_test(); }
