@@ -63,9 +63,9 @@ region_t* init_region(region_t* reg, ts_t t, uint32_t size, ival_t* tl, char* da
     reg->et = t;
     reg->ei = -1;
     reg->mask = size - 1;
-    tl[0] = {t, 0};
     reg->tl = tl;
     reg->data = data;
+    commit_null(reg, t);
     return reg;
 }
 
@@ -84,6 +84,8 @@ region_t* commit_data(region_t* reg, ts_t t)
 region_t* commit_null(region_t* reg, ts_t t)
 {
     reg->et = t;
+    reg->tl[(reg->ei + 1) & reg->mask].t = t;
+    reg->tl[(reg->ei + 1) & reg->mask].d = 0;
     return reg;
 }
 
