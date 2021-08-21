@@ -14,15 +14,15 @@ using namespace std;
 
 namespace tilt {
 
-struct Time : public Symbol {
-    explicit Time(string name) : Symbol(name, Type(types::TIME)) {}
+struct TimeNode : public Symbol {
+    explicit TimeNode(string name) : Symbol(name, Type(types::TIME)) {}
 };
-typedef shared_ptr<Time> Timer;
+typedef shared_ptr<TimeNode> Time;
 
-struct Index : public Symbol {
-    explicit Index(string name) : Symbol(name, Type(types::INDEX)) {}
+struct IndexNode : public Symbol {
+    explicit IndexNode(string name) : Symbol(name, Type(types::INDEX)) {}
 };
-typedef shared_ptr<Index> Indexer;
+typedef shared_ptr<IndexNode> Index;
 
 struct Region : public Symbol {
     Region(string name, Type type) : Symbol(name, move(type))
@@ -223,12 +223,12 @@ struct IfElse : public ExprNode {
     void Accept(Visitor&) const final;
 };
 
-struct Loop : public FuncNode {
+struct LoopNode : public FuncNode {
     // Loop counter
-    Timer t;
+    Time t;
 
     // Indices
-    vector<Indexer> idxs;
+    vector<Index> idxs;
 
     // States
     map<Sym, Sym> state_bases;
@@ -237,16 +237,16 @@ struct Loop : public FuncNode {
     Expr exit_cond;
 
     // Inner loops
-    vector<shared_ptr<Loop>> inner_loops;
+    vector<shared_ptr<LoopNode>> inner_loops;
 
-    Loop(string name, Type type) : FuncNode(name, move(type)) {}
-    explicit Loop(Sym sym) : Loop(sym->name, sym->type) {}
+    LoopNode(string name, Type type) : FuncNode(name, move(type)) {}
+    explicit LoopNode(Sym sym) : LoopNode(sym->name, sym->type) {}
 
     const string get_name() const override { return "loop_" + this->name; }
 
     void Accept(Visitor&) const final;
 };
-typedef shared_ptr<Loop> Looper;
+typedef shared_ptr<LoopNode> Loop;
 
 }  // namespace tilt
 

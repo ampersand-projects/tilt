@@ -435,7 +435,7 @@ Value* LLVMGen::visit(const Call& call)
     return llcall(call.name, lltype(call), call.args);
 }
 
-Value* LLVMGen::visit(const Loop& loop)
+Value* LLVMGen::visit(const LoopNode& loop)
 {
     // Build inner loops
     for (const auto& inner_loop : loop.inner_loops) {
@@ -489,13 +489,13 @@ Value* LLVMGen::visit(const Loop& loop)
     builder()->SetInsertPoint(body_bb);
     auto stack_val = builder()->CreateIntrinsic(Intrinsic::stacksave, {}, {});
 
-    // Update loop counter
-    eval(loop.t);
-
     // Update indices
     for (const auto& idx : loop.idxs) {
         eval(idx);
     }
+
+    // Update loop counter
+    eval(loop.t);
 
     // Evaluate loop output
     eval(loop.output);
@@ -519,7 +519,7 @@ Value* LLVMGen::visit(const Loop& loop)
     return loop_fn;
 }
 
-unique_ptr<llvm::Module> LLVMGen::Build(const Looper loop, llvm::LLVMContext& llctx)
+unique_ptr<llvm::Module> LLVMGen::Build(const Loop loop, llvm::LLVMContext& llctx)
 {
     LLVMGenCtx ctx(loop.get(), &llctx);
     LLVMGen llgen(move(ctx));

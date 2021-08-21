@@ -38,6 +38,7 @@ public:
 
     void Visit(const Symbol&) override;
     void Visit(const Out&) override;
+    void Visit(const Beat&) override;
     void Visit(const Call&) override;
     void Visit(const IfElse&) override;
     void Visit(const Select&) override;
@@ -64,7 +65,7 @@ public:
     void Visit(const CommitNull&) override;
     void Visit(const AllocRegion&) override;
     void Visit(const MakeRegion&) override;
-    void Visit(const Loop&) override;
+    void Visit(const LoopNode&) override;
 
 private:
     void enter_op() { ctx.nesting++; }

@@ -96,7 +96,7 @@ void select_test(string query_name, function<Expr(Expr)> sel_expr, function<OutT
     size_t len = 1000;
     int64_t dur = 5;
 
-    auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter("in")));
+    auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter(0, -1)));
     auto sel_op = _Select(in_sym, sel_expr);
 
     auto sel_query_fn = [sel_fn] (vector<Event<InTy>> in) {
@@ -282,7 +282,7 @@ void moving_sum_test()
     int64_t dur = 1;
     int64_t w = 10;
 
-    auto in_sym = _sym("in", tilt::Type(types::INT32, _iter("in")));
+    auto in_sym = _sym("in", tilt::Type(types::INT32, _iter(0, -1)));
     auto mov_op = _MovingSum(in_sym, dur, w);
 
     auto mov_query_fn = [w] (vector<Event<int32_t>> in) {

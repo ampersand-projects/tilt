@@ -18,13 +18,13 @@ namespace tilt {
 
 class LLVMGenCtx : public IRGenCtx<Expr, llvm::Value*> {
 public:
-    LLVMGenCtx(const Loop* loop, llvm::LLVMContext* llctx) :
+    LLVMGenCtx(const LoopNode* loop, llvm::LLVMContext* llctx) :
         IRGenCtx(nullptr, &loop->syms, new map<Sym, llvm::Value*>()),
         loop(loop), llctx(llctx), map_backup(unique_ptr<map<Sym, llvm::Value*>>(out_sym_tbl))
     {}
 
 private:
-    const Loop* loop;
+    const LoopNode* loop;
     llvm::LLVMContext* llctx;
     unique_ptr<map<Sym, llvm::Value*>> map_backup;
     friend class LLVMGen;
@@ -33,18 +33,21 @@ private:
 class LLVMGen : public IRGen<LLVMGenCtx, Expr, llvm::Value*> {
 public:
     explicit LLVMGen(LLVMGenCtx llgenctx) :
-        IRGen(move(llgenctx)), _llctx(*llgenctx.llctx),
-        _llmod(make_unique<llvm::Module>(llgenctx.loop->name, _llctx)),
+        _ctx(move(llgenctx)), _llctx(*ctx().llctx),
+        _llmod(make_unique<llvm::Module>(ctx().loop->name, _llctx)),
         _builder(make_unique<llvm::IRBuilder<>>(_llctx))
     {
         register_vinstrs();
     }
 
-    static unique_ptr<llvm::Module> Build(const Looper, llvm::LLVMContext&);
+    static unique_ptr<llvm::Module> Build(const Loop, llvm::LLVMContext&);
 
 private:
+    LLVMGenCtx& ctx() override { return _ctx; }
+
     llvm::Value* visit(const Symbol&) final;
     llvm::Value* visit(const Out&) final { throw std::runtime_error("Invalid expression"); }
+    llvm::Value* visit(const Beat&) final { throw std::runtime_error("Invalid expression"); }
     llvm::Value* visit(const Call&) final;
     llvm::Value* visit(const IfElse&) final;
     llvm::Value* visit(const Select&) final;
@@ -71,7 +74,7 @@ private:
     llvm::Value* visit(const CommitNull&) final;
     llvm::Value* visit(const AllocRegion&) final;
     llvm::Value* visit(const MakeRegion&) final;
-    llvm::Value* visit(const Loop&) final;
+    llvm::Value* visit(const LoopNode&) final;
 
     void set_expr(const Sym& sym_ptr, llvm::Value* val) override
     {
@@ -96,6 +99,7 @@ private:
     llvm::LLVMContext& llctx() { return _llctx; }
     llvm::IRBuilder<>* builder() { return _builder.get(); }
 
+    LLVMGenCtx _ctx;
     llvm::LLVMContext& _llctx;
     unique_ptr<llvm::Module> _llmod;
     unique_ptr<llvm::IRBuilder<>> _builder;

@@ -34,12 +34,12 @@ protected:
 
 template<typename CtxTy, typename InExprTy, typename OutExprTy>
 class IRGen : public Visitor {
-public:
-    explicit IRGen(CtxTy ctx) : irctx(move(ctx)) {}
-
 protected:
+    virtual CtxTy& ctx() = 0;
+
     virtual OutExprTy visit(const Symbol&) = 0;
     virtual OutExprTy visit(const Out&) = 0;
+    virtual OutExprTy visit(const Beat&) = 0;
     virtual OutExprTy visit(const IfElse&) = 0;
     virtual OutExprTy visit(const Select&) = 0;
     virtual OutExprTy visit(const Get&) = 0;
@@ -66,9 +66,10 @@ protected:
     virtual OutExprTy visit(const AllocRegion&) = 0;
     virtual OutExprTy visit(const MakeRegion&) = 0;
     virtual OutExprTy visit(const Call&) = 0;
-    virtual OutExprTy visit(const Loop&) = 0;
+    virtual OutExprTy visit(const LoopNode&) = 0;
 
     void Visit(const Out& expr) final { val() = visit(expr); }
+    void Visit(const Beat& expr) final { val() = visit(expr); }
     void Visit(const IfElse& expr) final { val() = visit(expr); }
     void Visit(const Select& expr) final { val() = visit(expr); }
     void Visit(const Get& expr) final { val() = visit(expr); }
@@ -95,11 +96,9 @@ protected:
     void Visit(const AllocRegion& expr) final { val() = visit(expr); }
     void Visit(const MakeRegion& expr) final { val() = visit(expr); }
     void Visit(const Call& expr) final { val() = visit(expr); }
-    void Visit(const Loop& expr) final { val() = visit(expr); }
+    void Visit(const LoopNode& expr) final { val() = visit(expr); }
 
-    CtxTy& ctx() { return irctx; }
-
-    CtxTy& switch_ctx(CtxTy& new_ctx) { swap(new_ctx, irctx); return new_ctx; }
+    CtxTy& switch_ctx(CtxTy& new_ctx) { swap(new_ctx, ctx()); return new_ctx; }
 
     Sym tmp_sym(const Symbol& symbol)
     {
@@ -154,9 +153,6 @@ protected:
 
         val() = visit(symbol);
     }
-
-private:
-    CtxTy irctx;
 };
 
 }  // namespace tilt

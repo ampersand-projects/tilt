@@ -15,6 +15,7 @@ public:
      */
     virtual void Visit(const Symbol&) = 0;
     virtual void Visit(const Out&) = 0;
+    virtual void Visit(const Beat&) = 0;
     virtual void Visit(const Call&) = 0;
     virtual void Visit(const Read&) = 0;
     virtual void Visit(const IfElse&) = 0;
@@ -45,7 +46,7 @@ public:
     virtual void Visit(const CommitNull&) = 0;
     virtual void Visit(const AllocRegion&) = 0;
     virtual void Visit(const MakeRegion&) = 0;
-    virtual void Visit(const Loop&) = 0;
+    virtual void Visit(const LoopNode&) = 0;
 };
 
 }  // namespace tilt

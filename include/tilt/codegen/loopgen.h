@@ -11,15 +11,16 @@ namespace tilt {
 
 class LoopGenCtx : public IRGenCtx<Expr, Expr> {
 public:
-    LoopGenCtx(Sym sym, const OpNode* op, Looper loop) :
+    LoopGenCtx(Sym sym, const OpNode* op, Loop loop) :
         IRGenCtx(sym, &op->syms, &loop->syms), op(op), loop(loop)
     {}
 
 private:
     const OpNode* op;
-    Looper loop;
+    Loop loop;
 
-    map<Sym, map<Point, Indexer>> pt_idx_maps;
+    map<Sym, map<Point, Index>> pt_idx_maps;
+    map<Index, Expr> idx_diff_map;
     map<Sym, Sym> sym_ref;
 
     friend class LoopGen;
@@ -27,19 +28,22 @@ private:
 
 class LoopGen : public IRGen<LoopGenCtx, Expr, Expr> {
 public:
-    explicit LoopGen(LoopGenCtx ctx) : IRGen(ctx) {}
+    explicit LoopGen(LoopGenCtx ctx) : _ctx(move(ctx)) {}
 
-    static Looper Build(Sym, const OpNode*);
+    static Loop Build(Sym, const OpNode*);
 
 private:
+    LoopGenCtx& ctx() override { return _ctx; }
+
     Expr get_timer(const Point);
-    Indexer& create_idx(const Sym, const Point);
+    Index& get_idx(const Sym, const Point);
     Sym get_ref(const Sym sym) { return ctx().sym_ref.at(sym); }
     void set_ref(Sym sym, Sym ref) { ctx().sym_ref[sym] = ref; }
     void build_loop();
 
     Expr visit(const Symbol&) final;
     Expr visit(const Out&) final;
+    Expr visit(const Beat&) final;
     Expr visit(const Call&) final;
     Expr visit(const IfElse&) final;
     Expr visit(const Select&) final;
@@ -66,7 +70,9 @@ private:
     Expr visit(const CommitNull&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const AllocRegion&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const MakeRegion&) final { throw runtime_error("Invalid expression"); };
-    Expr visit(const Loop&) final { throw runtime_error("Invalid expression"); };
+    Expr visit(const LoopNode&) final { throw runtime_error("Invalid expression"); };
+
+    LoopGenCtx _ctx;
 };
 
 }  // namespace tilt

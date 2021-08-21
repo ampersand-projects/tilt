@@ -8,6 +8,7 @@ using namespace tilt;
 
 void Symbol::Accept(Visitor& v) const { v.Visit(*this); }
 void Out::Accept(Visitor& v) const { v.Visit(*this); }
+void Beat::Accept(Visitor& v) const { v.Visit(*this); }
 void Call::Accept(Visitor& v) const { v.Visit(*this); }
 void IfElse::Accept(Visitor& v) const { v.Visit(*this); }
 void Select::Accept(Visitor& v) const { v.Visit(*this); }
@@ -34,4 +35,4 @@ void CommitData::Accept(Visitor& v) const { v.Visit(*this); }
 void CommitNull::Accept(Visitor& v) const { v.Visit(*this); }
 void AllocRegion::Accept(Visitor& v) const { v.Visit(*this); }
 void MakeRegion::Accept(Visitor& v) const { v.Visit(*this); }
-void Loop::Accept(Visitor& v) const { v.Visit(*this); }
+void LoopNode::Accept(Visitor& v) const { v.Visit(*this); }

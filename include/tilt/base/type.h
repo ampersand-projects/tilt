@@ -105,27 +105,20 @@ struct DataType {
 struct Iter {
     int64_t offset;
     int64_t period;
-    string name;
 
     Iter(int64_t offset, int64_t period) :
-        Iter(offset, period, "(" + to_string(offset) + "," + to_string(period) + ")")
+        offset(offset), period(period)
     {}
 
-    explicit Iter(string name) : Iter(0, -1, name) {}
-
-    Iter() : offset(0), period(0), name("") {}
+    Iter() : offset(0), period(0) {}
 
     bool operator==(const Iter& o) const
     {
         return (this->offset == o.offset)
-            && (this->period == o.period)
-            && (this->name == o.name);
+            && (this->period == o.period);
     }
 
-private:
-    Iter(int64_t offset, int64_t period, string name) :
-        offset(offset), period(period), name("~" + name)
-    {}
+    string str() const { return "(" + to_string(offset) + ", " + to_string(period) + ")"; }
 };
 
 struct Type {
@@ -139,6 +132,8 @@ struct Type {
     explicit Type(DataType dtype) : Type(move(dtype), Iter()) {}
 
     bool is_valtype() const { return iter.period == 0; }
+
+    bool is_beat() const { return iter.period > 0 && dtype.btype == BaseType::TIME; }
 
     bool operator==(const Type& o) const
     {
@@ -217,7 +212,7 @@ DataType STRUCT()
 extern "C" {
 
 typedef int64_t ts_t;
-typedef uint32_t idx_t;
+typedef int64_t idx_t;
 typedef uint32_t dur_t;
 
 struct ival_t {

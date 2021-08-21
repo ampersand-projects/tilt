@@ -254,7 +254,7 @@ int main(int argc, char** argv)
     int len = (argc > 2) ? atoi(argv[2]) : 10;
 
     // input stream
-    auto in_sym = _sym("in", tilt::Type(types::INT32, _iter("in")));
+    auto in_sym = _sym("in", tilt::Type(types::INT32, _iter(0, -1)));
 
     auto query_op = MovingSum(in_sym);
     auto query_op_sym = query_op->sym("query");

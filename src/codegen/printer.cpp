@@ -30,6 +30,8 @@ void IRPrinter::Visit(const Symbol& sym)
 
 void IRPrinter::Visit(const Out& out) { Visit(static_cast<Symbol>(out)); }
 
+void IRPrinter::Visit(const Beat& beat) { Visit(static_cast<Symbol>(beat)); }
+
 void IRPrinter::Visit(const Exists& exists)
 {
     emitunary(EXISTS, exists.sym);
@@ -70,6 +72,8 @@ void IRPrinter::Visit(const Cast& e)
         case BaseType::FLOAT32: destty = "float"; break;
         case BaseType::FLOAT64: destty = "double"; break;
         case BaseType::BOOL: destty = "bool"; break;
+        case BaseType::TIME: destty = "ts"; break;
+        case BaseType::INDEX: destty = "idx"; break;
         default: throw std::runtime_error("Invalid destination type for cast");
     }
 
@@ -85,7 +89,7 @@ void IRPrinter::Visit(const NaryExpr& e)
         case MathOp::MUL: emitbinary(e.arg(0), "*", e.arg(1)); break;
         case MathOp::DIV: emitbinary(e.arg(0), "/", e.arg(1)); break;
         case MathOp::MAX: emitfunc("max", {e.arg(0), e.arg(1)}); break;
-        case MathOp::MIN: emitfunc("max", {e.arg(0), e.arg(1)}); break;
+        case MathOp::MIN: emitfunc("min", {e.arg(0), e.arg(1)}); break;
         case MathOp::MOD: emitbinary(e.arg(0), "%", e.arg(1)); break;
         case MathOp::ABS: ostr << "|"; e.arg(0)->Accept(*this); ostr << "|"; break;
         case MathOp::NEG: emitunary("-", {e.arg(0)}); break;
@@ -123,7 +127,7 @@ void IRPrinter::Visit(const Element& elem)
 void IRPrinter::Visit(const OpNode& op)
 {
     enter_op();
-    ostr << FORALL << "t" << ctx.nesting << " " << IN << " " << op.iter.name << " ";
+    ostr << FORALL << "t" << ctx.nesting << " " << IN << " " << op.iter.str() << " ";
 
     ostr << "[";
     for (auto in : op.inputs) {
@@ -269,7 +273,7 @@ void IRPrinter::Visit(const New& _new)
     emitfunc("new", _new.inputs);
 }
 
-void IRPrinter::Visit(const Loop& loop)
+void IRPrinter::Visit(const LoopNode& loop)
 {
     for (const auto& inner_loop : loop.inner_loops)
     {

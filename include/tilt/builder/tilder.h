@@ -27,6 +27,7 @@ struct _tilder : public shared_ptr<T> {
 // Symbol
 REGISTER_TILDER(_sym, Symbol)
 REGISTER_TILDER(_out, Out)
+REGISTER_TILDER(_beat, Beat)
 
 // Arithmetic expressions
 REGISTER_TILDER(_add, Add)
@@ -73,8 +74,8 @@ REGISTER_TILDER(_agg, AggNode)
 REGISTER_TILDER(_cast, Cast)
 
 // Loop IR expressions
-REGISTER_TILDER(_time, Time)
-REGISTER_TILDER(_index, Index)
+REGISTER_TILDER(_time, TimeNode)
+REGISTER_TILDER(_index, IndexNode)
 REGISTER_TILDER(_reg, Region)
 REGISTER_TILDER(_fetch, Fetch)
 REGISTER_TILDER(_write, Write)
@@ -88,7 +89,7 @@ REGISTER_TILDER(_commit_data, CommitData)
 REGISTER_TILDER(_commit_null, CommitNull)
 REGISTER_TILDER(_alloc_reg, AllocRegion)
 REGISTER_TILDER(_make_reg, MakeRegion)
-REGISTER_TILDER(_loop, Loop)
+REGISTER_TILDER(_loop, LoopNode)
 
 #undef REGISTER_TILDER
 

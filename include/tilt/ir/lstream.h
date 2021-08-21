@@ -14,6 +14,21 @@ struct LStream : public ExprNode {
     explicit LStream(Type type) : ExprNode(move(type)) { ASSERT(!this->type.is_valtype()); }
 };
 
+struct Out : public Symbol {
+    explicit Out(Type type) : Symbol("", move(type)) {}
+
+    void Accept(Visitor&) const final;
+};
+
+struct Beat : public Symbol {
+    explicit Beat(Iter iter) : Symbol(iter.str(), Type(types::TIME, iter))
+    {
+        ASSERT(this->type.is_beat());
+    }
+
+    void Accept(Visitor&) const final;
+};
+
 struct Point {
     const int64_t offset;
 
