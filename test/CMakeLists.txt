@@ -4,7 +4,7 @@ set(TEST_FILES
 )
 
 add_executable(tilt_test ${TEST_FILES})
-target_link_libraries(tilt_test gtest_main quilt)
+target_link_libraries(tilt_test gtest_main tilt quilt)
 
 include(GoogleTest)
 gtest_discover_tests(tilt_test)

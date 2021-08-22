@@ -16,7 +16,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 add_subdirectory(third_party/easy_jit)
 add_subdirectory(third_party/googletest)
 
-include_directories(${LLVM_INCLUDE_DIRS} include quilt)
+include_directories(${LLVM_INCLUDE_DIRS} include quilt/include)
 add_definitions(${LLVM_DEFINITIONS})
 llvm_map_components_to_libnames(llvm_libs native orcjit mcjit objcarcopts)
 
@@ -27,4 +27,4 @@ enable_testing()
 add_subdirectory(test)
 
 add_executable(main main.cpp)
-target_link_libraries(main quilt)
+target_link_libraries(main tilt quilt)

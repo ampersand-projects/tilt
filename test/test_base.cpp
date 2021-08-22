@@ -304,48 +304,35 @@ void moving_sum_test()
     unary_op_test<int32_t, int32_t>("moving_sum", mov_op, mov_query_fn, len, dur);
 }
 
-template<typename T> T variance(const vector<T> &vec)
-{
-    const size_t sz = vec.size();
-    if (sz == 1) {
-        return 0.0;
-    }
-
-    const T mean = accumulate(vec.begin(), vec.end(), 0.0) / sz;
-    auto variance_func = [&mean, &sz](T accumulator, const T& val) {
-        return accumulator + ((val - mean) * (val - mean) / sz);
-    };
-
-    return accumulate(vec.begin(), vec.end(), 0.0, variance_func);
-}
-
 void norm_test()
 {
-    size_t len = 35;
+    size_t len = 1000;
     int64_t dur = 1;
     int64_t w = 10;
 
     auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter("in")));
-    auto norm_op = Norm(in_sym, w);
+    auto norm_op = _Norm(in_sym, w);
 
     auto norm_query_fn = [w] (vector<Event<float>> in) {
         vector<Event<float>> out(in.size());
         size_t num_windows = ceil(in.size() / 10.0);
 
         for (size_t i = 0; i < num_windows; i++) {
-            int size = (i != num_windows - 1) ? w : (in.size() - i * w);
-            vector<float> window(size);
+            vector<float> window(w);
 
-            for (size_t j = 0; j < size; j++) {
+            for (size_t j = 0; j < w; j++) {
                 window[j] = in[i * w + j].payload;
             }
 
-            float avg = accumulate(window.begin(), window.end(), 0.0) / size;
-            float std_de = sqrt(variance(window));
+            float mean = accumulate(window.begin(), window.end(), 0.0) / w;
+            auto variance_func = [mean, w](float accumulator, float val) {
+                return accumulator + ((val - mean) * (val - mean) / w);
+            };
+            float std_de = sqrt(accumulate(window.begin(), window.end(), 0.0, variance_func));
 
-            for (size_t j = 0; j < size; j++) {
+            for (size_t j = 0; j < w; j++) {
                 size_t idx = i * w + j;
-                float z_score = (in[idx].payload - avg) / std_de;
+                float z_score = (in[idx].payload - mean) / std_de;
                 out[idx] = {in[idx].st, in[idx].et, z_score};
             }
         }

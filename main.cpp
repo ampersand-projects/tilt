@@ -10,7 +10,7 @@
 #include "tilt/codegen/vinstr.h"
 #include "tilt/engine/engine.h"
 
-#include "quilt.h"
+#include "quilt/quilt.h"
 
 using namespace std;
 using namespace std::chrono;

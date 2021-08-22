@@ -6,7 +6,7 @@
 
 #include "tilt/ir/op.h"
 
-#include "quilt.h"
+#include "quilt/quilt.h"
 
 #include "gtest/gtest.h"
 
@@ -60,7 +60,7 @@ void abs_test();
 // Cast op test
 void cast_test();
 
-// Stateful op tests
+// quilt tests
 void moving_sum_test();
 void norm_test();
 

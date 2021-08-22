@@ -14,5 +14,5 @@ TEST(MathOpTests, CeilOPTest) { ceil_test(); }
 TEST(MathOpTests, FloorOPTest) { floor_test(); }
 TEST(MathOpTests, AbsOPTest) { abs_test(); }
 TEST(CastOpTests, CastTest) { cast_test(); }
-TEST(StatefulOpTest, MovingSumTest) { moving_sum_test(); }
-TEST(StatefulOpTest, NormTest) { norm_test(); }
+TEST(QuiltTest, MovingSumTest) { moving_sum_test(); }
+TEST(QuiltTest, NormTest) { norm_test(); }

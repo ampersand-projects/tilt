@@ -2,11 +2,11 @@
 #include <cstdlib>
 #include <vector>
 
-#include "quilt.h"
+#include "quilt/quilt.h"
 
 using namespace std;
 
-Expr Count(Sym win)
+Expr _Count(Sym win)
 {
     auto e = _elem(win, _pt(0));
     auto e_sym = e->sym("e");
@@ -24,7 +24,7 @@ Expr Count(Sym win)
     return count_expr;
 }
 
-Expr Sum(Sym win)
+Expr _Sum(Sym win)
 {
     auto e = _elem(win, _pt(0));
     auto e_sym = e->sym("e");
@@ -40,13 +40,13 @@ Expr Sum(Sym win)
     return count_expr;
 }
 
-Op WindowAvg(Sym in, int64_t w)
+Op _WindowAvg(Sym in, int64_t w)
 {
     auto window = _subls(in, _win(-w, 0));
     auto window_sym = window->sym("win");
-    auto count = Count(window_sym);
+    auto count = _Count(window_sym);
     auto count_sym = count->sym("count");
-    auto sum = Sum(window_sym);
+    auto sum = _Sum(window_sym);
     auto sum_sym = sum->sym("sum");
     auto avg = _div(sum_sym, count_sym);
     auto avg_sym = avg->sym("avg");
@@ -59,7 +59,7 @@ Op WindowAvg(Sym in, int64_t w)
     return wc_op;
 }
 
-Op Join(Sym left, Sym right)
+Op _Join(Sym left, Sym right)
 {
     auto e_left = _elem(left, _pt(0));
     auto e_left_sym = e_left->sym("left");
@@ -98,7 +98,7 @@ Op _Select(Sym in, function<Expr(Expr)> sel_expr)
     return sel_op;
 }
 
-Op SelectSub(Sym in, Sym avg)
+Op _SelectSub(Sym in, Sym avg)
 {
     auto e = _elem(in, _pt(0));
     auto e_sym = e->sym("e");
@@ -113,7 +113,7 @@ Op SelectSub(Sym in, Sym avg)
     return sel_op;
 }
 
-Op SelectDiv(Sym in, Sym std)
+Op _SelectDiv(Sym in, Sym std)
 {
     auto e = _elem(in, _pt(0));
     auto e_sym = e->sym("e");
@@ -128,7 +128,7 @@ Op SelectDiv(Sym in, Sym std)
     return sel_op;
 }
 
-Expr Average(Sym win)
+Expr _Average(Sym win)
 {
     auto e = _elem(win, _pt(0));
     auto e_sym = e->sym("e");
@@ -152,7 +152,7 @@ Expr Average(Sym win)
     return count_expr;
 }
 
-Expr StdDev(Sym win)
+Expr _StdDev(Sym win)
 {
     auto e = _elem(win, _pt(0));
     auto e_sym = e->sym("e");
@@ -176,13 +176,13 @@ Expr StdDev(Sym win)
     return count_expr;
 }
 
-Op Norm(Sym in, int64_t w)
+Op _Norm(Sym in, int64_t w)
 {
     auto inwin = _subls(in, _win(-w, 0));
     auto inwin_sym = inwin->sym("inwin");
 
     // avg state
-    auto avg_state = Average(inwin_sym);
+    auto avg_state = _Average(inwin_sym);
     auto avg_state_sym = avg_state->sym("avg_state");
 
     // avg value
@@ -190,11 +190,11 @@ Op Norm(Sym in, int64_t w)
     auto avg_sym = avg->sym("avg");
 
     // avg join
-    auto avg_op = SelectSub(inwin_sym, avg_sym);
+    auto avg_op = _SelectSub(inwin_sym, avg_sym);
     auto avg_op_sym = avg_op->sym("avgop");
 
     // stddev state
-    auto std_state = StdDev(avg_op_sym);
+    auto std_state = _StdDev(avg_op_sym);
     auto std_state_sym = std_state->sym("stddev_state");
 
     // stddev value
@@ -202,7 +202,7 @@ Op Norm(Sym in, int64_t w)
     auto std_sym = std->sym("std");
 
     // std join
-    auto std_op = SelectDiv(avg_op_sym, std_sym);
+    auto std_op = _SelectDiv(avg_op_sym, std_sym);
     auto std_op_sym = std_op->sym("stdop");
 
     // query operation
@@ -224,7 +224,7 @@ Op Norm(Sym in, int64_t w)
     return query_op;
 }
 
-Op MovingSum(Sym in, int64_t dur, int64_t w)
+Op _MovingSum(Sym in, int64_t dur, int64_t w)
 {
     auto e = _elem(in, _pt(0));
     auto e_sym = e->sym("e");
