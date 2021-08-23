@@ -86,7 +86,7 @@ llvm::Type* LLVMGen::lltype(const DataType& dtype)
 
 llvm::Type* LLVMGen::lltype(const Type& type)
 {
-    if (type.is_valtype()) {
+    if (type.is_val()) {
         return lltype(type.dtype);
     } else {
         auto reg_type = llmod()->getTypeByName("struct.region_t");

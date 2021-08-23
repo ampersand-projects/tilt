@@ -123,7 +123,7 @@ void LoopGen::build_loop()
     //      1. Outer loop returns the output region of the inner loop
     //      2. Inner loop updates the output region
     Expr true_body = nullptr;
-    if (out_expr->type.is_valtype()) {
+    if (out_expr->type.is_val()) {
         auto new_reg = _commit_data(output_base, loop->t);
         auto new_reg_sym = new_reg->sym("new_reg");
         set_expr(new_reg_sym, new_reg);
@@ -180,7 +180,7 @@ Expr LoopGen::visit(const Exists& exists)
     auto reg = get_sym(exists.sym);
     if (reg->type.is_beat()) {
         return _true();
-    } else if (reg->type.is_valtype()) {
+    } else if (reg->type.is_val()) {
         auto ptr_sym = get_ref(exists.sym);
         return _exists(ptr_sym);
     } else {
@@ -270,7 +270,7 @@ Expr LoopGen::visit(const OpNode& op)
         if (!input_val->type.is_beat()) {
             inputs.push_back(input_val);
         }
-        if (!input_val->type.is_valtype()) {
+        if (!input_val->type.is_val()) {
             if (input_val->type.is_beat()) {
                 auto period = _idx(inner_op->iter.period);
                 auto beat = _idx(input_val->type.iter.period);

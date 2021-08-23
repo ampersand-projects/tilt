@@ -27,7 +27,7 @@ typedef shared_ptr<IndexNode> Index;
 struct Region : public Symbol {
     Region(string name, Type type) : Symbol(name, move(type))
     {
-        ASSERT(!type.is_valtype());
+        ASSERT(!type.is_val());
     }
 };
 
@@ -39,7 +39,7 @@ struct Fetch : public ValNode {
     Fetch(Expr reg, Expr time, Expr idx) :
         ValNode(reg->type.dtype.ptr()), reg(reg), time(time), idx(idx)
     {
-        ASSERT(!reg->type.is_valtype());
+        ASSERT(!reg->type.is_val());
         ASSERT(time->type.dtype == types::TIME);
         ASSERT(idx->type.dtype == types::INDEX);
     }
@@ -77,7 +77,7 @@ struct Advance : public ValNode {
     Advance(Expr reg, Expr idx, Expr time) :
         ValNode(types::INDEX), reg(reg), idx(idx), time(time)
     {
-        ASSERT(!reg->type.is_valtype());
+        ASSERT(!reg->type.is_val());
         ASSERT(idx->type.dtype == types::INDEX);
         ASSERT(time->type.dtype == types::TIME);
     }
@@ -93,7 +93,7 @@ struct GetCkpt : public ValNode {
     GetCkpt(Expr reg, Expr time, Expr idx) :
         ValNode(types::TIME), reg(reg), time(time), idx(idx)
     {
-        ASSERT(!reg->type.is_valtype());
+        ASSERT(!reg->type.is_val());
         ASSERT(time->type.dtype == types::TIME);
         ASSERT(idx->type.dtype == types::INDEX);
     }
@@ -106,7 +106,7 @@ struct GetStartIdx : public ValNode {
 
     explicit GetStartIdx(Expr reg) : ValNode(types::INDEX), reg(reg)
     {
-        ASSERT(!reg->type.is_valtype());
+        ASSERT(!reg->type.is_val());
     }
 
     void Accept(Visitor&) const final;
@@ -117,7 +117,7 @@ struct GetEndIdx : public ValNode {
 
     explicit GetEndIdx(Expr reg) : ValNode(types::INDEX), reg(reg)
     {
-        ASSERT(!reg->type.is_valtype());
+        ASSERT(!reg->type.is_val());
     }
 
     void Accept(Visitor&) const final;
@@ -128,7 +128,7 @@ struct GetStartTime : public ValNode {
 
     explicit GetStartTime(Expr reg) : ValNode(types::TIME), reg(reg)
     {
-        ASSERT(!reg->type.is_valtype());
+        ASSERT(!reg->type.is_val());
     }
 
     void Accept(Visitor&) const final;
@@ -139,7 +139,7 @@ struct GetEndTime : public ValNode {
 
     explicit GetEndTime(Expr reg) : ValNode(types::TIME), reg(reg)
     {
-        ASSERT(!reg->type.is_valtype());
+        ASSERT(!reg->type.is_val());
     }
 
     void Accept(Visitor&) const final;
@@ -152,7 +152,7 @@ struct CommitData : public ExprNode {
     CommitData(Expr reg, Expr time) :
         ExprNode(reg->type), reg(reg), time(time)
     {
-        ASSERT(!reg->type.is_valtype());
+        ASSERT(!reg->type.is_val());
         ASSERT(time->type.dtype == types::TIME);
     }
 
@@ -166,7 +166,7 @@ struct CommitNull : public ExprNode {
     CommitNull(Expr reg, Expr time) :
         ExprNode(reg->type), reg(reg), time(time)
     {
-        ASSERT(!reg->type.is_valtype());
+        ASSERT(!reg->type.is_val());
         ASSERT(time->type.dtype == types::TIME);
     }
 
@@ -180,7 +180,7 @@ struct AllocRegion : public ExprNode {
     AllocRegion(Type type, Val size, Expr start_time) :
         ExprNode(type), size(size), start_time(start_time)
     {
-        ASSERT(!type.is_valtype());
+        ASSERT(!type.is_val());
         ASSERT(size->type.dtype == types::INDEX);
         ASSERT(start_time->type.dtype == types::TIME);
     }
@@ -198,7 +198,7 @@ struct MakeRegion : public ExprNode {
     MakeRegion(Expr reg, Expr st, Expr si, Expr et, Expr ei) :
         ExprNode(reg->type), reg(reg), st(st), si(si), et(et), ei(ei)
     {
-        ASSERT(!reg->type.is_valtype());
+        ASSERT(!reg->type.is_val());
         ASSERT(st->type.dtype == types::TIME);
         ASSERT(si->type.dtype == types::INDEX);
         ASSERT(et->type.dtype == types::TIME);

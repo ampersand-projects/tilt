@@ -24,7 +24,7 @@ string idx_str(int64_t idx)
 
 void IRPrinter::Visit(const Symbol& sym)
 {
-    if (!sym.type.is_valtype()) { ostr << "~"; }
+    if (!sym.type.is_val()) { ostr << "~"; }
     ostr << sym.name;
 }
 

@@ -131,7 +131,7 @@ struct Type {
 
     explicit Type(DataType dtype) : Type(move(dtype), Iter()) {}
 
-    bool is_valtype() const { return iter.period == 0; }
+    bool is_val() const { return iter.period == 0; }
 
     bool is_beat() const { return iter.period > 0 && dtype.btype == BaseType::TIME; }
 
