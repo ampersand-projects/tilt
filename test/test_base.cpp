@@ -4,7 +4,6 @@
 #include <string>
 #include <numeric>
 
-#include "tilt/codegen/printer.h"
 #include "tilt/codegen/loopgen.h"
 #include "tilt/codegen/llvmgen.h"
 #include "tilt/codegen/vinstr.h"
@@ -328,7 +327,7 @@ void norm_test()
                 variance += pow(in[i * w + j].payload - mean, 2);
             }
             std_dev = sqrt(variance / w);
-        
+
             for (size_t j = 0; j < w; j++) {
                 size_t idx = i * w + j;
                 float z_score = (in[idx].payload - mean) / std_dev;
