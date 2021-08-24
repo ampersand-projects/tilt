@@ -2,6 +2,7 @@
 #define INCLUDE_TILT_CODEGEN_LOOPGEN_H_
 
 #include <stdexcept>
+#include <utility>
 
 #include "tilt/codegen/irgen.h"
 

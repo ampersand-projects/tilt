@@ -6,15 +6,16 @@
 using namespace tilt;
 using namespace tilt::tilder;
 
-Op _Select(Sym, function<Expr(Expr)>);
-Op _MovingSum(Sym, int64_t, int64_t);
-Op _WindowAvg(Sym, int64_t);
-Op _Join(Sym, Sym);
-Op _Norm(Sym, int64_t);
+Op _Select(_sym, function<Expr(Expr)>);
+Op _MovingSum(_sym, int64_t, int64_t);
+Op _WindowAvg(_sym, int64_t);
+Op _Join(_sym, _sym);
+Op _Norm(_sym, int64_t);
+Op _Resample(_sym, int64_t, int64_t, int64_t);
 
-Expr _Count(Sym);
-Expr _Sum(Sym);
-Expr _Average(Sym);
-Expr _StdDev(Sym);
+Expr _Count(_sym);
+Expr _Sum(_sym);
+Expr _Average(_sym);
+Expr _StdDev(_sym);
 
 #endif  // QUILT_INCLUDE_QUILT_QUILT_H_

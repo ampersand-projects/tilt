@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <utility>
+#include <string>
 
 #include "tilt/ir/expr.h"
 #include "tilt/ir/lstream.h"

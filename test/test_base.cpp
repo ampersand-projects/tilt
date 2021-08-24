@@ -309,12 +309,12 @@ void norm_test()
     int64_t dur = 1;
     int64_t w = 10;
 
-    auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter("in")));
+    auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
     auto norm_op = _Norm(in_sym, w);
 
     auto norm_query_fn = [w] (vector<Event<float>> in) {
         vector<Event<float>> out(in.size());
-        size_t num_windows = ceil(in.size() / w);
+        size_t num_windows = in.size() / w;
 
         for (size_t i = 0; i < num_windows; i++) {
             float sum = 0.0, mean, variance = 0.0, std_dev;
