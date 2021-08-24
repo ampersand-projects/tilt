@@ -2,14 +2,14 @@
 #include <cmath>
 #include <algorithm>
 #include <string>
-
-#include "test_base.h"
-#include "test_query.h"
+#include <numeric>
 
 #include "tilt/codegen/loopgen.h"
 #include "tilt/codegen/llvmgen.h"
-#include "tilt/engine/engine.h"
 #include "tilt/codegen/vinstr.h"
+#include "tilt/engine/engine.h"
+
+#include "test_base.h"
 
 using namespace tilt;
 using namespace tilt::tilder;
@@ -301,4 +301,42 @@ void moving_sum_test()
     };
 
     unary_op_test<int32_t, int32_t>("moving_sum", mov_op, mov_query_fn, len, dur);
+}
+
+void norm_test()
+{
+    size_t len = 1000;
+    int64_t dur = 1;
+    int64_t w = 10;
+
+    auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
+    auto norm_op = _Norm(in_sym, w);
+
+    auto norm_query_fn = [w] (vector<Event<float>> in) {
+        vector<Event<float>> out(in.size());
+        size_t num_windows = in.size() / w;
+
+        for (size_t i = 0; i < num_windows; i++) {
+            float sum = 0.0, mean, variance = 0.0, std_dev;
+
+            for (size_t j = 0; j < w; j++) {
+                sum += in[i * w + j].payload;
+            }
+            mean = sum / w;
+            for (size_t j = 0; j < w; j++) {
+                variance += pow(in[i * w + j].payload - mean, 2);
+            }
+            std_dev = sqrt(variance / w);
+
+            for (size_t j = 0; j < w; j++) {
+                size_t idx = i * w + j;
+                float z_score = (in[idx].payload - mean) / std_dev;
+                out[idx] = {in[idx].st, in[idx].et, z_score};
+            }
+        }
+
+        return move(out);
+    };
+
+    unary_op_test<float, float>("norm", norm_op, norm_query_fn, len, dur);
 }

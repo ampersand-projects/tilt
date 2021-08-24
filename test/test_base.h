@@ -6,6 +6,8 @@
 
 #include "tilt/ir/op.h"
 
+#include "quilt/quilt.h"
+
 #include "gtest/gtest.h"
 
 using namespace std;
@@ -33,7 +35,7 @@ template<typename T>
 void assert_eq(T exp, T act) { ASSERT_EQ(exp, act); }
 
 template<>
-void assert_eq(float exp, float act) { ASSERT_FLOAT_EQ(exp, act); }
+void assert_eq(float exp, float act) { ASSERT_NEAR(exp, act, 0.00001); }
 
 template<>
 void assert_eq(double exp, double act) { ASSERT_DOUBLE_EQ(exp, act); }
@@ -58,7 +60,8 @@ void abs_test();
 // Cast op test
 void cast_test();
 
-// Stateful op tests
+// quilt tests
 void moving_sum_test();
+void norm_test();
 
 #endif  // TEST_TEST_BASE_H_

@@ -38,7 +38,6 @@ Index& LoopGen::get_idx(const Sym reg, const Point pt)
         Expr next_ckpt = nullptr;
 
         if (reg->type.is_beat()) {
-
             // Index updater
             set_expr(idx, get_beat_idx(reg, time));
 
