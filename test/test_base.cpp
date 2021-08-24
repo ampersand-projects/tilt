@@ -314,7 +314,7 @@ void norm_test()
 
     auto norm_query_fn = [w] (vector<Event<float>> in) {
         vector<Event<float>> out(in.size());
-        size_t num_windows = ceil(in.size() / 10.0);
+        size_t num_windows = ceil(in.size() / w);
 
         for (size_t i = 0; i < num_windows; i++) {
             float sum = 0.0, mean, variance = 0.0, std_dev;
