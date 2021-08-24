@@ -16,7 +16,7 @@ using namespace tilt::tilder;
 
 void run_op(string query_name, Op op, ts_t st, ts_t et, region_t* out_reg, region_t* in_reg)
 {
-    auto op_sym = op->sym(query_name);
+    auto op_sym = _sym(query_name, op);
     auto loop = LoopGen::Build(op_sym, op.get());
 
     auto jit = ExecEngine::Get();

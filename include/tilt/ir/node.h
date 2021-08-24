@@ -28,8 +28,6 @@ struct ExprNode {
 
     virtual ~ExprNode() {}
 
-    Sym sym(string name) { return make_shared<Symbol>(name, type); }
-
     virtual void Accept(Visitor&) const = 0;
 };
 
@@ -37,6 +35,7 @@ struct Symbol : public ExprNode {
     const string name;
 
     Symbol(string name, Type type) : ExprNode(type), name(name) {}
+    Symbol(string name, Expr expr) : Symbol(name, expr->type) {}
 
     void Accept(Visitor&) const override;
 };

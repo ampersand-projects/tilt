@@ -4,8 +4,9 @@
 #include "tilt/builder/tilder.h"
 
 using namespace tilt;
+using namespace tilt::tilder;
 
-Op _Select(Sym, function<Expr(Expr)>);
-Op _MovingSum(Sym, int64_t, int64_t);
+Op _Select(_sym, function<Expr(Expr)>);
+Op _MovingSum(_sym, int64_t, int64_t);
 
 #endif  // TEST_TEST_QUERY_H_

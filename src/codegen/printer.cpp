@@ -161,8 +161,8 @@ void IRPrinter::Visit(const AggNode& agg)
     ostr << "] ";
 
     ostr << "[acc: s = ";
-    auto state_sym = agg.init->sym("s");
-    auto output_sym = agg.op->output->sym("o");
+    auto state_sym = tilder::_sym("s", agg.init);
+    auto output_sym = tilder::_sym("o", agg.op->output);
     auto acc_expr = agg.acc(state_sym, output_sym);
     acc_expr->Accept(*this);
     ostr << "] {";

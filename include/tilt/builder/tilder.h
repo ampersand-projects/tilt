@@ -12,86 +12,144 @@
 namespace tilt::tilder {
 
 template<typename T>
-struct _tilder : public shared_ptr<T> {
-    explicit _tilder(shared_ptr<T>&& ptr) : shared_ptr<T>(move(ptr)) {}
+struct _expr;
+
+_expr<Add> _expr_add(Expr, Expr);
+_expr<Sub> _expr_sub(Expr, Expr);
+_expr<Mul> _expr_mul(Expr, Expr);
+_expr<Div> _expr_div(Expr, Expr);
+_expr<Neg> _expr_neg(Expr);
+_expr<Mod> _expr_mod(Expr, Expr);
+_expr<LessThan> _expr_lt(Expr, Expr);
+_expr<LessThanEqual> _expr_lte(Expr, Expr);
+_expr<GreaterThan> _expr_gt(Expr, Expr);
+_expr<GreaterThanEqual> _expr_gte(Expr, Expr);
+_expr<Equals> _expr_eq(Expr, Expr);
+_expr<Not> _expr_not(Expr);
+_expr<And> _expr_and(Expr, Expr);
+_expr<Or> _expr_or(Expr, Expr);
+_expr<Get> _expr_get(Expr, size_t);
+_expr<Element> _expr_elem(Sym, Point);
+_expr<SubLStream> _expr_subls(Sym, Window);
+
+template<typename T>
+struct _expr : public shared_ptr<T> {
+    explicit _expr(shared_ptr<T>&& ptr) : shared_ptr<T>(move(ptr)) {}
+
+    _expr<Add> operator+(Expr o) { return _expr_add(*this, o); }
+    _expr<Sub> operator-(Expr o) { return _expr_sub(*this, o); }
+    _expr<Mul> operator*(Expr o) { return _expr_mul(*this, o); }
+    _expr<Div> operator/(Expr o) { return _expr_div(*this, o); }
+    _expr<Neg> operator-() { return _expr_neg(*this); }
+    _expr<Mod> operator%(Expr o) { return _expr_mod(*this, o); }
+    _expr<LessThan> operator<(Expr o) { return _expr_lt(*this, o); }
+    _expr<LessThanEqual> operator<=(Expr o) { return _expr_lte(*this, o); }
+    _expr<GreaterThan> operator>(Expr o) { return _expr_gt(*this, o); }
+    _expr<GreaterThanEqual> operator>=(Expr o) { return _expr_gte(*this, o); }
+    _expr<Equals> operator==(Expr o) { return _expr_eq(*this, o); }
+    _expr<Not> operator!() { return _expr_not(*this); }
+    _expr<And> operator&&(Expr o) { return _expr_and(*this, o); }
+    _expr<Or> operator||(Expr o) { return _expr_or(*this, o); }
+    _expr<Get> operator<<(size_t n) { return _expr_get(*this, n); }
 };
 
-#define REGISTER_TILDER(NAME, EXPR) \
+// Symbol
+struct _sym : public _expr<Symbol> {
+    _sym(string name, Type type) : _expr<Symbol>(make_shared<Symbol>(name, type)) {}
+    _sym(string name, Expr expr) : _expr<Symbol>(make_shared<Symbol>(name, expr)) {}
+    explicit _sym(const Symbol& symbol) : _sym(symbol.name, symbol.type) {}
+
+    _expr<Element> operator[](Point pt) { return _expr_elem(*this, pt); }
+    _expr<SubLStream> operator[](Window win) { return _expr_subls(*this, win); }
+};
+
+struct _out : public _expr<Out> {
+    explicit _out(Type type) : _expr<Out>(make_shared<Out>(type)) {}
+    explicit _out(const Out& out) : _out(out.type) {}
+
+    _expr<Element> operator[](Point pt) { return _expr_elem(*this, pt); }
+    _expr<SubLStream> operator[](Window win) { return _expr_subls(*this, win); }
+};
+
+struct _beat : public _expr<Beat> {
+    explicit _beat(Iter iter) : _expr<Beat>(make_shared<Beat>(iter)) {}
+    explicit _beat(const Beat& beat) : _beat(beat.type.iter) {}
+
+    _expr<Element> operator[](Point pt) { return _expr_elem(*this, pt); }
+    _expr<SubLStream> operator[](Window win) { return _expr_subls(*this, win); }
+};
+
+#define REGISTER_EXPR(NAME, EXPR) \
     template<typename... Args> \
-    struct NAME : public _tilder<EXPR> { \
+    struct NAME : public _expr<EXPR> { \
         explicit NAME(Args... args) : \
-            _tilder<EXPR>(move(make_shared<EXPR>(forward<Args>(args)...))) \
+            _expr<EXPR>(move(make_shared<EXPR>(forward<Args>(args)...))) \
         {} \
     };
 
-// Symbol
-REGISTER_TILDER(_sym, Symbol)
-REGISTER_TILDER(_out, Out)
-REGISTER_TILDER(_beat, Beat)
-
 // Arithmetic expressions
-REGISTER_TILDER(_add, Add)
-REGISTER_TILDER(_sub, Sub)
-REGISTER_TILDER(_mul, Mul)
-REGISTER_TILDER(_div, Div)
-REGISTER_TILDER(_max, Max)
-REGISTER_TILDER(_min, Min)
-REGISTER_TILDER(_abs, Abs)
-REGISTER_TILDER(_neg, Neg)
-REGISTER_TILDER(_mod, Mod)
-REGISTER_TILDER(_sqrt, Sqrt)
-REGISTER_TILDER(_pow, Pow)
-REGISTER_TILDER(_ceil, Ceil)
-REGISTER_TILDER(_floor, Floor)
-REGISTER_TILDER(_lt, LessThan)
-REGISTER_TILDER(_lte, LessThanEqual)
-REGISTER_TILDER(_gt, GreaterThan)
-REGISTER_TILDER(_gte, GreaterThanEqual)
+REGISTER_EXPR(_add, Add)
+REGISTER_EXPR(_sub, Sub)
+REGISTER_EXPR(_mul, Mul)
+REGISTER_EXPR(_div, Div)
+REGISTER_EXPR(_max, Max)
+REGISTER_EXPR(_min, Min)
+REGISTER_EXPR(_abs, Abs)
+REGISTER_EXPR(_neg, Neg)
+REGISTER_EXPR(_mod, Mod)
+REGISTER_EXPR(_sqrt, Sqrt)
+REGISTER_EXPR(_pow, Pow)
+REGISTER_EXPR(_ceil, Ceil)
+REGISTER_EXPR(_floor, Floor)
+REGISTER_EXPR(_lt, LessThan)
+REGISTER_EXPR(_lte, LessThanEqual)
+REGISTER_EXPR(_gt, GreaterThan)
+REGISTER_EXPR(_gte, GreaterThanEqual)
+REGISTER_EXPR(_eq, Equals)
 
 // Logical expressions
-REGISTER_TILDER(_exists, Exists)
-REGISTER_TILDER(_not, Not)
-REGISTER_TILDER(_eq, Equals)
-REGISTER_TILDER(_and, And)
-REGISTER_TILDER(_or, Or)
+REGISTER_EXPR(_exists, Exists)
+REGISTER_EXPR(_not, Not)
+REGISTER_EXPR(_and, And)
+REGISTER_EXPR(_or, Or)
 
 // Constant expressions
-REGISTER_TILDER(_const, ConstNode)
+REGISTER_EXPR(_const, ConstNode)
 
 // LStream operations
-REGISTER_TILDER(_subls, SubLStream)
-REGISTER_TILDER(_elem, Element)
-REGISTER_TILDER(_op, OpNode)
+REGISTER_EXPR(_subls, SubLStream)
+REGISTER_EXPR(_elem, Element)
+REGISTER_EXPR(_op, OpNode)
 
 // Misc expressions
-REGISTER_TILDER(_call, Call)
-REGISTER_TILDER(_read, Read)
-REGISTER_TILDER(_get, Get)
-REGISTER_TILDER(_new, New)
-REGISTER_TILDER(_ifelse, IfElse)
-REGISTER_TILDER(_sel, Select)
-REGISTER_TILDER(_agg, AggNode)
-REGISTER_TILDER(_cast, Cast)
+REGISTER_EXPR(_call, Call)
+REGISTER_EXPR(_read, Read)
+REGISTER_EXPR(_get, Get)
+REGISTER_EXPR(_new, New)
+REGISTER_EXPR(_ifelse, IfElse)
+REGISTER_EXPR(_sel, Select)
+REGISTER_EXPR(_agg, AggNode)
+REGISTER_EXPR(_cast, Cast)
 
 // Loop IR expressions
-REGISTER_TILDER(_time, TimeNode)
-REGISTER_TILDER(_index, IndexNode)
-REGISTER_TILDER(_reg, Region)
-REGISTER_TILDER(_fetch, Fetch)
-REGISTER_TILDER(_write, Write)
-REGISTER_TILDER(_adv, Advance)
-REGISTER_TILDER(_get_ckpt, GetCkpt)
-REGISTER_TILDER(_get_start_idx, GetStartIdx)
-REGISTER_TILDER(_get_end_idx, GetEndIdx)
-REGISTER_TILDER(_get_start_time, GetStartTime)
-REGISTER_TILDER(_get_end_time, GetEndTime)
-REGISTER_TILDER(_commit_data, CommitData)
-REGISTER_TILDER(_commit_null, CommitNull)
-REGISTER_TILDER(_alloc_reg, AllocRegion)
-REGISTER_TILDER(_make_reg, MakeRegion)
-REGISTER_TILDER(_loop, LoopNode)
+REGISTER_EXPR(_time, TimeNode)
+REGISTER_EXPR(_index, IndexNode)
+REGISTER_EXPR(_reg, Region)
+REGISTER_EXPR(_fetch, Fetch)
+REGISTER_EXPR(_write, Write)
+REGISTER_EXPR(_adv, Advance)
+REGISTER_EXPR(_get_ckpt, GetCkpt)
+REGISTER_EXPR(_get_start_idx, GetStartIdx)
+REGISTER_EXPR(_get_end_idx, GetEndIdx)
+REGISTER_EXPR(_get_start_time, GetStartTime)
+REGISTER_EXPR(_get_end_time, GetEndTime)
+REGISTER_EXPR(_commit_data, CommitData)
+REGISTER_EXPR(_commit_null, CommitNull)
+REGISTER_EXPR(_alloc_reg, AllocRegion)
+REGISTER_EXPR(_make_reg, MakeRegion)
+REGISTER_EXPR(_loop, LoopNode)
 
-#undef REGISTER_TILDER
+#undef REGISTER_EXPR
 
 
 Const _i8(int8_t);

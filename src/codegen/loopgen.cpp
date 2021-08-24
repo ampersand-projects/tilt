@@ -125,7 +125,7 @@ void LoopGen::build_loop()
     Expr true_body = nullptr;
     if (out_expr->type.is_val()) {
         auto new_reg = _commit_data(output_base, loop->t);
-        auto new_reg_sym = new_reg->sym("new_reg");
+        auto new_reg_sym = _sym("new_reg", new_reg);
         set_expr(new_reg_sym, new_reg);
 
         auto idx = _get_end_idx(new_reg_sym);
@@ -188,7 +188,7 @@ Expr LoopGen::visit(const Exists& exists)
         auto ei = _get_end_idx(reg);
         auto st = _get_start_time(reg);
         auto win_ptr = _fetch(reg, st, si);
-        auto win_ptr_sym = win_ptr->sym(reg->name + "_ptr");
+        auto win_ptr_sym = _sym(reg->name + "_ptr", win_ptr);
         set_expr(win_ptr_sym, win_ptr);
         return _or(_not(_eq(si, ei)), _exists(win_ptr_sym));
     }
@@ -244,7 +244,7 @@ Expr LoopGen::visit(const Element& elem)
         return get_beat_time(reg, idx);
     } else {
         auto ptr = _fetch(reg, time, idx);
-        auto ptr_sym = ptr->sym(ctx().sym->name + "_ptr");
+        auto ptr_sym = _sym(ctx().sym->name + "_ptr", ptr);
         set_expr(ptr_sym, ptr);
         set_ref(ctx().sym, ptr_sym);
         return _read(ptr_sym);
@@ -288,7 +288,7 @@ Expr LoopGen::visit(const OpNode& op)
         out_sym = outer_loop->state_bases[outer_loop->output];
     } else {
         auto out_reg = _alloc_reg(op.type, size_expr, t_start);
-        out_sym = out_reg->sym(ctx().sym->name + "_reg");
+        out_sym = _sym(ctx().sym->name + "_reg", out_reg);
         set_expr(out_sym, out_reg);
     }
 

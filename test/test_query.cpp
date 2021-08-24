@@ -2,12 +2,12 @@
 
 using namespace tilt::tilder;
 
-Op _Select(Sym in, function<Expr(Expr)> sel_expr)
+Op _Select(_sym in, function<Expr(Expr)> sel_expr)
 {
-    auto e = _elem(in, _pt(0));
-    auto e_sym = e->sym("e");
+    auto e = in[_pt(0)];
+    auto e_sym = _sym("e", e);
     auto sel = sel_expr(_get(e_sym, 0));
-    auto sel_sym = sel->sym("sel");
+    auto sel_sym = _sym("sel", sel);
     auto sel_op = _op(
         _iter(0, 1),
         Params{ in },
@@ -17,20 +17,20 @@ Op _Select(Sym in, function<Expr(Expr)> sel_expr)
     return sel_op;
 }
 
-Op _MovingSum(Sym in, int64_t dur, int64_t w)
+Op _MovingSum(_sym in, int64_t dur, int64_t w)
 {
-    auto e = _elem(in, _pt(0));
-    auto e_sym = e->sym("e");
-    auto p = _elem(in, _pt(-w));
-    auto p_sym = p->sym("p");
+    auto e = in[_pt(0)];
+    auto e_sym = _sym("e", e);
+    auto p = in[_pt(-w)];
+    auto p_sym = _sym("p", p);
     auto p_val = _ifelse(_exists(p_sym), p_sym, _const(in->type.dtype.btype, 0));
-    auto p_val_sym = p_val->sym("p_val");
+    auto p_val_sym = _sym("p_val", p_val);
     auto o = _elem(_out(Type(in->type.dtype, _iter(0, -1))), _pt(-dur));
-    auto o_sym = o->sym("o");
+    auto o_sym = _sym("o", o);
     auto o_val = _ifelse(_exists(o_sym), o_sym, _const(in->type.dtype.btype, 0));
-    auto o_val_sym = o_val->sym("o_val");
-    auto res = _sub(_add(e_sym, o_val_sym), p_val_sym);
-    auto res_sym = res->sym("res");
+    auto o_val_sym = _sym("o_val", o_val);
+    auto res = (e_sym + o_val_sym) - p_val_sym;
+    auto res_sym = _sym("res", res);
     auto mov_op = _op(
         _iter(0, dur),
         Params{ in },

@@ -15,12 +15,12 @@ using namespace std::chrono;
 using namespace tilt;
 using namespace tilt::tilder;
 
-Expr Count(Sym win)
+Expr Count(_sym win)
 {
-    auto e = _elem(win, _pt(0));
-    auto e_sym = e->sym("e");
+    auto e = win[_pt(0)];
+    auto e_sym = _sym("e", e);
     auto one = _f32(1);
-    auto count_sel_sym = one->sym("count_sel");
+    auto count_sel_sym = _sym("count_sel", one);
     auto count_op = _op(
         _iter(0, 1),
         Params{ win },
@@ -33,10 +33,10 @@ Expr Count(Sym win)
     return count_expr;
 }
 
-Expr Sum(Sym win)
+Expr Sum(_sym win)
 {
-    auto e = _elem(win, _pt(0));
-    auto e_sym = e->sym("e");
+    auto e = win[_pt(0)];
+    auto e_sym = _sym("e", e);
     auto count_op = _op(
         _iter(0, 1),
         Params{ win },
@@ -49,16 +49,16 @@ Expr Sum(Sym win)
     return count_expr;
 }
 
-Op WindowAvg(Sym in, int64_t w)
+Op WindowAvg(_sym in, int64_t w)
 {
-    auto window = _subls(in, _win(-w, 0));
-    auto window_sym = window->sym("win");
+    auto window = in[_win(-w, 0)];
+    auto window_sym = _sym("win", window);
     auto count = Count(window_sym);
-    auto count_sym = count->sym("count");
+    auto count_sym = _sym("count", count);
     auto sum = Sum(window_sym);
-    auto sum_sym = sum->sym("sum");
-    auto avg = _div(sum_sym, count_sym);
-    auto avg_sym = avg->sym("avg");
+    auto sum_sym = _sym("sum", sum);
+    auto avg = sum_sym / count_sym;
+    auto avg_sym = _sym("avg", avg);
     auto wc_op = _op(
         _iter(0, w),
         Params{ in },
@@ -68,17 +68,17 @@ Op WindowAvg(Sym in, int64_t w)
     return wc_op;
 }
 
-Op Join(Sym left, Sym right)
+Op Join(_sym left, _sym right)
 {
-    auto e_left = _elem(left, _pt(0));
-    auto e_left_sym = e_left->sym("left");
-    auto e_right = _elem(right, _pt(0));
-    auto e_right_sym = e_right->sym("right");
-    auto norm = _sub(e_left_sym, e_right_sym);
-    auto norm_sym = norm->sym("norm");
+    auto e_left = left[_pt(0)];
+    auto e_left_sym = _sym("left", e_left);
+    auto e_right = right[_pt(0)];
+    auto e_right_sym = _sym("right", e_right);
+    auto norm = e_left_sym - e_right_sym;
+    auto norm_sym = _sym("norm", norm);
     auto left_exist = _exists(e_left_sym);
     auto right_exist = _exists(e_right_sym);
-    auto join_cond = _and(left_exist, right_exist);
+    auto join_cond = left_exist && right_exist;
     auto join_op = _op(
         _iter(0, 1),
         Params{ left, right },
@@ -92,12 +92,12 @@ Op Join(Sym left, Sym right)
     return join_op;
 }
 
-Op SelectSub(Sym in, Sym avg)
+Op SelectSub(_sym in, _sym avg)
 {
-    auto e = _elem(in, _pt(0));
-    auto e_sym = e->sym("e");
-    auto res = _sub(e_sym, avg);
-    auto res_sym = res->sym("res");
+    auto e = in[_pt(0)];
+    auto e_sym = _sym("e", e);
+    auto res = e_sym - avg;
+    auto res_sym = _sym("res", res);
     auto sel_op = _op(
         _iter(0, 1),
         Params{in, avg},
@@ -107,12 +107,12 @@ Op SelectSub(Sym in, Sym avg)
     return sel_op;
 }
 
-Op SelectDiv(Sym in, Sym std)
+Op SelectDiv(_sym in, _sym std)
 {
-    auto e = _elem(in, _pt(0));
-    auto e_sym = e->sym("e");
-    auto res = _div(e_sym, std);
-    auto res_sym = res->sym("res");
+    auto e = in[_pt(0)];
+    auto e_sym = _sym("e", e);
+    auto res = e_sym / std;
+    auto res_sym = _sym("res", res);
     auto sel_op = _op(
         _iter(0, 1),
         Params{in, std},
@@ -122,12 +122,12 @@ Op SelectDiv(Sym in, Sym std)
     return sel_op;
 }
 
-Expr Average(Sym win)
+Expr Average(_sym win)
 {
-    auto e = _elem(win, _pt(0));
-    auto e_sym = e->sym("e");
+    auto e = win[_pt(0)];
+    auto e_sym = _sym("e", e);
     auto state = _new(vector<Expr>{e_sym, _f32(1)});
-    auto state_sym = state->sym("state");
+    auto state_sym = _sym("state", state);
     auto count_op = _op(
         _iter(0, 1),
         Params{ win },
@@ -146,12 +146,12 @@ Expr Average(Sym win)
     return count_expr;
 }
 
-Expr StdDev(Sym win)
+Expr StdDev(_sym win)
 {
-    auto e = _elem(win, _pt(0));
-    auto e_sym = e->sym("e");
+    auto e = win[_pt(0)];
+    auto e_sym = _sym("e", e);
     auto state = _new(vector<Expr>{_mul(e_sym, e_sym), _f32(1)});
-    auto state_sym = state->sym("state");
+    auto state_sym = _sym("state", state);
     auto count_op = _op(
         _iter(0, 1),
         Params{ win },
@@ -170,34 +170,34 @@ Expr StdDev(Sym win)
     return count_expr;
 }
 
-Op Norm(Sym in, int64_t len)
+Op Norm(_sym in, int64_t len)
 {
-    auto inwin = _subls(in, _win(-len, 0));
-    auto inwin_sym = inwin->sym("inwin");
+    auto inwin = in[_win(-len, 0)];
+    auto inwin_sym = _sym("inwin", inwin);
 
     // avg state
     auto avg_state = Average(inwin_sym);
-    auto avg_state_sym = avg_state->sym("avg_state");
+    auto avg_state_sym = _sym("avg_state", avg_state);
 
     // avg value
     auto avg = _div(_get(avg_state_sym, 0), _get(avg_state_sym, 1));
-    auto avg_sym = avg->sym("avg");
+    auto avg_sym = _sym("avg", avg);
 
     // avg join
     auto avg_op = SelectSub(inwin_sym, avg_sym);
-    auto avg_op_sym = avg_op->sym("avgop");
+    auto avg_op_sym = _sym("avgop", avg_op);
 
     // stddev state
     auto std_state = StdDev(avg_op_sym);
-    auto std_state_sym = std_state->sym("stddev_state");
+    auto std_state_sym = _sym("stddev_state", std_state);
 
     // stddev value
     auto std = _sqrt(_div(_get(std_state_sym, 0), _get(std_state_sym, 1)));
-    auto std_sym = std->sym("std");
+    auto std_sym = _sym("std", std);
 
     // std join
     auto std_op = SelectDiv(avg_op_sym, std_sym);
-    auto std_op_sym = std_op->sym("stdop");
+    auto std_op_sym = _sym("stdop", std_op);
 
     // query operation
     auto query_op = _op(
@@ -218,20 +218,21 @@ Op Norm(Sym in, int64_t len)
     return query_op;
 }
 
-Op MovingSum(Sym in)
+Op MovingSum(_sym in)
 {
-    auto e = _elem(in, _pt(0));
-    auto e_sym = e->sym("e");
-    auto p = _elem(in, _pt(-3));
-    auto p_sym = p->sym("p");
-    auto o = _elem(_out(tilt::Type(types::INT32, _iter(0, -1))), _pt(-1));
-    auto o_sym = o->sym("o");
+    auto e = in[_pt(0)];
+    auto e_sym = _sym("e", e);
+    auto p = in[_pt(-3)];
+    auto p_sym = _sym("p", p);
+    auto out = _out(tilt::Type(types::INT32, _iter(0, -1)));
+    auto o = out[_pt(-1)];
+    auto o_sym = _sym("o", o);
     auto p_val = _ifelse(_exists(p_sym), p_sym, _i32(0));
-    auto p_val_sym = p_val->sym("p_val");
+    auto p_val_sym = _sym("p_val", p_val);
     auto o_val = _ifelse(_exists(o_sym), o_sym, _i32(0));
-    auto o_val_sym = o_val->sym("o_val");
-    auto res = _sub(_add(e_sym, o_val_sym), p_val_sym);
-    auto res_sym = res->sym("res");
+    auto o_val_sym = _sym("o_val", o_val);
+    auto res = (e_sym + o_val_sym) - p_val_sym;
+    auto res_sym = _sym("res", res);
     auto sel_op = _op(
         _iter(0, 1),
         Params{in},
@@ -257,7 +258,7 @@ int main(int argc, char** argv)
     auto in_sym = _sym("in", tilt::Type(types::INT32, _iter(0, -1)));
 
     auto query_op = MovingSum(in_sym);
-    auto query_op_sym = query_op->sym("query");
+    auto query_op_sym = _sym("query", query_op);
     cout << endl << "TiLT IR:" << endl;
     cout << IRPrinter::Build(query_op) << endl;
 
