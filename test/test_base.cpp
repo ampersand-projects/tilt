@@ -318,21 +318,20 @@ void norm_test()
         size_t num_windows = ceil(in.size() / 10.0);
 
         for (size_t i = 0; i < num_windows; i++) {
-            vector<float> window(w);
+            float sum = 0.0, mean, variance = 0.0, std_dev;
 
             for (size_t j = 0; j < w; j++) {
-                window[j] = in[i * w + j].payload;
+                sum += in[i * w + j].payload;
             }
-
-            float mean = accumulate(window.begin(), window.end(), 0.0) / w;
-            auto variance_func = [mean, w](float accumulator, float val) {
-                return accumulator + ((val - mean) * (val - mean) / w);
-            };
-            float std_de = sqrt(accumulate(window.begin(), window.end(), 0.0, variance_func));
-
+            mean = sum / w;
+            for (size_t j = 0; j < w; j++) {
+                variance += pow(in[i * w + j].payload - mean, 2);
+            }
+            std_dev = sqrt(variance / w);
+        
             for (size_t j = 0; j < w; j++) {
                 size_t idx = i * w + j;
-                float z_score = (in[idx].payload - mean) / std_de;
+                float z_score = (in[idx].payload - mean) / std_dev;
                 out[idx] = {in[idx].st, in[idx].et, z_score};
             }
         }
