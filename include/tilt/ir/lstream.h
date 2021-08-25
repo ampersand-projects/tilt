@@ -15,7 +15,7 @@ struct LStream : public ExprNode {
 };
 
 struct Out : public Symbol {
-    explicit Out(Type type) : Symbol("", move(type)) {}
+    explicit Out(DataType dtype) : Symbol("", Type(dtype, Iter(0, -1))) {}
 
     void Accept(Visitor&) const final;
 };

@@ -231,7 +231,7 @@ Op _MovingSum(_sym in, int64_t dur, int64_t w)
     auto e_sym = _sym("e", e);
     auto p = in[_pt(-w)];
     auto p_sym = _sym("p", p);
-    auto out = _out(tilt::Type(types::INT32, _iter(0, -dur)));
+    auto out = _out(types::INT32);
     auto o = out[_pt(-1)];
     auto o_sym = _sym("o", o);
     auto p_val = _ifelse(_exists(p_sym), p_sym, _i32(0));

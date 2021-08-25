@@ -37,21 +37,21 @@ template<typename T>
 struct _expr : public shared_ptr<T> {
     explicit _expr(shared_ptr<T>&& ptr) : shared_ptr<T>(move(ptr)) {}
 
-    _expr<Add> operator+(Expr o) { return _expr_add(*this, o); }
-    _expr<Sub> operator-(Expr o) { return _expr_sub(*this, o); }
-    _expr<Mul> operator*(Expr o) { return _expr_mul(*this, o); }
-    _expr<Div> operator/(Expr o) { return _expr_div(*this, o); }
-    _expr<Neg> operator-() { return _expr_neg(*this); }
-    _expr<Mod> operator%(Expr o) { return _expr_mod(*this, o); }
-    _expr<LessThan> operator<(Expr o) { return _expr_lt(*this, o); }
-    _expr<LessThanEqual> operator<=(Expr o) { return _expr_lte(*this, o); }
-    _expr<GreaterThan> operator>(Expr o) { return _expr_gt(*this, o); }
-    _expr<GreaterThanEqual> operator>=(Expr o) { return _expr_gte(*this, o); }
-    _expr<Equals> operator==(Expr o) { return _expr_eq(*this, o); }
-    _expr<Not> operator!() { return _expr_not(*this); }
-    _expr<And> operator&&(Expr o) { return _expr_and(*this, o); }
-    _expr<Or> operator||(Expr o) { return _expr_or(*this, o); }
-    _expr<Get> operator<<(size_t n) { return _expr_get(*this, n); }
+    _expr<Add> operator+(Expr o) const { return _expr_add(*this, o); }
+    _expr<Sub> operator-(Expr o) const { return _expr_sub(*this, o); }
+    _expr<Mul> operator*(Expr o) const { return _expr_mul(*this, o); }
+    _expr<Div> operator/(Expr o) const { return _expr_div(*this, o); }
+    _expr<Neg> operator-() const { return _expr_neg(*this); }
+    _expr<Mod> operator%(Expr o) const { return _expr_mod(*this, o); }
+    _expr<LessThan> operator<(Expr o) const { return _expr_lt(*this, o); }
+    _expr<LessThanEqual> operator<=(Expr o) const { return _expr_lte(*this, o); }
+    _expr<GreaterThan> operator>(Expr o) const { return _expr_gt(*this, o); }
+    _expr<GreaterThanEqual> operator>=(Expr o) const { return _expr_gte(*this, o); }
+    _expr<Equals> operator==(Expr o) const { return _expr_eq(*this, o); }
+    _expr<Not> operator!() const { return _expr_not(*this); }
+    _expr<And> operator&&(Expr o) const { return _expr_and(*this, o); }
+    _expr<Or> operator||(Expr o) const { return _expr_or(*this, o); }
+    _expr<Get> operator<<(size_t n) const { return _expr_get(*this, n); }
 };
 
 // Symbol
@@ -60,24 +60,24 @@ struct _sym : public _expr<Symbol> {
     _sym(string name, Expr expr) : _expr<Symbol>(make_shared<Symbol>(name, expr)) {}
     explicit _sym(const Symbol& symbol) : _sym(symbol.name, symbol.type) {}
 
-    _expr<Element> operator[](Point pt) { return _expr_elem(*this, pt); }
-    _expr<SubLStream> operator[](Window win) { return _expr_subls(*this, win); }
+    _expr<Element> operator[](Point pt) const { return _expr_elem(*this, pt); }
+    _expr<SubLStream> operator[](Window win) const { return _expr_subls(*this, win); }
 };
 
 struct _out : public _expr<Out> {
-    explicit _out(Type type) : _expr<Out>(make_shared<Out>(type)) {}
-    explicit _out(const Out& out) : _out(out.type) {}
+    explicit _out(DataType dtype) : _expr<Out>(make_shared<Out>(dtype)) {}
+    explicit _out(const Out& out) : _out(out.type.dtype) {}
 
-    _expr<Element> operator[](Point pt) { return _expr_elem(*this, pt); }
-    _expr<SubLStream> operator[](Window win) { return _expr_subls(*this, win); }
+    _expr<Element> operator[](Point pt) const { return _expr_elem(*this, pt); }
+    _expr<SubLStream> operator[](Window win) const { return _expr_subls(*this, win); }
 };
 
 struct _beat : public _expr<Beat> {
     explicit _beat(Iter iter) : _expr<Beat>(make_shared<Beat>(iter)) {}
     explicit _beat(const Beat& beat) : _beat(beat.type.iter) {}
 
-    _expr<Element> operator[](Point pt) { return _expr_elem(*this, pt); }
-    _expr<SubLStream> operator[](Window win) { return _expr_subls(*this, win); }
+    _expr<Element> operator[](Point pt) const { return _expr_elem(*this, pt); }
+    _expr<SubLStream> operator[](Window win) const { return _expr_subls(*this, win); }
 };
 
 #define REGISTER_EXPR(NAME, EXPR) \
@@ -153,21 +153,21 @@ REGISTER_EXPR(_loop, LoopNode)
 #undef REGISTER_EXPR
 
 
-Const _i8(int8_t);
-Const _i16(int16_t);
-Const _i32(int32_t);
-Const _i64(int64_t);
-Const _u8(uint8_t);
-Const _u16(uint16_t);
-Const _u32(uint32_t);
-Const _u64(uint64_t);
-Const _f32(float);
-Const _f64(double);
-Const _ch(char);
-Const _ts(ts_t);
-Const _idx(idx_t);
-Const _true();
-Const _false();
+_expr<ConstNode> _i8(int8_t);
+_expr<ConstNode> _i16(int16_t);
+_expr<ConstNode> _i32(int32_t);
+_expr<ConstNode> _i64(int64_t);
+_expr<ConstNode> _u8(uint8_t);
+_expr<ConstNode> _u16(uint16_t);
+_expr<ConstNode> _u32(uint32_t);
+_expr<ConstNode> _u64(uint64_t);
+_expr<ConstNode> _f32(float);
+_expr<ConstNode> _f64(double);
+_expr<ConstNode> _ch(char);
+_expr<ConstNode> _ts(ts_t);
+_expr<ConstNode> _idx(idx_t);
+_expr<ConstNode> _true();
+_expr<ConstNode> _false();
 
 using _iter = Iter;
 using _pt = Point;

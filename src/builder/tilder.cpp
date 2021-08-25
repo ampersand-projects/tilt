@@ -21,19 +21,19 @@ _expr<Get> _expr_get(Expr a, size_t n) { return _get(a, n); }
 _expr<Element> _expr_elem(Sym a, Point pt) { return _elem(a, pt); }
 _expr<SubLStream> _expr_subls(Sym a, Window win) { return _subls(a, win); }
 
-Const _i8(int8_t v) { return _const(BaseType::INT8, v); }
-Const _i16(int16_t v) { return _const(BaseType::INT16, v); }
-Const _i32(int32_t v) { return _const(BaseType::INT32, v); }
-Const _i64(int64_t v) { return _const(BaseType::INT64, v); }
-Const _u8(uint8_t v) { return _const(BaseType::UINT8, v); }
-Const _u16(uint16_t v) { return _const(BaseType::UINT16, v); }
-Const _u32(uint32_t v) { return _const(BaseType::UINT32, v); }
-Const _u64(uint64_t v) { return _const(BaseType::UINT64, v); }
-Const _f32(float v) { return _const(BaseType::FLOAT32, v); }
-Const _f64(double v) { return _const(BaseType::FLOAT64, v); }
-Const _ts(int64_t v) { return _const(BaseType::TIME, v); }
-Const _idx(idx_t v) { return _const(BaseType::INDEX, v); }
-Const _true() { return _const(BaseType::BOOL, 1); }
-Const _false() { return _const(BaseType::BOOL, 0); }
+_expr<ConstNode> _i8(int8_t v) { return _const(BaseType::INT8, v); }
+_expr<ConstNode> _i16(int16_t v) { return _const(BaseType::INT16, v); }
+_expr<ConstNode> _i32(int32_t v) { return _const(BaseType::INT32, v); }
+_expr<ConstNode> _i64(int64_t v) { return _const(BaseType::INT64, v); }
+_expr<ConstNode> _u8(uint8_t v) { return _const(BaseType::UINT8, v); }
+_expr<ConstNode> _u16(uint16_t v) { return _const(BaseType::UINT16, v); }
+_expr<ConstNode> _u32(uint32_t v) { return _const(BaseType::UINT32, v); }
+_expr<ConstNode> _u64(uint64_t v) { return _const(BaseType::UINT64, v); }
+_expr<ConstNode> _f32(float v) { return _const(BaseType::FLOAT32, v); }
+_expr<ConstNode> _f64(double v) { return _const(BaseType::FLOAT64, v); }
+_expr<ConstNode> _ts(int64_t v) { return _const(BaseType::TIME, v); }
+_expr<ConstNode> _idx(idx_t v) { return _const(BaseType::INDEX, v); }
+_expr<ConstNode> _true() { return _const(BaseType::BOOL, 1); }
+_expr<ConstNode> _false() { return _const(BaseType::BOOL, 0); }
 
 }  // namespace tilt::tilder
