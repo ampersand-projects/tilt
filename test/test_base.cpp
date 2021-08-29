@@ -362,9 +362,6 @@ void resample_test()
 
             if (et < iperiod) {
                 payload = et * (in[0].payload / iperiod);
-            } else if (et % iperiod == 0) {
-                size_t idx = et / iperiod - 1;
-                payload = in[idx].payload;
             } else {
                 size_t left_idx = et / iperiod - 1;
                 size_t right_idx = left_idx + 1;
