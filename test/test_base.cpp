@@ -340,3 +340,43 @@ void norm_test()
 
     unary_op_test<float, float>("norm", norm_op, norm_query_fn, len, dur);
 }
+
+void resample_test()
+{
+    size_t len = 1000;
+    int64_t dur = 5;
+    int64_t iperiod = dur;
+    int64_t operiod = 4;
+
+    auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
+    auto resample_op = _Resample(in_sym, iperiod, operiod, 10);
+
+    size_t out_len = 1000 * iperiod / operiod;
+    auto resample_query_fn = [out_len, iperiod, operiod] (vector<Event<float>> in) {
+        vector<Event<float>> out(out_len);
+
+        for (int64_t i = 0; i < out_len; i++) {
+            int64_t st = i * operiod;
+            int64_t et = st + operiod;
+            float payload;
+
+            if (et < iperiod) {
+                payload = et * (in[0].payload / iperiod);
+            } else if (et % iperiod == 0) {
+                size_t idx = et / iperiod - 1;
+                payload = in[idx].payload;
+            } else {
+                size_t left_idx = et / iperiod - 1;
+                size_t right_idx = left_idx + 1;
+                payload = in[left_idx].payload + (et % iperiod) *
+                                                 ((in[right_idx].payload - in[left_idx].payload) / iperiod);
+            }
+
+            out[i] = {st, et, payload};
+        }
+
+        return move(out);
+    };
+
+    unary_op_test<float, float>("resample", resample_op, resample_query_fn, len, dur);
+}
