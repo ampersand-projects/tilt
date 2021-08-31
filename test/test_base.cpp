@@ -346,29 +346,29 @@ void resample_test()
     size_t len = 1000;
     int64_t dur = 5;
     int64_t iperiod = dur;
-    int64_t operiod = 3;
+    int64_t operiod = 4;
 
     auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
     auto resample_op = _Resample(in_sym, iperiod, operiod, 10);
 
     auto resample_query_fn = [iperiod, operiod] (vector<Event<float>> in) {
         vector<Event<float>> out;
-        int64_t stream_st = in[0].st;
-        int64_t stream_et = in[in.size() - 1].et;
 
-        for (int64_t st = stream_st; st + operiod <= stream_et; st += operiod) {
-            int64_t offset = st + operiod - stream_st;
-            float payload;
+        for (int64_t i = 1; i < in.size(); i++) {
+            int64_t t1 = in[i-1].et;
+            int64_t t2 = in[i].et;
 
-            if (offset < iperiod) {
-                payload = offset * (in[0].payload / iperiod);
-            } else {
-                size_t idx = offset / iperiod;
-                payload = in[idx - 1].payload + (offset % iperiod) *
-                                                ((in[idx].payload - in[idx - 1].payload) / iperiod);
+            int64_t out_t = (t1 % operiod == 0) ? t1 : t1 + operiod - t1 % operiod;
+            for (; out_t < t2; out_t += operiod) {
+                float payload = in[i-1].payload + ((out_t - t1) % iperiod) *
+                                                  ((in[i].payload - in[i-1].payload) / iperiod);
+                out.push_back({out_t - operiod, out_t, payload});
             }
+        }
 
-            out.push_back({st, st + operiod, payload});
+        Event<float> last = in[in.size() - 1];
+        if (last.et % operiod == 0) {
+            out.push_back({last.et - operiod, last.et, last.payload});
         }
 
         return move(out);
