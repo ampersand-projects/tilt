@@ -363,10 +363,9 @@ void resample_test()
             if (offset < iperiod) {
                 payload = offset * (in[0].payload / iperiod);
             } else {
-                size_t left_idx = offset / iperiod - 1;
-                size_t right_idx = left_idx + 1;
-                payload = in[left_idx].payload + (offset % iperiod) *
-                                                ((in[right_idx].payload - in[left_idx].payload) / iperiod);
+                size_t idx = offset / iperiod;
+                payload = in[idx - 1].payload + (offset % iperiod) *
+                                                ((in[idx].payload - in[idx - 1].payload) / iperiod);
             }
 
             out.push_back({st, st + operiod, payload});
