@@ -354,7 +354,7 @@ void resample_test()
     auto resample_query_fn = [iperiod, operiod] (vector<Event<float>> in) {
         vector<Event<float>> out;
 
-        for (int64_t i = 1; i < in.size(); i++) {
+        for (size_t i = 1; i < in.size(); i++) {
             int64_t t1 = in[i-1].et;
             int64_t t2 = in[i].et;
 
