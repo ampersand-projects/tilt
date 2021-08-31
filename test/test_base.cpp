@@ -351,8 +351,7 @@ void resample_test()
     auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
     auto resample_op = _Resample(in_sym, iperiod, operiod, 10);
 
-    size_t out_len = len * iperiod / operiod;
-    auto resample_query_fn = [out_len, iperiod, operiod] (vector<Event<float>> in) {
+    auto resample_query_fn = [iperiod, operiod] (vector<Event<float>> in) {
         vector<Event<float>> out;
         int64_t stream_st = in[0].st;
         int64_t stream_et = in[in.size() - 1].et;
