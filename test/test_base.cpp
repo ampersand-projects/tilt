@@ -349,7 +349,7 @@ void resample_test()
     int64_t operiod = 4;
 
     auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
-    auto resample_op = _Resample(in_sym, iperiod, operiod, 10);
+    auto resample_op = _Resample(in_sym, iperiod, operiod);
 
     auto resample_query_fn = [iperiod, operiod] (vector<Event<float>> in) {
         vector<Event<float>> out;
