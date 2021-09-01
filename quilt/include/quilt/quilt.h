@@ -11,7 +11,7 @@ Op _MovingSum(_sym, int64_t, int64_t);
 Op _WindowAvg(_sym, int64_t);
 Op _Join(_sym, _sym);
 Op _Norm(_sym, int64_t);
-Op _Resample(_sym, int64_t, int64_t, int64_t);
+Op _Resample(_sym, int64_t, int64_t);
 
 Expr _Count(_sym);
 Expr _Sum(_sym);

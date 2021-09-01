@@ -16,17 +16,14 @@ Expr LoopGen::get_timer(const Point pt)
 Expr get_beat_idx(Sym reg, Expr time)
 {
     auto period = _ts(reg->type.iter.period);
-    auto offset = _ts(reg->type.iter.offset);
-
-    return _cast(types::INDEX, _div(_sub(time, offset), period));
+    auto offset = _ts(reg->type.iter.offset + 1);
+    return _add(_cast(types::INDEX, _div(_sub(time, offset), period)), _idx(1));
 }
 
 Expr get_beat_time(Sym reg, Expr idx)
 {
     auto period = _ts(reg->type.iter.period);
-    auto offset = _ts(reg->type.iter.offset);
-
-    return _add(_mul(_cast(types::TIME, idx), period), offset);
+    return _mul(_cast(types::TIME, idx), period);
 }
 
 Index& LoopGen::get_idx(const Sym reg, const Point pt)
@@ -42,7 +39,7 @@ Index& LoopGen::get_idx(const Sym reg, const Point pt)
             set_expr(idx, get_beat_idx(reg, time));
 
             // Index shift expression
-            next_ckpt = get_beat_time(reg, _add(idx, _idx(1)));
+            next_ckpt = get_beat_time(reg, idx);
         } else {
             auto idx_base = _index("i" + to_string(pt.offset) + "_" + reg->name + "_base");
 
@@ -193,18 +190,18 @@ Expr LoopGen::visit(const Call& call)
 Expr LoopGen::visit(const Exists& exists)
 {
     eval(exists.sym);
-    auto reg = get_sym(exists.sym);
-    if (reg->type.is_beat()) {
+    auto s = get_sym(exists.sym);
+    if (s->type.is_beat() || s->type == Type(types::TIME)) {
         return _true();
-    } else if (reg->type.is_val()) {
+    } else if (s->type.is_val()) {
         auto ptr_sym = get_ref(exists.sym);
         return _exists(ptr_sym);
     } else {
-        auto si = _get_start_idx(reg);
-        auto ei = _get_end_idx(reg);
-        auto st = _get_start_time(reg);
-        auto win_ptr = _fetch(reg, st, si);
-        auto win_ptr_sym = _sym(reg->name + "_ptr", win_ptr);
+        auto si = _get_start_idx(s);
+        auto ei = _get_end_idx(s);
+        auto st = _get_start_time(s);
+        auto win_ptr = _fetch(s, st, si);
+        auto win_ptr_sym = _sym(s->name + "_ptr", win_ptr);
         set_expr(win_ptr_sym, win_ptr);
         return _or(_not(_eq(si, ei)), _exists(win_ptr_sym));
     }

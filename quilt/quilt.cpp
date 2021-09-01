@@ -212,14 +212,12 @@ Op _Pair(_sym in, int64_t iperiod)
     auto ev_sym = _sym("ev", ev);
     auto sv = in[_pt(-iperiod)];
     auto sv_sym = _sym("sv", sv);
-    auto sv_val = _ifelse(_exists(sv_sym), sv_sym, _f32(0));
-    auto sv_val_sym = _sym("sv_val", sv_val);
     auto beat = _beat(_iter(0, iperiod));
-    auto et = _cast(types::INT64, beat[_pt(0)]);
+    auto et = _cast(types::FLOAT32, beat[_pt(0)]);
     auto et_sym = _sym("et", et);
-    auto st = et_sym - _i64(iperiod);
+    auto st = et_sym - _f32(iperiod);
     auto st_sym = _sym("st", st);
-    auto res = _new(vector<Expr>{st_sym, sv_val_sym, et_sym, ev_sym});
+    auto res = _new(vector<Expr>{st_sym, sv_sym, et_sym, ev_sym});
     auto res_sym = _sym("res", res);
     auto pair_op = _op(
         _iter(0, iperiod),
@@ -227,12 +225,11 @@ Op _Pair(_sym in, int64_t iperiod)
         SymTable{
             {st_sym, st},
             {sv_sym, sv},
-            {sv_val_sym, sv_val},
             {et_sym, et},
             {ev_sym, ev},
             {res_sym, res},
         },
-        _exists(ev_sym),
+        _exists(sv_sym) && _exists(ev_sym),
         res_sym);
     return pair_op;
 }
@@ -242,13 +239,13 @@ Op _Interpolate(_sym in, int64_t operiod)
     auto e = in[_pt(0)];
     auto e_sym = _sym("e", e);
     auto beat = _beat(_iter(0, operiod));
-    auto t = _cast(types::INT64, beat[_pt(0)]);
+    auto t = _cast(types::FLOAT32, beat[_pt(0)]);
     auto t_sym = _sym("t", t);
     auto st = e_sym << 0;
     auto sv = e_sym << 1;
     auto et = e_sym << 2;
     auto ev = e_sym << 3;
-    auto res = (((ev - sv) * _cast(types::FLOAT32, t_sym - st)) / _cast(types::FLOAT32, et - st)) + sv;
+    auto res = (((ev - sv) * (t_sym - st)) / (et - st)) + sv;
     auto res_sym = _sym("res", res);
     auto inter_op = _op(
         _iter(0, operiod),
@@ -263,9 +260,9 @@ Op _Interpolate(_sym in, int64_t operiod)
     return inter_op;
 }
 
-Op _Resample(_sym in, int64_t iperiod, int64_t operiod, int64_t len)
+Op _Resample(_sym in, int64_t iperiod, int64_t operiod)
 {
-    auto win_size = lcm(iperiod, operiod) * len;
+    auto win_size = lcm(iperiod, operiod);
     auto win = in[_win(-win_size, 0)];
     auto win_sym = _sym("win", in);
     auto pair = _Pair(win_sym, iperiod);
