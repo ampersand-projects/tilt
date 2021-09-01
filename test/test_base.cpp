@@ -38,7 +38,7 @@ void op_test(string query_name, Op op, QueryFn<InTy, OutTy> query_fn, vector<Eve
 
     auto true_out = query_fn(input);
     auto out_st = true_out[0].st;
-    auto out_et = true_out[input.size() - 1].et;
+    auto out_et = true_out[true_out.size() - 1].et;
 
     region_t in_reg;
     auto in_tl = vector<ival_t>(input.size());
@@ -344,9 +344,9 @@ void norm_test()
 void resample_test()
 {
     size_t len = 1000;
-    int64_t dur = 5;
+    int64_t dur = 3;
     int64_t iperiod = dur;
-    int64_t operiod = 4;
+    int64_t operiod = 5;
 
     auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
     auto resample_op = _Resample(in_sym, iperiod, operiod);
@@ -364,11 +364,6 @@ void resample_test()
                                                   ((in[i].payload - in[i-1].payload) / iperiod);
                 out.push_back({out_t - operiod, out_t, payload});
             }
-        }
-
-        Event<float> last = in[in.size() - 1];
-        if (last.et % operiod == 0) {
-            out.push_back({last.et - operiod, last.et, last.payload});
         }
 
         return move(out);
