@@ -83,7 +83,7 @@ void unary_op_test(string query_name, Op op, QueryFn<InTy, OutTy> query_fn, size
     for (size_t i = 0; i < len; i++) {
         int64_t st = dur * i;
         int64_t et = st + dur;
-        InTy payload = static_cast<InTy>(std::rand() / static_cast<double>(RAND_MAX / 10000));
+        InTy payload = static_cast<InTy>(std::rand() / static_cast<double>(RAND_MAX / 1000));
         input[i] = {st, et, payload};
     }
 
@@ -341,12 +341,10 @@ void norm_test()
     unary_op_test<float, float>("norm", norm_op, norm_query_fn, len, dur);
 }
 
-void resample_test()
+void resample_test(int64_t iperiod, int64_t operiod)
 {
-    size_t len = 1000;
-    int64_t dur = 3;
-    int64_t iperiod = dur;
-    int64_t operiod = 5;
+    size_t len = 100;
+    int64_t dur = iperiod;
 
     auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
     auto resample_op = _Resample(in_sym, iperiod, operiod);
@@ -358,13 +356,17 @@ void resample_test()
             int64_t t1 = in[i-1].et;
             int64_t t2 = in[i].et;
 
-            int64_t out_t = (t1 % operiod == 0) ? t1 : t1 + operiod - t1 % operiod;
+            int64_t mul = t1 / operiod + 1;
+            int64_t out_t = (t1 % operiod == 0) ? t1 : (mul * operiod);
             for (; out_t < t2; out_t += operiod) {
                 float payload = in[i-1].payload + ((out_t - t1) % iperiod) *
                                                   ((in[i].payload - in[i-1].payload) / iperiod);
                 out.push_back({out_t - operiod, out_t, payload});
             }
         }
+
+        auto last = in[in.size() - 1];
+        out.push_back({last.et - operiod, last.et, last.payload});
 
         return move(out);
     };

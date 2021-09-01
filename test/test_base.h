@@ -35,7 +35,7 @@ template<typename T>
 void assert_eq(T exp, T act) { ASSERT_EQ(exp, act); }
 
 template<>
-void assert_eq(float exp, float act) { ASSERT_NEAR(exp, act, 0.001); }
+void assert_eq(float exp, float act) { ASSERT_NEAR(exp, act, 0.0001); }
 
 template<>
 void assert_eq(double exp, double act) { ASSERT_DOUBLE_EQ(exp, act); }
@@ -63,6 +63,6 @@ void cast_test();
 // quilt tests
 void moving_sum_test();
 void norm_test();
-void resample_test();
+void resample_test(int64_t, int64_t);
 
 #endif  // TEST_TEST_BASE_H_
