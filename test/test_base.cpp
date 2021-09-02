@@ -83,7 +83,7 @@ void unary_op_test(string query_name, Op op, QueryFn<InTy, OutTy> query_fn, size
     for (size_t i = 0; i < len; i++) {
         int64_t st = dur * i;
         int64_t et = st + dur;
-        InTy payload = static_cast<InTy>(std::rand() / static_cast<double>(RAND_MAX / 1000));
+        InTy payload = static_cast<InTy>(std::rand() / static_cast<double>(RAND_MAX / 100000));
         input[i] = {st, et, payload};
     }
 
