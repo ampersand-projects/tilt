@@ -58,7 +58,7 @@ void op_test(string query_name, Op op, QueryFn<InTy, OutTy> query_fn, vector<Eve
     auto out_data_ptr = reinterpret_cast<char*>(out_data.data());
     init_region(&out_reg, out_st, get_buf_size(true_out.size()), out_tl.data(), out_data_ptr);
 
-    run_op(query_name, op, out_st, out_et, &out_reg, &in_reg);
+    run_op(query_name, op, 0, out_et, &out_reg, &in_reg);
 
     for (size_t i = 0; i < true_out.size(); i++) {
         auto true_st = true_out[i].st;
@@ -358,15 +358,12 @@ void resample_test(int64_t iperiod, int64_t operiod)
             float sv = in[i-1].payload;
             float ev = in[i].payload;
 
-            int64_t out_t = ceil(static_cast<float>(st) / static_cast<float>(operiod)) * operiod;
-            for (; out_t < et; out_t += operiod) {
+            int64_t out_t = (st / operiod + 1) * operiod;
+            for (; out_t <= et; out_t += operiod) {
                 float payload = (((ev - sv) * (out_t - st)) / iperiod) + sv;
                 out.push_back({out_t - operiod, out_t, payload});
             }
         }
-
-        auto last = in[in.size() - 1];
-        out.push_back({last.et - operiod, last.et, last.payload});
 
         return move(out);
     };
