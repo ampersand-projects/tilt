@@ -353,14 +353,14 @@ void resample_test(int64_t iperiod, int64_t operiod)
         vector<Event<float>> out;
 
         for (size_t i = 1; i < in.size(); i++) {
-            int64_t t1 = in[i-1].et;
-            int64_t t2 = in[i].et;
+            int64_t st = in[i-1].et;
+            int64_t et = in[i].et;
+            float sv = in[i-1].payload;
+            float ev = in[i].payload;
 
-            int64_t mul = t1 / operiod + 1;
-            int64_t out_t = (t1 % operiod == 0) ? t1 : (mul * operiod);
-            for (; out_t < t2; out_t += operiod) {
-                float payload = in[i-1].payload + ((out_t - t1) % iperiod) *
-                                                  ((in[i].payload - in[i-1].payload) / iperiod);
+            int64_t out_t = ceil(static_cast<float>(st) / static_cast<float>(operiod)) * operiod;
+            for (; out_t < et; out_t += operiod) {
+                float payload = (((ev - sv) * (out_t - st)) / iperiod) + sv;
                 out.push_back({out_t - operiod, out_t, payload});
             }
         }
