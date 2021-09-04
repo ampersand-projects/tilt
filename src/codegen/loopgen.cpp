@@ -299,6 +299,8 @@ Expr LoopGen::visit(const OpNode& op)
     Sym out_sym;
     if (outer_op->output == ctx().sym) {
         out_sym = outer_loop->state_bases[outer_loop->output];
+    } else if (outer_op->aux.find(ctx().sym) != outer_op->aux.end()) {
+        out_sym = get_sym(outer_op->aux.at(ctx().sym));
     } else {
         auto out_reg = _alloc_reg(op.type, size_expr, t_start);
         out_sym = _sym(ctx().sym->name + "_reg", out_reg);

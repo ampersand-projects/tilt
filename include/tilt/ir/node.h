@@ -20,6 +20,7 @@ struct Symbol;
 typedef shared_ptr<Symbol> Sym;
 typedef vector<Sym> Params;
 typedef map<Sym, Expr> SymTable;
+typedef map<Sym, Sym> Aux;
 
 struct ExprNode {
     const Type type;

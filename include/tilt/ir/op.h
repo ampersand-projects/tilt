@@ -19,10 +19,11 @@ struct OpNode : public LStream {
     SymTable syms;
     Expr pred;
     Sym output;
+    Aux aux;
 
-    OpNode(Iter iter, Params inputs, SymTable syms, Expr pred, Sym output) :
+    OpNode(Iter iter, Params inputs, SymTable syms, Expr pred, Sym output, Aux aux = {}) :
         LStream(Type(output->type.dtype, iter)), iter(iter),
-        inputs(move(inputs)), syms(move(syms)), pred(pred), output(output)
+        inputs(move(inputs)), syms(move(syms)), pred(pred), output(output), aux(move(aux))
     {}
 
     void Accept(Visitor&) const final;
