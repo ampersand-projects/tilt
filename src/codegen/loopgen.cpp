@@ -57,7 +57,9 @@ Index& LoopGen::get_idx(const Sym reg, const Point pt)
 
         pt_idx_map[pt] = idx;
         ctx().loop->idxs.push_back(idx);
-        ctx().idx_diff_map[idx] = _sub(next_ckpt, time);
+        if (!reg->type.is_out()) {
+            ctx().idx_diff_map[idx] = _sub(next_ckpt, time);
+        }
     }
 
     return pt_idx_map[pt];
