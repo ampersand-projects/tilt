@@ -303,14 +303,14 @@ void moving_sum_test()
     unary_op_test<int32_t, int32_t>("moving_sum", mov_op, 0, len * dur, mov_query_fn, len, dur);
 }
 
-void run_norm_test(string query_name)
+void norm_test()
 {
     size_t len = 1000;
     int64_t dur = 1;
     int64_t w = 10;
 
     auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
-    auto norm_op = _Norm(query_name, in_sym, w);
+    auto norm_op = _Norm("norm", in_sym, w);
 
     auto norm_query_fn = [w] (vector<Event<float>> in) {
         vector<Event<float>> out(in.size());
@@ -338,12 +338,7 @@ void run_norm_test(string query_name)
         return move(out);
     };
 
-    unary_op_test<float, float>(query_name, norm_op, 0, len * dur, norm_query_fn, len, dur);
-}
-
-void norm_test()
-{
-    run_norm_test("norm");
+    unary_op_test<float, float>("norm", norm_op, 0, len * dur, norm_query_fn, len, dur);
 }
 
 void run_resample(string query_name, int64_t iperiod, int64_t operiod)
@@ -365,7 +360,7 @@ void run_resample(string query_name, int64_t iperiod, int64_t operiod)
 
             int64_t out_t = (st / operiod + 1) * operiod;
             for (; out_t <= et; out_t += operiod) {
-                float payload = (((ev - sv) * (out_t - st)) / iperiod) + sv;
+                float payload = (((ev - sv) * (out_t - st)) / (et - st)) + sv;
                 out.push_back({out_t - operiod, out_t, payload});
             }
         }
