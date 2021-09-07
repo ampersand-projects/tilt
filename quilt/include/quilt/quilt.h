@@ -1,6 +1,8 @@
 #ifndef QUILT_INCLUDE_QUILT_QUILT_H_
 #define QUILT_INCLUDE_QUILT_QUILT_H_
 
+#include <string>
+
 #include "tilt/builder/tilder.h"
 
 using namespace std;
