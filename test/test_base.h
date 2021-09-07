@@ -63,6 +63,6 @@ void cast_test();
 // quilt tests
 void moving_sum_test();
 void norm_test();
-void resample_test(int64_t, int64_t);
+void resample_test();
 
 #endif  // TEST_TEST_BASE_H_
