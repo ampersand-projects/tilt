@@ -1,5 +1,5 @@
-#ifndef INCLUDE_TILT_CODEGEN_PRINTER_H_
-#define INCLUDE_TILT_CODEGEN_PRINTER_H_
+#ifndef TILT_INCLUDE_TILT_CODEGEN_PRINTER_H_
+#define TILT_INCLUDE_TILT_CODEGEN_PRINTER_H_
 
 #include <sstream>
 #include <string>
@@ -119,4 +119,4 @@ private:
 
 }  // namespace tilt
 
-#endif  // INCLUDE_TILT_CODEGEN_PRINTER_H_
+#endif  // TILT_INCLUDE_TILT_CODEGEN_PRINTER_H_

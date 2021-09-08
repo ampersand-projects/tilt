@@ -1,5 +1,5 @@
-#ifndef INCLUDE_TILT_BASE_TYPE_H_
-#define INCLUDE_TILT_BASE_TYPE_H_
+#ifndef TILT_INCLUDE_TILT_BASE_TYPE_H_
+#define TILT_INCLUDE_TILT_BASE_TYPE_H_
 
 #include <utility>
 #include <vector>
@@ -232,4 +232,4 @@ struct region_t {
 
 }  // extern "C"
 
-#endif  // INCLUDE_TILT_BASE_TYPE_H_
+#endif  // TILT_INCLUDE_TILT_BASE_TYPE_H_

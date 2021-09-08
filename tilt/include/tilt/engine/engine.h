@@ -1,5 +1,5 @@
-#ifndef INCLUDE_TILT_ENGINE_ENGINE_H_
-#define INCLUDE_TILT_ENGINE_ENGINE_H_
+#ifndef TILT_INCLUDE_TILT_ENGINE_ENGINE_H_
+#define TILT_INCLUDE_TILT_ENGINE_ENGINE_H_
 
 #include <memory>
 #include <utility>
@@ -62,4 +62,4 @@ private:
 
 }  // namespace tilt
 
-#endif  // INCLUDE_TILT_ENGINE_ENGINE_H_
+#endif  // TILT_INCLUDE_TILT_ENGINE_ENGINE_H_

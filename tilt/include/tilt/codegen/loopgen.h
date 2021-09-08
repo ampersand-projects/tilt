@@ -1,5 +1,5 @@
-#ifndef INCLUDE_TILT_CODEGEN_LOOPGEN_H_
-#define INCLUDE_TILT_CODEGEN_LOOPGEN_H_
+#ifndef TILT_INCLUDE_TILT_CODEGEN_LOOPGEN_H_
+#define TILT_INCLUDE_TILT_CODEGEN_LOOPGEN_H_
 
 #include <stdexcept>
 #include <utility>
@@ -79,4 +79,4 @@ private:
 
 }  // namespace tilt
 
-#endif  // INCLUDE_TILT_CODEGEN_LOOPGEN_H_
+#endif  // TILT_INCLUDE_TILT_CODEGEN_LOOPGEN_H_

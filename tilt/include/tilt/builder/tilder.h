@@ -1,5 +1,5 @@
-#ifndef INCLUDE_TILT_BUILDER_TILDER_H_
-#define INCLUDE_TILT_BUILDER_TILDER_H_
+#ifndef TILT_INCLUDE_TILT_BUILDER_TILDER_H_
+#define TILT_INCLUDE_TILT_BUILDER_TILDER_H_
 
 #include <memory>
 #include <utility>
@@ -174,4 +174,4 @@ using _win = Window;
 
 }  // namespace tilt::tilder
 
-#endif  // INCLUDE_TILT_BUILDER_TILDER_H_
+#endif  // TILT_INCLUDE_TILT_BUILDER_TILDER_H_

@@ -1,5 +1,5 @@
-#ifndef INCLUDE_TILT_IR_NODE_H_
-#define INCLUDE_TILT_IR_NODE_H_
+#ifndef TILT_INCLUDE_TILT_IR_NODE_H_
+#define TILT_INCLUDE_TILT_IR_NODE_H_
 
 #include <memory>
 #include <map>
@@ -65,4 +65,4 @@ typedef shared_ptr<ValNode> Val;
 
 }  // namespace tilt
 
-#endif  // INCLUDE_TILT_IR_NODE_H_
+#endif  // TILT_INCLUDE_TILT_IR_NODE_H_
