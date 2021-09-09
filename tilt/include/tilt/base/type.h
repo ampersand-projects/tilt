@@ -100,6 +100,55 @@ struct DataType {
         ASSERT(this->is_ptr());
         return this->dtypes[0];
     }
+
+    string str(size_t depth = 0) const
+    {
+        string indent(depth * 4, ' ');
+
+        switch (btype) {
+            case BaseType::BOOL:
+                return indent + "bool";
+            case BaseType::INT8:
+                return indent + "int8_t";
+            case BaseType::UINT8:
+                return indent + "uint8_t";
+            case BaseType::INT16:
+                return indent + "int16_t";
+            case BaseType::UINT16:
+                return indent + "uint16_t";
+            case BaseType::INT32:
+                return indent + "int32_t";
+            case BaseType::UINT32:
+                return indent + "uint32_t";
+            case BaseType::INT64:
+                return indent + "int64_t";
+            case BaseType::UINT64:
+                return indent + "uint64_t";
+            case BaseType::FLOAT32:
+                return indent + "float";
+            case BaseType::FLOAT64:
+                return indent + "double";
+            case BaseType::TIME:
+                return indent + "time_t";
+            case BaseType::INDEX:
+                return indent + "index_t";
+            case BaseType::IVAL:
+                return indent + "ival_t";
+            case BaseType::PTR:
+                return indent + "ptr<" + dtypes[0].str() + ">";
+            case BaseType::STRUCT: {
+                string res = indent + "struct {\n";
+                for (DataType dtype : dtypes) {
+                    res += dtype.str(depth + 1) + "\n";
+                }
+                res += indent  + "}";
+                return res;
+            }
+            case BaseType::UNKNOWN:
+            default:
+                throw std::runtime_error("Invalid type");
+        }
+    }
 };
 
 struct Iter {
@@ -139,6 +188,11 @@ struct Type {
     {
         return (this->dtype == o.dtype)
             && (this->iter == o.iter);
+    }
+
+    string str() const
+    {
+        return dtype.str();
     }
 };
 
