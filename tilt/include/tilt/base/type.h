@@ -135,7 +135,11 @@ struct DataType {
             case BaseType::IVAL:
                 return indent + "ival_t";
             case BaseType::PTR:
-                return indent + "ptr<" + dtypes[0].str() + ">";
+                if (dtypes[0].is_struct()) {
+                    return indent + "ptr<\n" + dtypes[0].str(depth + 1) + "\n" + indent + ">";
+                } else {
+                    return indent + "ptr<" + dtypes[0].str() + ">";
+                }
             case BaseType::STRUCT: {
                 string res = indent + "struct {\n";
                 for (DataType dtype : dtypes) {
