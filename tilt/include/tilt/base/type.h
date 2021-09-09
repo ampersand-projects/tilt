@@ -101,53 +101,47 @@ struct DataType {
         return this->dtypes[0];
     }
 
-    string str(size_t depth = 0) const
+    string str() const
     {
-        string indent(depth * 4, ' ');
-
         switch (btype) {
             case BaseType::BOOL:
-                return indent + "bool";
+                return "b";
             case BaseType::INT8:
-                return indent + "int8_t";
+                return "i8";
             case BaseType::UINT8:
-                return indent + "uint8_t";
+                return "u8";
             case BaseType::INT16:
-                return indent + "int16_t";
+                return "i16";
             case BaseType::UINT16:
-                return indent + "uint16_t";
+                return "u16";
             case BaseType::INT32:
-                return indent + "int32_t";
+                return "i32";
             case BaseType::UINT32:
-                return indent + "uint32_t";
+                return "u32";
             case BaseType::INT64:
-                return indent + "int64_t";
+                return "i64";
             case BaseType::UINT64:
-                return indent + "uint64_t";
+                return "u64";
             case BaseType::FLOAT32:
-                return indent + "float";
+                return "float";
             case BaseType::FLOAT64:
-                return indent + "double";
+                return "double";
             case BaseType::TIME:
-                return indent + "time_t";
+                return "t";
             case BaseType::INDEX:
-                return indent + "index_t";
-            case BaseType::IVAL:
-                return indent + "ival_t";
+                return "x";
             case BaseType::PTR:
-                if (dtypes[0].is_struct()) {
-                    return indent + "ptr<\n" + dtypes[0].str(depth + 1) + "\n" + indent + ">";
-                } else {
-                    return indent + "ptr<" + dtypes[0].str() + ">";
-                }
+                return dtypes[0].str() + "*";
             case BaseType::STRUCT: {
-                string res = indent + "struct {\n";
-                for (DataType dtype : dtypes) {
-                    res += dtype.str(depth + 1) + "\n";
+                string res = "{";
+                auto last = prev(dtypes.end());
+                for (auto it = dtypes.begin(); it != last; it++) {
+                    res += it->str() + ", ";
                 }
-                res += indent  + "}";
+                res += last->str() + "}";
                 return res;
             }
+            case BaseType::IVAL:
             case BaseType::UNKNOWN:
             default:
                 throw std::runtime_error("Invalid type");
