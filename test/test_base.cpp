@@ -34,11 +34,7 @@ template<typename InTy, typename OutTy>
 void op_test(string query_name, Op op, ts_t st, ts_t et, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
 {
     auto in_st = input[0].st;
-    auto in_et = input[input.size() - 1].et;
-
     auto true_out = query_fn(input);
-    auto out_st = true_out[0].st;
-    auto out_et = true_out[true_out.size() - 1].et;
 
     region_t in_reg;
     auto in_tl = vector<ival_t>(input.size());
@@ -56,7 +52,7 @@ void op_test(string query_name, Op op, ts_t st, ts_t et, QueryFn<InTy, OutTy> qu
     auto out_tl = vector<ival_t>(true_out.size());
     auto out_data = vector<OutTy>(true_out.size());
     auto out_data_ptr = reinterpret_cast<char*>(out_data.data());
-    init_region(&out_reg, out_st, get_buf_size(true_out.size()), out_tl.data(), out_data_ptr);
+    init_region(&out_reg, st, get_buf_size(true_out.size()), out_tl.data(), out_data_ptr);
 
     run_op(query_name, op, st, et, &out_reg, &in_reg);
 
