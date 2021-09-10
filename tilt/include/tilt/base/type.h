@@ -128,8 +128,7 @@ struct DataType {
             }
             case BaseType::IVAL:
             case BaseType::UNKNOWN:
-            default:
-                throw std::runtime_error("Invalid type");
+            default: throw std::runtime_error("Invalid type");
         }
     }
 };
@@ -173,10 +172,7 @@ struct Type {
             && (this->iter == o.iter);
     }
 
-    string str() const
-    {
-        return dtype.str();
-    }
+    string str() const { return iter.str() + " " + dtype.str(); }
 };
 
 enum class MathOp {
