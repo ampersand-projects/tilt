@@ -31,14 +31,10 @@ void run_op(string query_name, Op op, ts_t st, ts_t et, region_t* out_reg, regio
 }
 
 template<typename InTy, typename OutTy>
-void op_test(string query_name, Op op, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
+void op_test(string query_name, Op op, ts_t st, ts_t et, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
 {
     auto in_st = input[0].st;
-    auto in_et = input[input.size() - 1].et;
-
     auto true_out = query_fn(input);
-    auto out_st = true_out[0].st;
-    auto out_et = true_out[input.size() - 1].et;
 
     region_t in_reg;
     auto in_tl = vector<ival_t>(input.size());
@@ -56,9 +52,9 @@ void op_test(string query_name, Op op, QueryFn<InTy, OutTy> query_fn, vector<Eve
     auto out_tl = vector<ival_t>(true_out.size());
     auto out_data = vector<OutTy>(true_out.size());
     auto out_data_ptr = reinterpret_cast<char*>(out_data.data());
-    init_region(&out_reg, out_st, get_buf_size(true_out.size()), out_tl.data(), out_data_ptr);
+    init_region(&out_reg, st, get_buf_size(true_out.size()), out_tl.data(), out_data_ptr);
 
-    run_op(query_name, op, out_st, out_et, &out_reg, &in_reg);
+    run_op(query_name, op, st, et, &out_reg, &in_reg);
 
     for (size_t i = 0; i < true_out.size(); i++) {
         auto true_st = true_out[i].st;
@@ -75,7 +71,7 @@ void op_test(string query_name, Op op, QueryFn<InTy, OutTy> query_fn, vector<Eve
 }
 
 template<typename InTy, typename OutTy>
-void unary_op_test(string query_name, Op op, QueryFn<InTy, OutTy> query_fn, size_t len, int64_t dur)
+void unary_op_test(string query_name, Op op, ts_t st, ts_t et, QueryFn<InTy, OutTy> query_fn, size_t len, int64_t dur)
 {
     std::srand(time(nullptr));
 
@@ -83,11 +79,11 @@ void unary_op_test(string query_name, Op op, QueryFn<InTy, OutTy> query_fn, size
     for (size_t i = 0; i < len; i++) {
         int64_t st = dur * i;
         int64_t et = st + dur;
-        InTy payload = static_cast<InTy>(std::rand() / static_cast<double>(RAND_MAX / 10000));
+        InTy payload = static_cast<InTy>(std::rand() / static_cast<double>(RAND_MAX / 100000));
         input[i] = {st, et, payload};
     }
 
-    op_test<InTy, OutTy>(query_name, op, query_fn, input);
+    op_test<InTy, OutTy>(query_name, op, st, et, query_fn, input);
 }
 
 template<typename InTy, typename OutTy>
@@ -109,7 +105,7 @@ void select_test(string query_name, function<Expr(Expr)> sel_expr, function<OutT
         return move(out);
     };
 
-    unary_op_test<InTy, OutTy>(query_name, sel_op, sel_query_fn, len, dur);
+    unary_op_test<InTy, OutTy>(query_name, sel_op, 0, len * dur, sel_query_fn, len, dur);
 }
 
 void add_test()
@@ -300,7 +296,7 @@ void moving_sum_test()
         return move(out);
     };
 
-    unary_op_test<int32_t, int32_t>("moving_sum", mov_op, mov_query_fn, len, dur);
+    unary_op_test<int32_t, int32_t>("moving_sum", mov_op, 0, len * dur, mov_query_fn, len, dur);
 }
 
 void norm_test()
@@ -310,7 +306,7 @@ void norm_test()
     int64_t w = 10;
 
     auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
-    auto norm_op = _Norm(in_sym, w);
+    auto norm_op = _Norm("norm", in_sym, w);
 
     auto norm_query_fn = [w] (vector<Event<float>> in) {
         vector<Event<float>> out(in.size());
@@ -338,5 +334,43 @@ void norm_test()
         return move(out);
     };
 
-    unary_op_test<float, float>("norm", norm_op, norm_query_fn, len, dur);
+    unary_op_test<float, float>("norm", norm_op, 0, len * dur, norm_query_fn, len, dur);
+}
+
+void run_resample(string query_name, int64_t iperiod, int64_t operiod)
+{
+    size_t len = 100;
+    int64_t dur = iperiod;
+
+    auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
+    auto resample_op = _Resample(query_name, in_sym, iperiod, operiod);
+
+    auto resample_query_fn = [iperiod, operiod] (vector<Event<float>> in) {
+        vector<Event<float>> out;
+
+        for (size_t i = 1; i < in.size(); i++) {
+            int64_t st = in[i-1].et;
+            int64_t et = in[i].et;
+            float sv = in[i-1].payload;
+            float ev = in[i].payload;
+
+            int64_t out_t = (st / operiod + 1) * operiod;
+            for (; out_t <= et; out_t += operiod) {
+                float payload = (((ev - sv) * (out_t - st)) / (et - st)) + sv;
+                out.push_back({out_t - operiod, out_t, payload});
+            }
+        }
+
+        return move(out);
+    };
+
+    unary_op_test<float, float>(query_name, resample_op, 0, len * dur, resample_query_fn, len, dur);
+}
+
+void resample_test()
+{
+    run_resample("up_sample1", 5, 4);
+    run_resample("up_sample2", 6, 3);
+    run_resample("down_sample1", 4, 5);
+    run_resample("down_sample2", 3, 6);
 }

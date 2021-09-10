@@ -16,3 +16,4 @@ TEST(MathOpTests, AbsOPTest) { abs_test(); }
 TEST(CastOpTests, CastTest) { cast_test(); }
 TEST(QuiltTest, MovingSumTest) { moving_sum_test(); }
 TEST(QuiltTest, NormTest) { norm_test(); }
+TEST(QuiltTest, ResampleTest) { resample_test(); }

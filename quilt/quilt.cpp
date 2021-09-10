@@ -5,8 +5,6 @@
 
 #include "quilt/quilt.h"
 
-using namespace std;
-
 Op _Select(_sym in, function<Expr(Expr)> sel_expr)
 {
     auto e = in[_pt(0)];
@@ -34,14 +32,14 @@ Expr _Sum(_sym win)
     return _red(win, _f32(0), acc);
 }
 
-Op _WindowAvg(_sym in, int64_t w)
+Op _WindowAvg(string query_name, _sym in, int64_t w)
 {
     auto window = in[_win(-w, 0)];
     auto window_sym = _sym("win", window);
     auto count = _Count(window_sym);
-    auto count_sym = _sym("count", count);
+    auto count_sym = _sym(query_name + "_count", count);
     auto sum = _Sum(window_sym);
-    auto sum_sym = _sym("sum", sum);
+    auto sum_sym = _sym(query_name + "_sum", sum);
     auto avg = sum_sym / count_sym;
     auto avg_sym = _sym("avg", avg);
     auto wc_op = _op(
@@ -127,14 +125,14 @@ Expr _StdDev(_sym win)
     return _red(win, _new(vector<Expr>{_f32(0), _f32(0)}), acc);
 }
 
-Op _Norm(_sym in, int64_t len)
+Op _Norm(string query_name, _sym in, int64_t len)
 {
     auto inwin = in[_win(-len, 0)];
     auto inwin_sym = _sym("inwin", inwin);
 
     // avg state
     auto avg_state = _Average(inwin_sym);
-    auto avg_state_sym = _sym("avg_state", avg_state);
+    auto avg_state_sym = _sym(query_name + "_avg_state", avg_state);
 
     // avg value
     auto avg = _div(_get(avg_state_sym, 0), _get(avg_state_sym, 1));
@@ -142,11 +140,11 @@ Op _Norm(_sym in, int64_t len)
 
     // avg join
     auto avg_op = _SelectSub(inwin_sym, avg_sym);
-    auto avg_op_sym = _sym("avgop", avg_op);
+    auto avg_op_sym = _sym(query_name + "_avgop", avg_op);
 
     // stddev state
     auto std_state = _StdDev(avg_op_sym);
-    auto std_state_sym = _sym("stddev_state", std_state);
+    auto std_state_sym = _sym(query_name + "_stddev_state", std_state);
 
     // stddev value
     auto std = _sqrt(_div(_get(std_state_sym, 0), _get(std_state_sym, 1)));
@@ -154,7 +152,7 @@ Op _Norm(_sym in, int64_t len)
 
     // std join
     auto std_op = _SelectDiv(avg_op_sym, std_sym);
-    auto std_op_sym = _sym("stdop", std_op);
+    auto std_op_sym = _sym(query_name + "_stdop", std_op);
 
     // query operation
     auto query_op = _op(
@@ -260,15 +258,15 @@ Op _Interpolate(_sym in, int64_t operiod)
     return inter_op;
 }
 
-Op _Resample(_sym in, int64_t iperiod, int64_t operiod)
+Op _Resample(string query_name, _sym in, int64_t iperiod, int64_t operiod)
 {
     auto win_size = lcm(iperiod, operiod);
     auto win = in[_win(-win_size, 0)];
     auto win_sym = _sym("win", win);
     auto pair = _Pair(win_sym, iperiod);
-    auto pair_sym = _sym("pair", pair);
+    auto pair_sym = _sym(query_name + "_pair", pair);
     auto inter = _Interpolate(pair_sym, operiod);
-    auto inter_sym = _sym("inter", inter);
+    auto inter_sym = _sym(query_name + "_inter", inter);
     auto resample_op = _op(
         _iter(0, win_size),
         Params{in},
