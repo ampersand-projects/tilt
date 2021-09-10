@@ -100,6 +100,37 @@ struct DataType {
         ASSERT(this->is_ptr());
         return this->dtypes[0];
     }
+
+    string str() const
+    {
+        switch (btype) {
+            case BaseType::BOOL: return "b";
+            case BaseType::INT8: return "i8";
+            case BaseType::UINT8: return "u8";
+            case BaseType::INT16: return "i16";
+            case BaseType::UINT16: return "u16";
+            case BaseType::INT32: return "i32";
+            case BaseType::UINT32: return "u32";
+            case BaseType::INT64: return "i64";
+            case BaseType::UINT64: return "u64";
+            case BaseType::FLOAT32: return "f32";
+            case BaseType::FLOAT64: return "f64";
+            case BaseType::TIME: return "t";
+            case BaseType::INDEX: return "x";
+            case BaseType::PTR: return "*" + dtypes[0].str();
+            case BaseType::STRUCT: {
+                string res = "";
+                for (const auto& dtype : dtypes) {
+                    res += dtype.str() + ", ";
+                }
+                res.resize(res.size() - 2);
+                return "{" + res + "}";
+            }
+            case BaseType::IVAL:
+            case BaseType::UNKNOWN:
+            default: throw std::runtime_error("Invalid type");
+        }
+    }
 };
 
 struct Iter {
@@ -140,6 +171,8 @@ struct Type {
         return (this->dtype == o.dtype)
             && (this->iter == o.iter);
     }
+
+    string str() const { return iter.str() + " " + dtype.str(); }
 };
 
 enum class MathOp {
