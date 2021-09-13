@@ -36,7 +36,7 @@ public:
 private:
     LoopGenCtx& ctx() override { return _ctx; }
 
-    Expr get_timer(const Point);
+    Expr get_timer(const Point, bool);
     Index& get_idx(const Sym, const Point);
     Sym get_ref(const Sym sym) { return ctx().sym_ref.at(sym); }
     void set_ref(Sym sym, Sym ref) { ctx().sym_ref[sym] = ref; }
