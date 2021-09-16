@@ -42,10 +42,10 @@ void op_test(string query_name, Op op, ts_t st, ts_t et, QueryFn<InTy, OutTy> qu
     auto in_data_ptr = reinterpret_cast<char*>(in_data.data());
     init_region(&in_reg, in_st, get_buf_size(input.size()), in_tl.data(), in_data_ptr);
     for (size_t i = 0; i < input.size(); i++) {
-        in_reg.et = input[i].et;
-        in_reg.ei++;
-        in_tl[in_reg.ei] = {input[i].st, static_cast<dur_t>(input[i].et - input[i].st)};
-        in_data[in_reg.ei] = input[i].payload;
+        auto t = input[i].et;
+        commit_data(&in_reg, t);
+        auto* ptr = reinterpret_cast<InTy*>(fetch(&in_reg, t, get_end_idx(&in_reg), sizeof(InTy)));
+        *ptr = input[i].payload;
     }
 
     region_t out_reg;
