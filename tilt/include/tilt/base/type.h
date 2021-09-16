@@ -255,9 +255,9 @@ struct ival_t {
 
 struct region_t {
     ts_t st;
-    idx_t si;
     ts_t et;
-    idx_t ei;
+    idx_t head;
+    idx_t count;
     uint32_t mask;
     ival_t* tl;
     char* data;
