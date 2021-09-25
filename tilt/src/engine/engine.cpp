@@ -1,3 +1,5 @@
+#include "llvm/IR/Verifier.h"
+
 #include "tilt/engine/engine.h"
 
 using namespace tilt;
@@ -22,6 +24,9 @@ ExecEngine* ExecEngine::Get()
 
 void ExecEngine::AddModule(unique_ptr<Module> m)
 {
+    raw_fd_ostream r(fileno(stdout), false);
+    verifyModule(*m, &r);
+
     cantFail(optimizer.add(jd, ThreadSafeModule(move(m), ctx)));
 }
 
