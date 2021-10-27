@@ -1,5 +1,5 @@
-#ifndef TILT_INCLUDE_TILT_CODEGEN_VISITOR_H_
-#define TILT_INCLUDE_TILT_CODEGEN_VISITOR_H_
+#ifndef INCLUDE_TILT_PASS_VISITOR_H_
+#define INCLUDE_TILT_PASS_VISITOR_H_
 
 #include "tilt/ir/expr.h"
 #include "tilt/ir/lstream.h"
@@ -51,4 +51,4 @@ public:
 
 }  // namespace tilt
 
-#endif  // TILT_INCLUDE_TILT_CODEGEN_VISITOR_H_
+#endif  // INCLUDE_TILT_PASS_VISITOR_H_

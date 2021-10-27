@@ -1,5 +1,5 @@
-#ifndef TILT_INCLUDE_TILT_CODEGEN_VINSTR_H_
-#define TILT_INCLUDE_TILT_CODEGEN_VINSTR_H_
+#ifndef INCLUDE_TILT_PASS_CODEGEN_VINSTR_H_
+#define INCLUDE_TILT_PASS_CODEGEN_VINSTR_H_
 
 #include "tilt/base/type.h"
 
@@ -28,4 +28,4 @@ TILT_VINSTR_ATTR region_t* commit_null(region_t*, ts_t);
 }  // extern "C"
 }  // namespace tilt
 
-#endif  // TILT_INCLUDE_TILT_CODEGEN_VINSTR_H_
+#endif  // INCLUDE_TILT_PASS_CODEGEN_VINSTR_H_

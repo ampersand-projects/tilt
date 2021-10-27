@@ -1,5 +1,5 @@
-#ifndef TILT_INCLUDE_TILT_IR_LOOP_H_
-#define TILT_INCLUDE_TILT_IR_LOOP_H_
+#ifndef INCLUDE_TILT_IR_LOOP_H_
+#define INCLUDE_TILT_IR_LOOP_H_
 
 #include <map>
 #include <memory>
@@ -243,4 +243,4 @@ typedef shared_ptr<LoopNode> Loop;
 
 }  // namespace tilt
 
-#endif  // TILT_INCLUDE_TILT_IR_LOOP_H_
+#endif  // INCLUDE_TILT_IR_LOOP_H_

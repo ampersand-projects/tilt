@@ -1,5 +1,5 @@
-#ifndef TILT_INCLUDE_TILT_IR_EXPR_H_
-#define TILT_INCLUDE_TILT_IR_EXPR_H_
+#ifndef INCLUDE_TILT_IR_EXPR_H_
+#define INCLUDE_TILT_IR_EXPR_H_
 
 #include <string>
 #include <memory>
@@ -239,4 +239,4 @@ struct Pow : public BinaryExpr {
 
 }  // namespace tilt
 
-#endif  // TILT_INCLUDE_TILT_IR_EXPR_H_
+#endif  // INCLUDE_TILT_IR_EXPR_H_
