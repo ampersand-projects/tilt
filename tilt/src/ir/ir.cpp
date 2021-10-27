@@ -2,7 +2,7 @@
 #include "tilt/ir/lstream.h"
 #include "tilt/ir/op.h"
 #include "tilt/ir/loop.h"
-#include "tilt/codegen/visitor.h"
+#include "tilt/pass/visitor.h"
 
 using namespace tilt;
 

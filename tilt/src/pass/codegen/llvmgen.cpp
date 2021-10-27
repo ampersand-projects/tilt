@@ -1,5 +1,5 @@
 #include "tilt/base/type.h"
-#include "tilt/codegen/llvmgen.h"
+#include "tilt/pass/codegen/llvmgen.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/DataLayout.h"
