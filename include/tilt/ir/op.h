@@ -1,5 +1,5 @@
-#ifndef TILT_INCLUDE_TILT_IR_OP_H_
-#define TILT_INCLUDE_TILT_IR_OP_H_
+#ifndef INCLUDE_TILT_IR_OP_H_
+#define INCLUDE_TILT_IR_OP_H_
 
 #include <map>
 #include <functional>
@@ -53,4 +53,4 @@ struct Reduce : public ValNode {
 }  // namespace tilt
 
 
-#endif  // TILT_INCLUDE_TILT_IR_OP_H_
+#endif  // INCLUDE_TILT_IR_OP_H_

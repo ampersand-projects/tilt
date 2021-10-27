@@ -1,5 +1,5 @@
-#ifndef TILT_INCLUDE_TILT_CODEGEN_LLVMGEN_H_
-#define TILT_INCLUDE_TILT_CODEGEN_LLVMGEN_H_
+#ifndef INCLUDE_TILT_PASS_CODEGEN_LLVMGEN_H_
+#define INCLUDE_TILT_PASS_CODEGEN_LLVMGEN_H_
 
 #include <memory>
 #include <utility>
@@ -107,4 +107,4 @@ private:
 
 }  // namespace tilt
 
-#endif  // TILT_INCLUDE_TILT_CODEGEN_LLVMGEN_H_
+#endif  // INCLUDE_TILT_PASS_CODEGEN_LLVMGEN_H_

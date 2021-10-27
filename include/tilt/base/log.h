@@ -1,5 +1,5 @@
-#ifndef TILT_INCLUDE_TILT_BASE_LOG_H_
-#define TILT_INCLUDE_TILT_BASE_LOG_H_
+#ifndef INCLUDE_TILT_BASE_LOG_H_
+#define INCLUDE_TILT_BASE_LOG_H_
 
 #include <iostream>
 
@@ -11,4 +11,4 @@
 
 #define ASSERT(EXPR) CHECK(EXPR, "")
 
-#endif  // TILT_INCLUDE_TILT_BASE_LOG_H_
+#endif  // INCLUDE_TILT_BASE_LOG_H_
