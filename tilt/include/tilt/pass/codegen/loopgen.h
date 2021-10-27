@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <utility>
 
-#include "tilt/codegen/irgen.h"
+#include "tilt/pass/irgen.h"
 
 using namespace std;
 

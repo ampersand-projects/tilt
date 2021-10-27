@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 
-#include "tilt/codegen/visitor.h"
+#include "tilt/pass/visitor.h"
 #include "tilt/builder/tilder.h"
 
 using namespace std;
