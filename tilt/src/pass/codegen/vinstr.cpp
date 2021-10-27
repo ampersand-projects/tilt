@@ -1,5 +1,5 @@
-#include "tilt/codegen/vinstr.h"
-#include "tilt/codegen/llvmgen.h"
+#include "tilt/pass/codegen/vinstr.h"
+#include "tilt/pass/codegen/llvmgen.h"
 
 #include "llvm/Linker/Linker.h"
 

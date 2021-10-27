@@ -1,7 +1,7 @@
 #include <string>
 #include <unordered_set>
 
-#include "tilt/codegen/loopgen.h"
+#include "tilt/pass/codegen/loopgen.h"
 
 using namespace tilt;
 using namespace tilt::tilder;

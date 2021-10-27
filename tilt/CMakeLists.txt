@@ -1,10 +1,10 @@
 set(SRC_FILES
     src/ir/ir.cpp
     src/builder/tilder.cpp
-    src/codegen/printer.cpp
-    src/codegen/loopgen.cpp
-    src/codegen/llvmgen.cpp
-    src/codegen/vinstr.cpp
+    src/pass/printer.cpp
+    src/pass/codegen/loopgen.cpp
+    src/pass/codegen/llvmgen.cpp
+    src/pass/codegen/vinstr.cpp
     src/engine/engine.cpp
 )
 

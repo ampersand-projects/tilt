@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "llvm/IR/Module.h"
-#include "tilt/codegen/visitor.h"
+#include "tilt/pass/visitor.h"
 
 using namespace std;
 

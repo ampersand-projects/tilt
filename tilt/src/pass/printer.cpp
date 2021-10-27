@@ -1,6 +1,6 @@
 #include <unordered_set>
 
-#include "tilt/codegen/printer.h"
+#include "tilt/pass/printer.h"
 #include "tilt/builder/tilder.h"
 
 using namespace tilt;
