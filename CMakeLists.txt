@@ -20,7 +20,7 @@ add_definitions(${LLVM_DEFINITIONS})
 llvm_map_components_to_libnames(llvm_libs native orcjit mcjit objcarcopts)
 set(easyjit_lib "${CMAKE_BINARY_DIR}/third_party/easy_jit/bin/EasyJitPass.so")
 
-add_subdirectory(tilt)
+add_subdirectory(src)
 add_subdirectory(quilt)
 
 enable_testing()
