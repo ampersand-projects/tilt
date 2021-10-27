@@ -1,5 +1,5 @@
-#ifndef QUILT_INCLUDE_QUILT_QUILT_H_
-#define QUILT_INCLUDE_QUILT_QUILT_H_
+#ifndef TEST_INCLUDE_TEST_QUERY_H_
+#define TEST_INCLUDE_TEST_QUERY_H_
 
 #include <string>
 
@@ -21,4 +21,4 @@ Expr _Sum(_sym);
 Expr _Average(_sym);
 Expr _StdDev(_sym);
 
-#endif  // QUILT_INCLUDE_QUILT_QUILT_H_
+#endif  // TEST_INCLUDE_TEST_QUERY_H_
