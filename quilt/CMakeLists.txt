@@ -4,4 +4,4 @@ set(SRC_FILES
 
 add_library(quilt STATIC ${SRC_FILES})
 
-target_include_directories(quilt PUBLIC include ../tilt/include)
+target_include_directories(quilt PUBLIC include ../include)
