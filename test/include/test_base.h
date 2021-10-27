@@ -1,12 +1,12 @@
-#ifndef TEST_TEST_BASE_H_
-#define TEST_TEST_BASE_H_
+#ifndef TEST_INCLUDE_TEST_BASE_H_
+#define TEST_INCLUDE_TEST_BASE_H_
 
 #include <functional>
 #include <vector>
 
 #include "tilt/ir/op.h"
 
-#include "quilt/quilt.h"
+#include "test_query.h"
 
 #include "gtest/gtest.h"
 
@@ -65,4 +65,4 @@ void moving_sum_test();
 void norm_test();
 void resample_test();
 
-#endif  // TEST_TEST_BASE_H_
+#endif  // TEST_INCLUDE_TEST_BASE_H_

@@ -3,7 +3,7 @@
 #include <vector>
 #include <numeric>
 
-#include "quilt/quilt.h"
+#include "test_query.h"
 
 Op _Select(_sym in, function<Expr(Expr)> sel_expr)
 {
