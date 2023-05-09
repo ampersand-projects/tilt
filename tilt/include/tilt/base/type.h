@@ -90,7 +90,8 @@ struct DataType {
             || (this->btype == BaseType::INT32)
             || (this->btype == BaseType::INT64)
             || (this->btype == BaseType::FLOAT32)
-            || (this->btype == BaseType::FLOAT64);
+            || (this->btype == BaseType::FLOAT64)
+            || (this->btype == BaseType::TIME);
     }
 
     DataType ptr() const { return DataType(BaseType::PTR, {*this}); }
