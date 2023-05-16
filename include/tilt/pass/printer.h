@@ -55,10 +55,7 @@ public:
     void Visit(const Fetch&) override;
     void Visit(const Read&) override;
     void Visit(const Write&) override;
-    void Visit(const Advance&) override;
     void Visit(const GetCkpt&) override;
-    void Visit(const GetStartIdx&) override;
-    void Visit(const GetEndIdx&) override;
     void Visit(const GetStartTime&) override;
     void Visit(const GetEndTime&) override;
     void Visit(const CommitData&) override;
