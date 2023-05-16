@@ -134,13 +134,9 @@ REGISTER_EXPR(_cast, Cast)
 
 // Loop IR expressions
 REGISTER_EXPR(_time, TimeNode)
-REGISTER_EXPR(_index, IndexNode)
 REGISTER_EXPR(_fetch, Fetch)
 REGISTER_EXPR(_write, Write)
-REGISTER_EXPR(_adv, Advance)
 REGISTER_EXPR(_get_ckpt, GetCkpt)
-REGISTER_EXPR(_get_start_idx, GetStartIdx)
-REGISTER_EXPR(_get_end_idx, GetEndIdx)
 REGISTER_EXPR(_get_start_time, GetStartTime)
 REGISTER_EXPR(_get_end_time, GetEndTime)
 REGISTER_EXPR(_commit_data, CommitData)
@@ -164,7 +160,6 @@ _expr<ConstNode> _f32(float);
 _expr<ConstNode> _f64(double);
 _expr<ConstNode> _ch(char);
 _expr<ConstNode> _ts(ts_t);
-_expr<ConstNode> _idx(idx_t);
 _expr<ConstNode> _true();
 _expr<ConstNode> _false();
 

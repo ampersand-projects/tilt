@@ -64,10 +64,7 @@ private:
     llvm::Value* visit(const Fetch&) final;
     llvm::Value* visit(const Read&) final;
     llvm::Value* visit(const Write&) final;
-    llvm::Value* visit(const Advance&) final;
     llvm::Value* visit(const GetCkpt&) final;
-    llvm::Value* visit(const GetStartIdx&) final;
-    llvm::Value* visit(const GetEndIdx&) final;
     llvm::Value* visit(const GetStartTime&) final;
     llvm::Value* visit(const GetEndTime&) final;
     llvm::Value* visit(const CommitData&) final;

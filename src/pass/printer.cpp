@@ -53,7 +53,6 @@ void IRPrinter::Visit(const ConstNode& cnst)
         case BaseType::FLOAT32:
         case BaseType::FLOAT64: ostr << cnst.val << "f"; break;
         case BaseType::TIME: ostr << cnst.val << "t"; break;
-        case BaseType::INDEX: ostr << cnst.val << "x"; break;
         default: throw std::runtime_error("Invalid constant type");
     }
 }
@@ -74,7 +73,6 @@ void IRPrinter::Visit(const Cast& e)
         case BaseType::FLOAT64: destty = "double"; break;
         case BaseType::BOOL: destty = "bool"; break;
         case BaseType::TIME: destty = "ts"; break;
-        case BaseType::INDEX: destty = "idx"; break;
         default: throw std::runtime_error("Invalid destination type for cast");
     }
 
@@ -181,7 +179,7 @@ void IRPrinter::Visit(const Reduce& red)
 
 void IRPrinter::Visit(const Fetch& fetch)
 {
-    emitfunc("fetch", { fetch.reg, fetch.time, fetch.idx });
+    emitfunc("fetch", { fetch.reg, fetch.time });
 }
 
 void IRPrinter::Visit(const Read& read)
@@ -194,24 +192,9 @@ void IRPrinter::Visit(const Write& write)
     emitfunc("write", { write.reg, write.ptr, write.data });
 }
 
-void IRPrinter::Visit(const Advance& adv)
-{
-    emitfunc("advance", { adv.reg, adv.idx, adv.time });
-}
-
 void IRPrinter::Visit(const GetCkpt& next)
 {
-    emitfunc("get_ckpt", { next.reg, next.time, next.idx });
-}
-
-void IRPrinter::Visit(const GetStartIdx& gsi)
-{
-    emitfunc("get_start_idx", { gsi.reg });
-}
-
-void IRPrinter::Visit(const GetEndIdx& gei)
-{
-    emitfunc("get_end_idx", { gei.reg });
+    emitfunc("get_ckpt", { next.reg, next.time });
 }
 
 void IRPrinter::Visit(const GetStartTime& gst)
@@ -241,7 +224,7 @@ void IRPrinter::Visit(const AllocRegion& alloc_reg)
 
 void IRPrinter::Visit(const MakeRegion& mr)
 {
-    emitfunc("make_region", { mr.reg, mr.st, mr.si, mr.et, mr.ei });
+    emitfunc("make_region", { mr.reg, mr.st, mr.et });
 }
 
 void IRPrinter::Visit(const Call& call)
@@ -313,14 +296,6 @@ void IRPrinter::Visit(const LoopNode& loop)
     loop.exit_cond->Accept(*this);
     ostr << ") break;";
     emitnewline();
-    emitnewline();
-
-    emitcomment("update indices");
-    emitnewline();
-    for (const auto& idx : loop.idxs) {
-        emitassign(idx, loop.syms.at(idx));
-        emitnewline();
-    }
     emitnewline();
 
     emitcomment("update timer");

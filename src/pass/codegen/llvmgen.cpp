@@ -1,4 +1,5 @@
 #include "tilt/base/type.h"
+#include "tilt/pass/printer.h"
 #include "tilt/pass/codegen/llvmgen.h"
 
 #include "llvm/IR/Function.h"
@@ -65,8 +66,6 @@ llvm::Type* LLVMGen::lltype(const DataType& dtype)
             return llvm::Type::getDoubleTy(llctx());
         case BaseType::TIME:
             return lltype(DataType(types::Converter<ts_t>::btype));
-        case BaseType::INDEX:
-            return lltype(DataType(types::Converter<idx_t>::btype));
         case BaseType::IVAL:
             return llmod()->getTypeByName("struct.ival_t");
         case BaseType::STRUCT: {
@@ -170,10 +169,13 @@ Value* LLVMGen::visit(const ConstNode& cnst)
         case BaseType::UINT32:
         case BaseType::UINT64:
         case BaseType::TIME:
-        case BaseType::INDEX: return ConstantInt::get(lltype(cnst), cnst.val);
+            return ConstantInt::get(lltype(cnst), cnst.val);
         case BaseType::FLOAT32:
-        case BaseType::FLOAT64: return ConstantFP::get(lltype(cnst), cnst.val);
-        default: throw std::runtime_error("Invalid constant type"); break;
+        case BaseType::FLOAT64:
+            return ConstantFP::get(lltype(cnst), cnst.val);
+        default:
+            throw std::runtime_error("Invalid constant type");
+            break;
     }
 }
 
@@ -342,32 +344,16 @@ Value* LLVMGen::visit(const Fetch& fetch)
     auto& dtype = fetch.reg->type.dtype;
     auto reg_val = eval(fetch.reg);
     auto time_val = eval(fetch.time);
-    auto idx_val = eval(fetch.idx);
     auto size_val = llsizeof(lltype(dtype));
     auto ret_type = lltype(types::CHAR_PTR);
-    auto addr = llcall("fetch", ret_type, { reg_val, time_val, idx_val, size_val });
+    auto addr = llcall("fetch", ret_type, { reg_val, time_val, size_val });
 
     return builder()->CreateBitCast(addr, lltype(fetch));
 }
 
-Value* LLVMGen::visit(const Advance& adv)
-{
-    return llcall("advance", lltype(adv), { adv.reg, adv.idx, adv.time });
-}
-
 Value* LLVMGen::visit(const GetCkpt& next)
 {
-    return llcall("get_ckpt", lltype(next), { next.reg, next.time, next.idx });
-}
-
-Value* LLVMGen::visit(const GetStartIdx& start_idx)
-{
-    return llcall("get_start_idx", lltype(start_idx), { start_idx.reg });
-}
-
-Value* LLVMGen::visit(const GetEndIdx& end_idx)
-{
-    return llcall("get_end_idx", lltype(end_idx), { end_idx.reg });
+    return llcall("get_ckpt", lltype(next), { next.reg, next.time });
 }
 
 Value* LLVMGen::visit(const GetStartTime& start_time)
@@ -422,12 +408,10 @@ Value* LLVMGen::visit(const MakeRegion& make_reg)
 {
     auto in_reg_val = eval(make_reg.reg);
     auto st_val = eval(make_reg.st);
-    auto si_val = eval(make_reg.si);
     auto et_val = eval(make_reg.et);
-    auto ei_val = eval(make_reg.ei);
     auto reg_type = lltype(make_reg);
     auto out_reg_val = builder()->CreateAlloca(reg_type->getPointerElementType());
-    return llcall("make_region", reg_type, { out_reg_val, in_reg_val, st_val, si_val, et_val, ei_val });
+    return llcall("make_region", reg_type, { out_reg_val, in_reg_val, st_val, et_val });
 }
 
 Value* LLVMGen::visit(const Call& call)
@@ -493,11 +477,6 @@ Value* LLVMGen::visit(const LoopNode& loop)
     loop_fn->getBasicBlockList().push_back(body_bb);
     builder()->SetInsertPoint(body_bb);
     auto stack_val = builder()->CreateIntrinsic(Intrinsic::stacksave, {}, {});
-
-    // Update indices
-    for (const auto& idx : loop.idxs) {
-        eval(idx);
-    }
 
     // Update loop counter
     eval(loop.t);
