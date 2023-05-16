@@ -80,7 +80,7 @@ template<typename InTy, typename OutTy>
 void select_test(string query_name, function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
 {
     size_t len = 1000;
-    int64_t dur = 1; // FIXME: keep as 1 for testing timeline removal
+    int64_t dur = 1;  // FIXME: keep as 1 for testing timeline removal
 
     auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter(0, -1)));
     auto sel_op = _Select(in_sym, sel_expr);
