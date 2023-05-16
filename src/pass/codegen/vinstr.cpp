@@ -32,13 +32,11 @@ ts_t get_end_time(region_t* reg) { return reg->et; }
 
 int64_t get_ckpt(region_t* reg, ts_t t, idx_t i)
 {
-    auto civl = reg->tl[i & reg->mask];
-    return (t <= civl.t) ? civl.t : (civl.t + civl.d);
+    return 0;
 }
 
 idx_t advance(region_t* reg, idx_t i, ts_t t)
 {
-    while ((reg->tl[i & reg->mask].t + reg->tl[i & reg->mask].d) < t) { i++; }
     return i;
 }
 
