@@ -37,22 +37,20 @@ void op_test(string query_name, Op op, ts_t st, ts_t et, QueryFn<InTy, OutTy> qu
     auto true_out = query_fn(input);
 
     region_t in_reg;
-    auto in_tl = vector<ival_t>(input.size());
     auto in_data = vector<InTy>(input.size());
     auto in_data_ptr = reinterpret_cast<char*>(in_data.data());
-    init_region(&in_reg, in_st, get_buf_size(input.size()), in_tl.data(), in_data_ptr);
+    init_region(&in_reg, in_st, get_buf_size(input.size()), in_data_ptr);
     for (size_t i = 0; i < input.size(); i++) {
-        auto t = input[i].et;
+        auto t = input[i].st;
         commit_data(&in_reg, t);
-        auto* ptr = reinterpret_cast<InTy*>(fetch(&in_reg, t, get_end_idx(&in_reg), sizeof(InTy)));
+        auto* ptr = reinterpret_cast<InTy*>(fetch(&in_reg, t, sizeof(InTy)));
         *ptr = input[i].payload;
     }
 
     region_t out_reg;
-    auto out_tl = vector<ival_t>(true_out.size());
     auto out_data = vector<OutTy>(true_out.size());
     auto out_data_ptr = reinterpret_cast<char*>(out_data.data());
-    init_region(&out_reg, st, get_buf_size(true_out.size()), out_tl.data(), out_data_ptr);
+    init_region(&out_reg, st, get_buf_size(true_out.size()), out_data_ptr);
 
     run_op(query_name, op, st, et, &out_reg, &in_reg);
 
@@ -60,12 +58,8 @@ void op_test(string query_name, Op op, ts_t st, ts_t et, QueryFn<InTy, OutTy> qu
         auto true_st = true_out[i].st;
         auto true_et = true_out[i].et;
         auto true_payload = true_out[i].payload;
-        auto out_st = out_tl[i].t;
-        auto out_et = out_st + out_tl[i].d;
         auto out_payload = out_data[i];
 
-        assert_eq(true_st, out_st);
-        assert_eq(true_et, out_et);
         assert_eq(true_payload, out_payload);
     }
 }
@@ -90,7 +84,7 @@ template<typename InTy, typename OutTy>
 void select_test(string query_name, function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
 {
     size_t len = 1000;
-    int64_t dur = 5;
+    int64_t dur = 1;
 
     auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter(0, -1)));
     auto sel_op = _Select(in_sym, sel_expr);
