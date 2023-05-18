@@ -462,6 +462,11 @@ Value* LLVMGen::visit(const LoopNode& loop)
         auto input = loop.inputs[i];
         set_expr(input, loop_fn->getArg(i));
     }
+    // We add `noalias` attribute to the region parameters to help compiler autovectorize
+    // Region parameters start at index 2
+    for (size_t i = 2; i < loop.inputs.size(); i++) {
+        loop_fn->addParamAttr(i, Attribute::NoAlias);
+    }
 
     // Initialization of loop states
     loop_fn->getBasicBlockList().push_back(preheader_bb);
