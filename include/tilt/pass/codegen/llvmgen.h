@@ -95,7 +95,7 @@ private:
             throw std::runtime_error("Failed to verify vinstr module");
         }
 
-        // FIXME: may go over irrelevant functions
+        // FIXME: find better way to register the vinstrs
         std::vector<const char*> vinstr_names{
             "get_buf_size",
             "get_start_idx",
