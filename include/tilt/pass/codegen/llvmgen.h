@@ -11,6 +11,9 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/Linker/Linker.h"
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/Support/SourceMgr.h>
 
 using namespace std;
 
@@ -82,7 +85,36 @@ private:
         val->setName(sym_ptr->name);
     }
 
-    void register_vinstrs();
+    void register_vinstrs() {
+        llvm::SMDiagnostic error;
+        auto vinstr_mod = llvm::parseIRFile("/tmp/vinstr.bc", error, llctx());
+        if (!vinstr_mod) {
+            throw std::runtime_error("Failed to parse vinstr bitcode");
+        }
+        if (llvm::verifyModule(*vinstr_mod)) {
+            throw std::runtime_error("Failed to verify vinstr module");
+        }
+
+        // FIXME: may go over irrelevant functions
+        std::vector<const char*> vinstr_names{
+            "get_buf_size",
+            "get_start_idx",
+            "get_end_idx",
+            "get_start_time",
+            "get_end_time",
+            "get_ckpt",
+            "advance",
+            "fetch",
+            "make_region",
+            "init_region",
+            "commit_data",
+            "commit_null"
+        };
+        llvm::Linker::linkModules(*llmod(), move(vinstr_mod));
+        for (const auto& name : vinstr_names) {
+            llmod()->getFunction(name)->setLinkage(llvm::Function::InternalLinkage);
+        }
+    }
 
     llvm::Function* llfunc(const string, llvm::Type*, vector<llvm::Type*>);
     llvm::Value* llcall(const string, llvm::Type*, vector<llvm::Value*>);

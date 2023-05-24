@@ -1,11 +1,4 @@
 #include "tilt/pass/codegen/vinstr.h"
-#include "tilt/pass/codegen/llvmgen.h"
-
-#include "llvm/Linker/Linker.h"
-
-#include "easy/jit.h"
-
-using namespace std::placeholders;
 
 namespace tilt {
 extern "C" {
@@ -96,21 +89,4 @@ region_t* commit_null(region_t* reg, ts_t t)
 }
 
 }  // extern "C"
-
-void LLVMGen::register_vinstrs()
-{
-    REGISTER_VINSTR(*llmod(), llctx(), get_buf_size, _1);
-    REGISTER_VINSTR(*llmod(), llctx(), get_start_idx, _1);
-    REGISTER_VINSTR(*llmod(), llctx(), get_end_idx, _1);
-    REGISTER_VINSTR(*llmod(), llctx(), get_start_time, _1);
-    REGISTER_VINSTR(*llmod(), llctx(), get_end_time, _1);
-    REGISTER_VINSTR(*llmod(), llctx(), get_ckpt, _1, _2, _3);
-    REGISTER_VINSTR(*llmod(), llctx(), advance, _1, _2, _3);
-    REGISTER_VINSTR(*llmod(), llctx(), fetch, _1, _2, _3, _4);
-    REGISTER_VINSTR(*llmod(), llctx(), make_region, _1, _2, _3, _4, _5, _6);
-    REGISTER_VINSTR(*llmod(), llctx(), init_region, _1, _2, _3, _4);
-    REGISTER_VINSTR(*llmod(), llctx(), commit_data, _1, _2);
-    REGISTER_VINSTR(*llmod(), llctx(), commit_null, _1, _2);
-}
-
 }  // namespace tilt
