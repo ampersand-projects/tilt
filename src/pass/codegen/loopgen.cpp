@@ -106,6 +106,9 @@ void LoopGen::build_tloop(function<Expr()> true_body, function<Expr()> false_bod
     loop->output = _sym("output", ctx().loop->type);
     loop->state_bases[loop->output] = output_base;
 
+    // Create region buffer for make region operations
+    loop->region_buffer_sym = _sym("region_buffer", ctx().loop->type);
+
     // Evaluate loop body
     auto pred_expr = eval(ctx().op->pred);
     eval(ctx().op->output);

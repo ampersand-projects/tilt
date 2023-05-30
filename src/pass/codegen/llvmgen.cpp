@@ -421,12 +421,12 @@ Value* LLVMGen::visit(const AllocRegion& alloc)
 Value* LLVMGen::visit(const MakeRegion& make_reg)
 {
     auto in_reg_val = eval(make_reg.reg);
+    auto out_reg_val = eval(ctx().loop->region_buffer_sym);
     auto st_val = eval(make_reg.st);
     auto si_val = eval(make_reg.si);
     auto et_val = eval(make_reg.et);
     auto ei_val = eval(make_reg.ei);
     auto reg_type = lltype(make_reg);
-    auto out_reg_val = builder()->CreateAlloca(reg_type->getPointerElementType());
     return llcall("make_region", reg_type, { out_reg_val, in_reg_val, st_val, si_val, et_val, ei_val });
 }
 
@@ -485,6 +485,7 @@ Value* LLVMGen::visit(const LoopNode& loop)
         set_expr(base_sym, base);
         base->addIncoming(val, preheader_bb);
     }
+    set_expr(ctx().loop->region_buffer_sym, builder()->CreateAlloca(llregtype()));
 
     // Check exit condition
     builder()->CreateCondBr(eval(loop.exit_cond), exit_bb, body_bb);
@@ -492,7 +493,6 @@ Value* LLVMGen::visit(const LoopNode& loop)
     // Loop body
     loop_fn->getBasicBlockList().push_back(body_bb);
     builder()->SetInsertPoint(body_bb);
-    auto stack_val = builder()->CreateIntrinsic(Intrinsic::stacksave, {}, {});
 
     // Update indices
     for (const auto& idx : loop.idxs) {
@@ -513,7 +513,6 @@ Value* LLVMGen::visit(const LoopNode& loop)
     // Jump back to loop header
     loop_fn->getBasicBlockList().push_back(end_bb);
     builder()->SetInsertPoint(end_bb);
-    builder()->CreateIntrinsic(Intrinsic::stackrestore, {}, {stack_val});
     builder()->CreateBr(header_bb);
 
     // Loop exit

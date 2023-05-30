@@ -232,6 +232,9 @@ struct LoopNode : public FuncNode {
     // Inner loops
     vector<shared_ptr<LoopNode>> inner_loops;
 
+    // Region buffer for make region operations
+    Sym region_buffer_sym;
+
     LoopNode(string name, Type type) : FuncNode(name, move(type)) {}
     explicit LoopNode(Sym sym) : LoopNode(sym->name, sym->type) {}
 
