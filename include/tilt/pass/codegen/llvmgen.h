@@ -5,15 +5,19 @@
 #include <utility>
 #include <string>
 #include <vector>
+#include <cstdlib>
+#include <fstream>
 
 #include "tilt/pass/irgen.h"
+#include "tilt/pass/codegen/vinstr_str.h"
+
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Linker/Linker.h"
-#include <llvm/IRReader/IRReader.h>
-#include <llvm/Support/SourceMgr.h>
+#include "llvm/IRReader/IRReader.h"
+#include "llvm/Support/SourceMgr.h"
 
 using namespace std;
 
@@ -86,6 +90,12 @@ private:
     }
 
     void register_vinstrs() {
+        ofstream source_file("/tmp/vinstr.cpp");
+        source_file << vinstr_str;
+        source_file.close();
+
+        system("clang++ -S -emit-llvm /tmp/vinstr.cpp -o /tmp/vinstr.bc");
+
         llvm::SMDiagnostic error;
         auto vinstr_mod = llvm::parseIRFile("/tmp/vinstr.bc", error, llctx());
         if (!vinstr_mod) {
@@ -111,7 +121,7 @@ private:
             "commit_null"
         };
         llvm::Linker::linkModules(*llmod(), move(vinstr_mod));
-        for (const auto& name : vinstr_names) {
+        for (const auto* name : vinstr_names) {
             llmod()->getFunction(name)->setLinkage(llvm::Function::InternalLinkage);
         }
     }

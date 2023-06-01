@@ -14,26 +14,24 @@ target_link_libraries(tilt ${llvm_libs})
 target_include_directories(tilt PUBLIC ${LLVM_INCLUDE_DIRS} ../include)
 target_compile_options(tilt PRIVATE -Wall -Wextra -pedantic -Werror -Wno-unused-parameter)
 
-# Create bitcode for virtual instructions
-set(VINSTR_SRC_FILE ${CMAKE_SOURCE_DIR}/src/pass/codegen/vinstr.cpp)
-set(VINSTR_OUT_FILE ${CMAKE_BINARY_DIR}/vinstr.bc)
-set(VINSTR_TMP_FILE /tmp/vinstr.bc)
+# Config for JIT
+set(NO_EASYJIT true)
+if(${NO_EASYJIT})
+    add_compile_definitions(NO_EASYJIT)
+endif()
 
-add_custom_command(
-    OUTPUT ${VINSTR_OUT_FILE}
-    COMMAND clang++ -S -emit-llvm ${VINSTR_SRC_FILE} -o ${VINSTR_OUT_FILE}
-            -I ${CMAKE_SOURCE_DIR}/include
-    DEPENDS ${VINSTR_SRC_FILE}
-)
-add_custom_target(vinstr-bc DEPENDS ${VINSTR_OUT_FILE})
-add_dependencies(tilt vinstr-bc)
+# Load required files
+file(STRINGS ../include/tilt/base/ctype.h VINSTR_TYPE NEWLINE_CONSUME)
+file(STRINGS ../include/tilt/pass/codegen/vinstr.h VINSTR_HEADER NEWLINE_CONSUME)
+file(STRINGS ../src/pass/codegen/vinstr.cpp VINSTR_SRC NEWLINE_CONSUME)
 
-# Copy bitcode to /tmp
-add_custom_command(
-  TARGET vinstr-bc
-  POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy
-          ${VINSTR_OUT_FILE}
-          ${VINSTR_TMP_FILE}
-)
-add_custom_target(copy-bc DEPENDS vinstr-bc)
+# Replace preprocessors macros
+string(REGEX REPLACE "(^|\n)(#[^\n]*)(\n|$)" "" FILTERED_VINSTR_TYPE ${VINSTR_TYPE})
+string(REGEX REPLACE "(^|\n)(#[^\n]*)(\n|$)" "" FILTERED_VINSTR_HEADER ${VINSTR_HEADER})
+string(REGEX REPLACE "(^|\n)(#[^\n]*)(\n|$)" "" FILTERED_VINSTR_SRC ${VINSTR_SRC})
+
+# Create code contents
+set(VINSTR "${FILTERED_VINSTR_TYPE}\n${FILTERED_VINSTR_HEADER}\n${FILTERED_VINSTR_SRC}")
+
+# Insert into file
+configure_file(../include/tilt/pass/codegen/vinstr_str.h.in ${CMAKE_SOURCE_DIR}/include/tilt/pass/codegen/vinstr_str.h @ONLY)

@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <cstdint>
 
 #include "tilt/base/ctype.h"
 #include "tilt/base/log.h"

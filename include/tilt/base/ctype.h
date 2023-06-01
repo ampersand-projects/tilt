@@ -1,9 +1,10 @@
 #ifndef INCLUDE_TILT_BASE_CTYPE_H_
 #define INCLUDE_TILT_BASE_CTYPE_H_
 
-#include <cstdint>
-
 extern "C" {
+
+typedef signed long int64_t;
+typedef unsigned int uint32_t;
 
 typedef int64_t ts_t;
 typedef int64_t idx_t;
