@@ -89,8 +89,7 @@ llvm::Type* LLVMGen::lltype(const Type& type)
     if (type.is_val()) {
         return lltype(type.dtype);
     } else {
-        auto reg_type = llmod()->getTypeByName("struct.region_t");
-        return PointerType::get(reg_type, 0);
+        return llregptrtype();
     }
 }
 
@@ -463,9 +462,11 @@ Value* LLVMGen::visit(const LoopNode& loop)
         set_expr(input, loop_fn->getArg(i));
     }
     // We add `noalias` attribute to the region parameters to help compiler autovectorize
-    // Region parameters start at index 2
-    for (size_t i = 2; i < loop.inputs.size(); i++) {
-        loop_fn->addParamAttr(i, Attribute::NoAlias);
+    const auto* regtype = llregptrtype();
+    for (size_t i = 0; i < loop.inputs.size(); i++) {
+        if (args_type[i] == regtype) {
+            loop_fn->addParamAttr(i, Attribute::NoAlias);
+        }
     }
 
     // Initialization of loop states
