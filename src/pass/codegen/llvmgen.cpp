@@ -462,9 +462,9 @@ Value* LLVMGen::visit(const LoopNode& loop)
         set_expr(input, loop_fn->getArg(i));
     }
     // We add `noalias` attribute to the region parameters to help compiler autovectorize
-    const auto* regtype = llregptrtype();
     for (size_t i = 0; i < loop.inputs.size(); i++) {
-        if (args_type[i] == regtype) {
+        // If type is not a value, then it should be a region
+        if (!loop.inputs[i]->type.is_val()) {
             loop_fn->addParamAttr(i, Attribute::NoAlias);
         }
     }
