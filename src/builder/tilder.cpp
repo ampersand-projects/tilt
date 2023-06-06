@@ -32,7 +32,6 @@ _expr<ConstNode> _u64(uint64_t v) { return _const(BaseType::UINT64, v); }
 _expr<ConstNode> _f32(float v) { return _const(BaseType::FLOAT32, v); }
 _expr<ConstNode> _f64(double v) { return _const(BaseType::FLOAT64, v); }
 _expr<ConstNode> _ts(int64_t v) { return _const(BaseType::TIME, v); }
-_expr<ConstNode> _idx(idx_t v) { return _const(BaseType::INDEX, v); }
 _expr<ConstNode> _true() { return _const(BaseType::BOOL, 1); }
 _expr<ConstNode> _false() { return _const(BaseType::BOOL, 0); }
 

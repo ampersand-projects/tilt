@@ -20,8 +20,6 @@ private:
     const OpNode* op;
     Loop loop;
 
-    map<Sym, map<Point, Index>> pt_idx_maps;
-    map<Index, Expr> idx_diff_map;
     map<Sym, Sym> sym_ref;
 
     friend class LoopGen;
@@ -37,7 +35,6 @@ private:
     LoopGenCtx& ctx() override { return _ctx; }
 
     Expr get_timer(const Point, bool);
-    Index& get_idx(const Sym, const Point);
     Sym get_ref(const Sym sym) { return ctx().sym_ref.at(sym); }
     void set_ref(Sym sym, Sym ref) { ctx().sym_ref[sym] = ref; }
     void build_tloop(function<Expr()>, function<Expr()>);
@@ -62,10 +59,7 @@ private:
     Expr visit(const Fetch&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const Read&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const Write&) final { throw runtime_error("Invalid expression"); };
-    Expr visit(const Advance&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const GetCkpt&) final { throw runtime_error("Invalid expression"); };
-    Expr visit(const GetStartIdx&) final { throw runtime_error("Invalid expression"); };
-    Expr visit(const GetEndIdx&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const GetStartTime&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const GetEndTime&) final { throw runtime_error("Invalid expression"); };
     Expr visit(const CommitData&) final { throw runtime_error("Invalid expression"); };

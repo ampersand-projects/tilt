@@ -25,10 +25,7 @@ void Reduce::Accept(Visitor& v) const { v.Visit(*this); }
 void Fetch::Accept(Visitor& v) const { v.Visit(*this); }
 void Read::Accept(Visitor& v) const { v.Visit(*this); }
 void Write::Accept(Visitor& v) const { v.Visit(*this); }
-void Advance::Accept(Visitor& v) const { v.Visit(*this); }
 void GetCkpt::Accept(Visitor& v) const { v.Visit(*this); }
-void GetStartIdx::Accept(Visitor& v) const { v.Visit(*this); }
-void GetEndIdx::Accept(Visitor& v) const { v.Visit(*this); }
 void GetStartTime::Accept(Visitor& v) const { v.Visit(*this); }
 void GetEndTime::Accept(Visitor& v) const { v.Visit(*this); }
 void CommitData::Accept(Visitor& v) const { v.Visit(*this); }

@@ -19,22 +19,15 @@ struct TimeNode : public Symbol {
 };
 typedef shared_ptr<TimeNode> Time;
 
-struct IndexNode : public Symbol {
-    explicit IndexNode(string name) : Symbol(name, Type(types::INDEX)) {}
-};
-typedef shared_ptr<IndexNode> Index;
-
 struct Fetch : public ValNode {
     Expr reg;
     Expr time;
-    Expr idx;
 
-    Fetch(Expr reg, Expr time, Expr idx) :
-        ValNode(reg->type.dtype.ptr()), reg(reg), time(time), idx(idx)
+    Fetch(Expr reg, Expr time) :
+        ValNode(reg->type.dtype.ptr()), reg(reg), time(time)
     {
         ASSERT(!reg->type.is_val());
         ASSERT(time->type.dtype == types::TIME);
-        ASSERT(idx->type.dtype == types::INDEX);
     }
 
     void Accept(Visitor&) const final;
@@ -62,55 +55,15 @@ struct Write : public ExprNode {
     void Accept(Visitor&) const final;
 };
 
-struct Advance : public ValNode {
-    Expr reg;
-    Expr idx;
-    Expr time;
-
-    Advance(Expr reg, Expr idx, Expr time) :
-        ValNode(types::INDEX), reg(reg), idx(idx), time(time)
-    {
-        ASSERT(!reg->type.is_val());
-        ASSERT(idx->type.dtype == types::INDEX);
-        ASSERT(time->type.dtype == types::TIME);
-    }
-
-    void Accept(Visitor&) const final;
-};
-
 struct GetCkpt : public ValNode {
     Expr reg;
     Expr time;
-    Expr idx;
 
-    GetCkpt(Expr reg, Expr time, Expr idx) :
-        ValNode(types::TIME), reg(reg), time(time), idx(idx)
+    GetCkpt(Expr reg, Expr time) :
+        ValNode(types::TIME), reg(reg), time(time)
     {
         ASSERT(!reg->type.is_val());
         ASSERT(time->type.dtype == types::TIME);
-        ASSERT(idx->type.dtype == types::INDEX);
-    }
-
-    void Accept(Visitor&) const final;
-};
-
-struct GetStartIdx : public ValNode {
-    Expr reg;
-
-    explicit GetStartIdx(Expr reg) : ValNode(types::INDEX), reg(reg)
-    {
-        ASSERT(!reg->type.is_val());
-    }
-
-    void Accept(Visitor&) const final;
-};
-
-struct GetEndIdx : public ValNode {
-    Expr reg;
-
-    explicit GetEndIdx(Expr reg) : ValNode(types::INDEX), reg(reg)
-    {
-        ASSERT(!reg->type.is_val());
     }
 
     void Accept(Visitor&) const final;
@@ -174,7 +127,7 @@ struct AllocRegion : public ExprNode {
         ExprNode(type), size(size), start_time(start_time)
     {
         ASSERT(!type.is_val());
-        ASSERT(size->type.dtype == types::INDEX);
+        ASSERT(size->type.dtype == types::TIME);
         ASSERT(start_time->type.dtype == types::TIME);
     }
 
@@ -184,18 +137,14 @@ struct AllocRegion : public ExprNode {
 struct MakeRegion : public ExprNode {
     Expr reg;
     Expr st;
-    Expr si;
     Expr et;
-    Expr ei;
 
-    MakeRegion(Expr reg, Expr st, Expr si, Expr et, Expr ei) :
-        ExprNode(reg->type), reg(reg), st(st), si(si), et(et), ei(ei)
+    MakeRegion(Expr reg, Expr st, Expr et) :
+        ExprNode(reg->type), reg(reg), st(st), et(et)
     {
         ASSERT(!reg->type.is_val());
         ASSERT(st->type.dtype == types::TIME);
-        ASSERT(si->type.dtype == types::INDEX);
         ASSERT(et->type.dtype == types::TIME);
-        ASSERT(ei->type.dtype == types::INDEX);
     }
 
     void Accept(Visitor&) const final;
@@ -219,9 +168,6 @@ struct IfElse : public ExprNode {
 struct LoopNode : public FuncNode {
     // Loop counter
     Time t;
-
-    // Indices
-    vector<Index> idxs;
 
     // States
     map<Sym, Sym> state_bases;
