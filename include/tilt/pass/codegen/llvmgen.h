@@ -9,6 +9,7 @@
 #include <fstream>
 
 #include "tilt/pass/irgen.h"
+#include "tilt/pass/codegen/vinstr.h"
 #include "tilt/pass/codegen/vinstr_str.h"
 
 #include "llvm/IR/LLVMContext.h"
@@ -18,6 +19,7 @@
 #include "llvm/Linker/Linker.h"
 #include "llvm/IRReader/IRReader.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/Support/MemoryBuffer.h"
 
 using namespace std;
 
@@ -90,14 +92,10 @@ private:
     }
 
     void register_vinstrs() {
-        ofstream source_file("/tmp/vinstr.cpp");
-        source_file << vinstr_str;
-        source_file.close();
-
-        system("clang++ -S -emit-llvm /tmp/vinstr.cpp -o /tmp/vinstr.bc");
+        const auto buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(vinstr_str));
 
         llvm::SMDiagnostic error;
-        auto vinstr_mod = llvm::parseIRFile("/tmp/vinstr.bc", error, llctx());
+        auto vinstr_mod = llvm::parseIR(*buffer, error, llctx());
         if (!vinstr_mod) {
             throw std::runtime_error("Failed to parse vinstr bitcode");
         }
@@ -105,21 +103,6 @@ private:
             throw std::runtime_error("Failed to verify vinstr module");
         }
 
-        // FIXME: find better way to register the vinstrs
-        std::vector<const char*> vinstr_names{
-            "get_buf_size",
-            "get_start_idx",
-            "get_end_idx",
-            "get_start_time",
-            "get_end_time",
-            "get_ckpt",
-            "advance",
-            "fetch",
-            "make_region",
-            "init_region",
-            "commit_data",
-            "commit_null"
-        };
         llvm::Linker::linkModules(*llmod(), move(vinstr_mod));
         for (const auto* name : vinstr_names) {
             llmod()->getFunction(name)->setLinkage(llvm::Function::InternalLinkage);

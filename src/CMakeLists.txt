@@ -30,8 +30,14 @@ string(REGEX REPLACE "(^|\n)(#[^\n]*)(\n|$)" "" FILTERED_VINSTR_TYPE ${VINSTR_TY
 string(REGEX REPLACE "(^|\n)(#[^\n]*)(\n|$)" "" FILTERED_VINSTR_HEADER ${VINSTR_HEADER})
 string(REGEX REPLACE "(^|\n)(#[^\n]*)(\n|$)" "" FILTERED_VINSTR_SRC ${VINSTR_SRC})
 
-# Create code contents
-set(VINSTR "${FILTERED_VINSTR_TYPE}\n${FILTERED_VINSTR_HEADER}\n${FILTERED_VINSTR_SRC}")
+# Create code content
+file(WRITE /tmp/vinstr.cpp "${FILTERED_VINSTR_TYPE}\n${FILTERED_VINSTR_HEADER}\n${FILTERED_VINSTR_SRC}")
+
+# Compile vinstr to LLVM IR
+execute_process(COMMAND clang++ -S -emit-llvm /tmp/vinstr.cpp -o /tmp/vinstr.ll)
+
+# Load LLVM IR as string
+file(READ /tmp/vinstr.ll VINSTR_IR NEWLINE_CONSUME)
 
 # Insert into file
 configure_file(../include/tilt/pass/codegen/vinstr_str.h.in ${CMAKE_SOURCE_DIR}/include/tilt/pass/codegen/vinstr_str.h @ONLY)
