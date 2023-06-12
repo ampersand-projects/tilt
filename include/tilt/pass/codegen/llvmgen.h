@@ -10,7 +10,6 @@
 
 #include "tilt/pass/irgen.h"
 #include "tilt/pass/codegen/vinstr.h"
-#include "tilt/pass/codegen/vinstr_str.h"
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
@@ -22,6 +21,8 @@
 #include "llvm/Support/MemoryBuffer.h"
 
 using namespace std;
+
+extern const char* vinstr_str;
 
 namespace tilt {
 

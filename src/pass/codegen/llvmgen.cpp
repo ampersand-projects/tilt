@@ -5,8 +5,6 @@
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/InstrTypes.h"
 
-#include <iostream>
-
 using namespace tilt;
 using namespace llvm;
 

@@ -7,12 +7,9 @@ clang++ -emit-llvm -S ${CMAKE_SOURCE_DIR}/src/pass/codegen/vinstr.cpp \
 
 VINSTR_IR=$(cat ${CMAKE_CURRENT_BINARY_DIR}/vinstr.ll)
 
-echo "#ifndef INCLUDE_VINSTR_STR_H_
-#define INCLUDE_VINSTR_STR_H_
-static const char* vinstr_str = R\"(
+echo "const char* vinstr_str = R\"(
 ${VINSTR_IR}
 )\";
-#endif // INCLUDE_VINSTR_STR_H_
-" > ${CMAKE_SOURCE_DIR}/include/tilt/pass/codegen/vinstr_str.h
+" > ${CMAKE_SOURCE_DIR}/src/pass/codegen/vinstr_str.cpp
 
 rm ${CMAKE_CURRENT_BINARY_DIR}/vinstr.ll
