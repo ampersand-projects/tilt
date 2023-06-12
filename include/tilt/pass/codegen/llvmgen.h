@@ -91,23 +91,7 @@ private:
         val->setName(sym_ptr->name);
     }
 
-    void register_vinstrs() {
-        const auto buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(vinstr_str));
-
-        llvm::SMDiagnostic error;
-        auto vinstr_mod = llvm::parseIR(*buffer, error, llctx());
-        if (!vinstr_mod) {
-            throw std::runtime_error("Failed to parse vinstr bitcode");
-        }
-        if (llvm::verifyModule(*vinstr_mod)) {
-            throw std::runtime_error("Failed to verify vinstr module");
-        }
-
-        llvm::Linker::linkModules(*llmod(), move(vinstr_mod));
-        for (const auto* name : vinstr_names) {
-            llmod()->getFunction(name)->setLinkage(llvm::Function::InternalLinkage);
-        }
-    }
+    void register_vinstrs();
 
     llvm::Function* llfunc(const string, llvm::Type*, vector<llvm::Type*>);
     llvm::Value* llcall(const string, llvm::Type*, vector<llvm::Value*>);

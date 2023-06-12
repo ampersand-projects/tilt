@@ -5,6 +5,8 @@
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/InstrTypes.h"
 
+#include <iostream>
+
 using namespace tilt;
 using namespace llvm;
 
@@ -530,4 +532,22 @@ unique_ptr<llvm::Module> LLVMGen::Build(const Loop loop, llvm::LLVMContext& llct
     LLVMGen llgen(move(ctx));
     loop->Accept(llgen);
     return move(llgen._llmod);
+}
+
+void LLVMGen::register_vinstrs() {
+    const auto buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(vinstr_str));
+
+    llvm::SMDiagnostic error;
+    std::unique_ptr<llvm::Module> vinstr_mod = llvm::parseIR(*buffer, error, llctx());
+    if (!vinstr_mod) {
+        throw std::runtime_error("Failed to parse vinstr bitcode");
+    }
+    if (llvm::verifyModule(*vinstr_mod)) {
+        throw std::runtime_error("Failed to verify vinstr module");
+    }
+
+    llvm::Linker::linkModules(*llmod(), move(vinstr_mod));
+    for (const auto* name : vinstr_names) {
+        llmod()->getFunction(name)->setLinkage(llvm::Function::InternalLinkage);
+    }
 }

@@ -25,18 +25,18 @@ static const char* vinstr_names[] = {
     "commit_null"
 };
 
-__attribute__((always_inline)) uint32_t get_buf_size(idx_t);
-__attribute__((always_inline)) idx_t get_start_idx(region_t*);
-__attribute__((always_inline)) idx_t get_end_idx(region_t*);
-__attribute__((always_inline)) ts_t get_start_time(region_t*);
-__attribute__((always_inline)) ts_t get_end_time(region_t*);
-__attribute__((always_inline)) ts_t get_ckpt(region_t*, ts_t, idx_t);
-__attribute__((always_inline)) idx_t advance(region_t*, idx_t, ts_t);
-__attribute__((always_inline)) char* fetch(region_t*, ts_t, idx_t, uint32_t);
-__attribute__((always_inline)) region_t* make_region(region_t*, region_t*, ts_t, idx_t, ts_t, idx_t);
-__attribute__((always_inline)) region_t* init_region(region_t*, ts_t, uint32_t, ival_t*, char*);
-__attribute__((always_inline)) region_t* commit_data(region_t*, ts_t);
-__attribute__((always_inline)) region_t* commit_null(region_t*, ts_t);
+TILT_VINSTR_ATTR uint32_t get_buf_size(idx_t);
+TILT_VINSTR_ATTR idx_t get_start_idx(region_t*);
+TILT_VINSTR_ATTR idx_t get_end_idx(region_t*);
+TILT_VINSTR_ATTR ts_t get_start_time(region_t*);
+TILT_VINSTR_ATTR ts_t get_end_time(region_t*);
+TILT_VINSTR_ATTR ts_t get_ckpt(region_t*, ts_t, idx_t);
+TILT_VINSTR_ATTR idx_t advance(region_t*, idx_t, ts_t);
+TILT_VINSTR_ATTR char* fetch(region_t*, ts_t, idx_t, uint32_t);
+TILT_VINSTR_ATTR region_t* make_region(region_t*, region_t*, ts_t, idx_t, ts_t, idx_t);
+TILT_VINSTR_ATTR region_t* init_region(region_t*, ts_t, uint32_t, ival_t*, char*);
+TILT_VINSTR_ATTR region_t* commit_data(region_t*, ts_t);
+TILT_VINSTR_ATTR region_t* commit_null(region_t*, ts_t);
 
 }  // extern "C"
 }  // namespace tilt

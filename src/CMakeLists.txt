@@ -11,33 +11,17 @@ set(SRC_FILES
 add_library(tilt STATIC ${SRC_FILES})
 
 target_link_libraries(tilt ${llvm_libs})
-target_include_directories(tilt PUBLIC ${LLVM_INCLUDE_DIRS} ../include)
+target_include_directories(tilt PUBLIC ${LLVM_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
 target_compile_options(tilt PRIVATE -Wall -Wextra -pedantic -Werror -Wno-unused-parameter)
 
-# Config for JIT
-set(NO_EASYJIT true)
-if(${NO_EASYJIT})
-    add_compile_definitions(NO_EASYJIT)
-endif()
 
-# Load required files
-file(STRINGS ../include/tilt/base/ctype.h VINSTR_TYPE NEWLINE_CONSUME)
-file(STRINGS ../include/tilt/pass/codegen/vinstr.h VINSTR_HEADER NEWLINE_CONSUME)
-file(STRINGS ../src/pass/codegen/vinstr.cpp VINSTR_SRC NEWLINE_CONSUME)
-
-# Replace preprocessors macros
-string(REGEX REPLACE "(^|\n)(#[^\n]*)(\n|$)" "" FILTERED_VINSTR_TYPE ${VINSTR_TYPE})
-string(REGEX REPLACE "(^|\n)(#[^\n]*)(\n|$)" "" FILTERED_VINSTR_HEADER ${VINSTR_HEADER})
-string(REGEX REPLACE "(^|\n)(#[^\n]*)(\n|$)" "" FILTERED_VINSTR_SRC ${VINSTR_SRC})
-
-# Create code content
-file(WRITE /tmp/vinstr.cpp "${FILTERED_VINSTR_TYPE}\n${FILTERED_VINSTR_HEADER}\n${FILTERED_VINSTR_SRC}")
+# Code generation for JIT
 
 # Compile vinstr to LLVM IR
-execute_process(COMMAND clang++ -S -emit-llvm /tmp/vinstr.cpp -o /tmp/vinstr.ll)
+execute_process(COMMAND clang++ -S -emit-llvm ${CMAKE_SOURCE_DIR}/src/pass/codegen/vinstr.cpp -I ${CMAKE_SOURCE_DIR}/include/ -o ${CMAKE_CURRENT_BINARY_DIR}/vinstr.ll)
 
 # Load LLVM IR as string
-file(READ /tmp/vinstr.ll VINSTR_IR NEWLINE_CONSUME)
+file(READ ${CMAKE_CURRENT_BINARY_DIR}/vinstr.ll VINSTR_IR NEWLINE_CONSUME)
 
 # Insert into file
-configure_file(../include/tilt/pass/codegen/vinstr_str.h.in ${CMAKE_SOURCE_DIR}/include/tilt/pass/codegen/vinstr_str.h @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/include/tilt/pass/codegen/vinstr_str.h.in ${CMAKE_SOURCE_DIR}/include/tilt/pass/codegen/vinstr_str.h @ONLY)
