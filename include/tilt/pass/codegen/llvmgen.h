@@ -104,6 +104,10 @@ private:
     llvm::Type* lltype(const ExprNode& expr) { return lltype(expr.type); }
     llvm::Type* lltype(const Expr& expr) { return lltype(expr->type); }
 
+    llvm::Type* llregtype() {
+        return llvm::StructType::getTypeByName(llctx(), "struct.region_t");
+    }
+
     llvm::Module* llmod() { return _llmod.get(); }
     llvm::LLVMContext& llctx() { return _llctx; }
     llvm::IRBuilder<>* builder() { return _builder.get(); }
