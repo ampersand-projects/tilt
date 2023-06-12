@@ -546,8 +546,20 @@ void LLVMGen::register_vinstrs() {
         throw std::runtime_error("Failed to verify vinstr module");
     }
 
+    // For some reason if we try to set internal linkage before we link
+    // modules, then the JIT will be unable to find the symbols.
+    // Instead we collect the function names first, then add internal
+    // linkage to them after linking the modules
+    std::vector<string> vinstr_names;
+    for (const auto& function : vinstr_mod->functions()) {
+        if (function.isDeclaration()) {
+            continue;
+        }
+        vinstr_names.push_back(function.getName().str());
+    }
+
     llvm::Linker::linkModules(*llmod(), move(vinstr_mod));
-    for (const auto* name : vinstr_names) {
-        llmod()->getFunction(name)->setLinkage(llvm::Function::InternalLinkage);
+    for (const auto& name : vinstr_names) {
+        llmod()->getFunction(name.c_str())->setLinkage(llvm::Function::InternalLinkage);
     }
 }

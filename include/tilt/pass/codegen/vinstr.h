@@ -8,23 +8,6 @@
 namespace tilt {
 extern "C" {
 
-// !! Make sure to add new vinstr to this array,
-// !! otherwise they will not be accessible in LLVM
-static const char* vinstr_names[] = {
-    "get_buf_size",
-    "get_start_idx",
-    "get_end_idx",
-    "get_start_time",
-    "get_end_time",
-    "get_ckpt",
-    "advance",
-    "fetch",
-    "make_region",
-    "init_region",
-    "commit_data",
-    "commit_null"
-};
-
 TILT_VINSTR_ATTR uint32_t get_buf_size(idx_t);
 TILT_VINSTR_ATTR idx_t get_start_idx(region_t*);
 TILT_VINSTR_ATTR idx_t get_end_idx(region_t*);
