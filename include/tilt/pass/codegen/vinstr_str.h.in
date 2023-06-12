@@ -1,6 +1,0 @@
-#ifndef INCLUDE_VINSTR_STR_H_
-#define INCLUDE_VINSTR_STR_H_
-static const char* vinstr_str = R"(
-@VINSTR_IR@
-)";
-#endif  // INCLUDE_VINSTR_STR_H_

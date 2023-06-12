@@ -13,15 +13,11 @@ add_library(tilt STATIC ${SRC_FILES})
 target_link_libraries(tilt ${llvm_libs})
 target_include_directories(tilt PUBLIC ${LLVM_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
 target_compile_options(tilt PRIVATE -Wall -Wextra -pedantic -Werror -Wno-unused-parameter)
+add_dependencies(tilt gen-vinstr)
 
-
-# Code generation for JIT
-
-# Compile vinstr to LLVM IR
-execute_process(COMMAND clang++ -S -emit-llvm ${CMAKE_SOURCE_DIR}/src/pass/codegen/vinstr.cpp -I ${CMAKE_SOURCE_DIR}/include/ -o ${CMAKE_CURRENT_BINARY_DIR}/vinstr.ll)
-
-# Load LLVM IR as string
-file(READ ${CMAKE_CURRENT_BINARY_DIR}/vinstr.ll VINSTR_IR NEWLINE_CONSUME)
-
-# Insert into file
-configure_file(${CMAKE_SOURCE_DIR}/include/tilt/pass/codegen/vinstr_str.h.in ${CMAKE_SOURCE_DIR}/include/tilt/pass/codegen/vinstr_str.h @ONLY)
+# Generate vinstr IR for JIT
+add_custom_target(gen-vinstr DEPENDS ${CMAKE_SOURCE_DIR}/src/pass/codegen/vinstr.cpp)
+add_custom_command(
+    TARGET gen-vinstr
+    COMMAND bash ${CMAKE_SOURCE_DIR}/gen-vinstr.sh ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+)
