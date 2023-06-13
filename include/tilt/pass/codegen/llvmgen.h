@@ -105,7 +105,6 @@ private:
     llvm::Type* lltype(const Expr& expr) { return lltype(expr->type); }
 
     llvm::Type* llregtype() {
-        // FIXME
         return llvm::StructType::getTypeByName(llctx(), "struct.region_t");
     }
 
