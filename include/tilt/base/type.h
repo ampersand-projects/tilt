@@ -255,6 +255,7 @@ struct region_t {
     ts_t et;
     uint32_t mask;
     char* data;
+    char* bitfield;
 };
 
 }  // extern "C"

@@ -10,6 +10,17 @@ using namespace std::placeholders;
 namespace tilt {
 extern "C" {
 
+// const uint8_t masks[8] = {
+//     0b00000001,
+//     0b00000010,
+//     0b00000100,
+//     0b00001000,
+//     0b00010000,
+//     0b00100000,
+//     0b01000000,
+//     0b10000000,
+// };
+
 uint32_t get_buf_size(ts_t len)
 {
     uint32_t ring = 1;
@@ -34,23 +45,24 @@ region_t* make_region(region_t* out_reg, region_t* in_reg, ts_t st, ts_t et)
     out_reg->et = et;
     out_reg->mask = in_reg->mask;
     out_reg->data = in_reg->data;
-
+    out_reg->bitfield = in_reg->bitfield;
     return out_reg;
 }
 
-region_t* init_region(region_t* reg, ts_t t, uint32_t size, char* data)
+region_t* init_region(region_t* reg, ts_t t, uint32_t size, char* data, char* bitfield)
 {
     reg->st = t;
     reg->et = t;
     reg->mask = size - 1;
     reg->data = data;
-    commit_null(reg, t);
+    reg->bitfield = bitfield;
     return reg;
 }
 
-region_t* commit_data(region_t* reg, ts_t t)
+region_t* commit_data(region_t* reg, ts_t t, uint8_t bit)
 {
     reg->et = t;
+    reg->bitfield[t] = bit;
     return reg;
 }
 

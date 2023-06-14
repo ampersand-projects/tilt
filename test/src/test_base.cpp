@@ -3,10 +3,12 @@
 #include <algorithm>
 #include <string>
 #include <numeric>
+#include <iostream>
 
 #include "tilt/pass/codegen/loopgen.h"
 #include "tilt/pass/codegen/llvmgen.h"
 #include "tilt/pass/codegen/vinstr.h"
+#include "tilt/pass/printer.h"
 #include "tilt/engine/engine.h"
 
 #include "test_base.h"
@@ -18,11 +20,13 @@ void run_op(string query_name, Op op, ts_t st, ts_t et, region_t* out_reg, regio
 {
     auto op_sym = _sym(query_name, op);
     auto loop = LoopGen::Build(op_sym, op.get());
+    std::cout << IRPrinter::Build(loop) << std::endl;
 
     auto jit = ExecEngine::Get();
     auto& llctx = jit->GetCtx();
 
     auto llmod = LLVMGen::Build(loop, llctx);
+    std::cout << IRPrinter::Build(llmod.get()) << std::endl;
     jit->AddModule(move(llmod));
 
     auto loop_addr = (region_t* (*)(ts_t, ts_t, region_t*, region_t*)) jit->Lookup(loop->get_name());
@@ -37,20 +41,24 @@ void op_test(string query_name, Op op, ts_t st, ts_t et, QueryFn<InTy, OutTy> qu
     auto true_out = query_fn(input);
 
     region_t in_reg;
+    // auto in_bitfield = vector<char>(input.size());
+    auto in_bitfield = new char[true_out.size()];
     auto in_data = vector<InTy>(input.size());
     auto in_data_ptr = reinterpret_cast<char*>(in_data.data());
-    init_region(&in_reg, in_st, get_buf_size(input.size()), in_data_ptr);
+    init_region(&in_reg, in_st, get_buf_size(input.size()), in_data_ptr, in_bitfield);
     for (size_t i = 0; i < input.size(); i++) {
         auto t = input[i].st;
-        commit_data(&in_reg, t);
+        commit_data(&in_reg, t, 1);
         auto* ptr = reinterpret_cast<InTy*>(fetch(&in_reg, t, sizeof(InTy)));
         *ptr = input[i].payload;
     }
 
     region_t out_reg;
+    // auto out_bitfield = vector<char>(true_out.size());
+    auto out_bitfield = new char[true_out.size()];
     auto out_data = vector<OutTy>(true_out.size());
     auto out_data_ptr = reinterpret_cast<char*>(out_data.data());
-    init_region(&out_reg, st, get_buf_size(true_out.size()), out_data_ptr);
+    init_region(&out_reg, st, get_buf_size(true_out.size()), out_data_ptr, out_bitfield);
 
     run_op(query_name, op, st, et, &out_reg, &in_reg);
 

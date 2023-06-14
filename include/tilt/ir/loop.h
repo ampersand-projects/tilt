@@ -94,9 +94,10 @@ struct GetEndTime : public ValNode {
 struct CommitData : public ExprNode {
     Expr reg;
     Expr time;
+    Expr pred;
 
-    CommitData(Expr reg, Expr time) :
-        ExprNode(reg->type), reg(reg), time(time)
+    CommitData(Expr reg, Expr time, Expr pred) :
+        ExprNode(reg->type), reg(reg), time(time), pred(pred)
     {
         ASSERT(!reg->type.is_val());
         ASSERT(time->type.dtype == types::TIME);

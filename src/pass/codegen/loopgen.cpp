@@ -68,14 +68,13 @@ void LoopGen::build_tloop(function<Expr()> true_body, function<Expr()> false_bod
     loop->state_bases[loop->output] = output_base;
 
     // Evaluate loop body
-    auto pred_expr = eval(ctx().op->pred);
     eval(ctx().op->output);
 
     // Loop counter update expression
     set_expr(loop->t, _min(t_end, get_timer(_pt(0), true)));
 
     // Create loop output
-    set_expr(loop->output, _ifelse(pred_expr, true_body(), false_body()));
+    set_expr(loop->output, true_body());
 }
 
 void LoopGen::build_loop()
@@ -84,12 +83,13 @@ void LoopGen::build_loop()
         auto loop = ctx().loop;
         auto output_base = loop->state_bases[loop->output];
         auto out_expr = get_sym(ctx().op->output);
+        auto pred_expr = _cast(types::UINT8, eval(ctx().op->pred));
 
         // Update loop output:
         //      1. Outer loop returns the output region of the inner loop
         //      2. Inner loop updates the output region
         if (out_expr->type.is_val()) {
-            auto new_reg = _commit_data(output_base, loop->t);
+            auto new_reg = _commit_data(output_base, loop->t, pred_expr);
             auto new_reg_sym = _sym("new_reg", new_reg);
             set_expr(new_reg_sym, new_reg);
 
