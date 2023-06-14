@@ -14,8 +14,8 @@ set(SRC_FILES
 # execute_process is for configure (cmake) and target is for build (make)
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/vinstr_str.cpp
-    COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/gen_vinstr.sh ${CMAKE_CXX_COMPILER} ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${CMAKE_SOURCE_DIR}/src/pass/codegen/vinstr.cpp
+    COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/gen_vinstr.sh ${CMAKE_CXX_COMPILER} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS pass/codegen/vinstr.cpp
 )
 
 add_library(tilt STATIC ${SRC_FILES} ${CMAKE_CURRENT_BINARY_DIR}/vinstr_str.cpp)
