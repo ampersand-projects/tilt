@@ -31,9 +31,9 @@ class ExecEngine {
 public:
     ExecEngine(JITTargetMachineBuilder jtmb, DataLayout dl) :
         linker(es, []() { return make_unique<SectionMemoryManager>(); }),
-        compiler(es, linker, make_unique<ConcurrentIRCompiler>(move(jtmb))),
+        compiler(es, linker, make_unique<ConcurrentIRCompiler>(std::move(jtmb))),
         optimizer(es, compiler, optimize_module),
-        dl(move(dl)), mangler(es, this->dl),
+        dl(std::move(dl)), mangler(es, this->dl),
         ctx(make_unique<LLVMContext>()),
         jd(es.createBareJITDylib("__tilt_dylib"))
     {

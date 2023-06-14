@@ -528,9 +528,9 @@ Value* LLVMGen::visit(const LoopNode& loop)
 unique_ptr<llvm::Module> LLVMGen::Build(const Loop loop, llvm::LLVMContext& llctx)
 {
     LLVMGenCtx ctx(loop.get(), &llctx);
-    LLVMGen llgen(move(ctx));
+    LLVMGen llgen(std::move(ctx));
     loop->Accept(llgen);
-    return move(llgen._llmod);
+    return std::move(llgen._llmod);
 }
 
 void LLVMGen::register_vinstrs() {
@@ -557,7 +557,7 @@ void LLVMGen::register_vinstrs() {
         vinstr_names.push_back(function.getName().str());
     }
 
-    llvm::Linker::linkModules(*llmod(), move(vinstr_mod));
+    llvm::Linker::linkModules(*llmod(), std::move(vinstr_mod));
     for (const auto& name : vinstr_names) {
         llmod()->getFunction(name.c_str())->setLinkage(llvm::Function::InternalLinkage);
     }

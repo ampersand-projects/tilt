@@ -16,7 +16,7 @@ ExecEngine* ExecEngine::Get()
         auto jtmb = cantFail(JITTargetMachineBuilder::detectHost());
         auto dl = cantFail(jtmb.getDefaultDataLayoutForTarget());
 
-        engine = make_unique<ExecEngine>(move(jtmb), move(dl));
+        engine = make_unique<ExecEngine>(std::move(jtmb), std::move(dl));
     }
 
     return engine.get();
@@ -27,7 +27,7 @@ void ExecEngine::AddModule(unique_ptr<Module> m)
     raw_fd_ostream r(fileno(stdout), false);
     verifyModule(*m, &r);
 
-    cantFail(optimizer.add(jd, ThreadSafeModule(move(m), ctx)));
+    cantFail(optimizer.add(jd, ThreadSafeModule(std::move(m), ctx)));
 }
 
 LLVMContext& ExecEngine::GetCtx() { return *ctx.getContext(); }
@@ -53,5 +53,5 @@ Expected<ThreadSafeModule> ExecEngine::optimize_module(ThreadSafeModule tsm, con
         mpm.run(m);
     });
 
-    return move(tsm);
+    return std::move(tsm);
 }
