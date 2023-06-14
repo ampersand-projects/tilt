@@ -1,13 +1,9 @@
 #ifndef INCLUDE_TILT_PASS_CODEGEN_VINSTR_H_
 #define INCLUDE_TILT_PASS_CODEGEN_VINSTR_H_
 
-#include "tilt/base/type.h"
+#include "tilt/base/ctype.h"
 
 #define TILT_VINSTR_ATTR __attribute__((always_inline))
-
-#define REGISTER_VINSTR(MOD, CTX, VINSTR, ...) \
-    llvm::Linker::linkModules(MOD, easy::get_module(CTX, VINSTR, __VA_ARGS__)); \
-    (MOD).getFunction(#VINSTR)->setLinkage(llvm::Function::InternalLinkage);
 
 namespace tilt {
 extern "C" {

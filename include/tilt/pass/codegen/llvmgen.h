@@ -5,14 +5,23 @@
 #include <utility>
 #include <string>
 #include <vector>
+#include <cstdlib>
+#include <fstream>
 
 #include "tilt/pass/irgen.h"
+
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/Linker/Linker.h"
+#include "llvm/IRReader/IRReader.h"
+#include "llvm/Support/SourceMgr.h"
+#include "llvm/Support/MemoryBuffer.h"
 
 using namespace std;
+
+extern const char* vinstr_str;
 
 namespace tilt {
 
