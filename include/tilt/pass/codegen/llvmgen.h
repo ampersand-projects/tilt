@@ -9,7 +9,6 @@
 #include <fstream>
 
 #include "tilt/pass/irgen.h"
-#include "tilt/pass/codegen/vinstr.h"
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
