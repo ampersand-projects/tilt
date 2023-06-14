@@ -1,4 +1,5 @@
 #include "llvm/IR/Verifier.h"
+#include "llvm/ExecutionEngine/Orc/ExecutorProcessControl.h"
 
 #include "tilt/engine/engine.h"
 
@@ -34,7 +35,7 @@ LLVMContext& ExecEngine::GetCtx() { return *ctx.getContext(); }
 
 intptr_t ExecEngine::Lookup(StringRef name)
 {
-    auto fn_sym = cantFail(es.lookup({ &jd }, mangler(name.str())));
+    auto fn_sym = cantFail(es->lookup({ &jd }, mangler(name.str())));
     return (intptr_t) fn_sym.getAddress();
 }
 
@@ -54,4 +55,9 @@ Expected<ThreadSafeModule> ExecEngine::optimize_module(ThreadSafeModule tsm, con
     });
 
     return std::move(tsm);
+}
+
+unique_ptr<ExecutionSession> ExecEngine::createExecutionSession() {
+    unique_ptr<SelfExecutorProcessControl> epc = llvm::cantFail(SelfExecutorProcessControl::Create());
+    return std::make_unique<ExecutionSession>(std::move(epc));
 }
