@@ -25,7 +25,7 @@ add_custom_command(
     DEPENDS pass/codegen/vinstr.cpp
 )
 
-add_library(tilt STATIC ${SRC_FILES} ${CMAKE_CURRENT_BINARY_DIR}/vinstr_str.cpp)
+add_library(tilt SHARED ${SRC_FILES} ${CMAKE_CURRENT_BINARY_DIR}/vinstr_str.cpp)
 
 target_link_libraries(tilt ${llvm_libs})
 target_include_directories(tilt PUBLIC ${LLVM_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/../include)
