@@ -8,6 +8,13 @@ set(SRC_FILES
     engine/engine.cpp
 )
 
+find_package(LLVM 11.0.0 REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+add_definitions(${LLVM_DEFINITIONS})
+llvm_map_components_to_libnames(llvm_libs native orcjit mcjit objcarcopts)
+
 # Generate vinstr IR for JIT
 #
 # We have two commands that run scripts/gen_vinstr.sh because
