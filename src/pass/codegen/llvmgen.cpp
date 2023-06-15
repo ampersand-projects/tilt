@@ -88,8 +88,7 @@ llvm::Type* LLVMGen::lltype(const Type& type)
     if (type.is_val()) {
         return lltype(type.dtype);
     } else {
-        auto reg_type = llmod()->getTypeByName("struct.region_t");
-        return PointerType::get(reg_type, 0);
+        return llregptrtype();
     }
 }
 
@@ -447,9 +446,11 @@ Value* LLVMGen::visit(const LoopNode& loop)
         set_expr(input, loop_fn->getArg(i));
     }
     // We add `noalias` attribute to the region parameters to help compiler autovectorize
-    // Region parameters start at index 2
-    for (size_t i = 2; i < loop.inputs.size(); i++) {
-        loop_fn->addParamAttr(i, Attribute::NoAlias);
+    for (size_t i = 0; i < loop.inputs.size(); i++) {
+        // If type is not a value, then it should be a region
+        if (!loop.inputs[i]->type.is_val()) {
+            loop_fn->addParamAttr(i, Attribute::NoAlias);
+        }
     }
 
     // Initialization of loop states
@@ -509,4 +510,34 @@ unique_ptr<llvm::Module> LLVMGen::Build(const Loop loop, llvm::LLVMContext& llct
     LLVMGen llgen(move(ctx));
     loop->Accept(llgen);
     return move(llgen._llmod);
+}
+
+void LLVMGen::register_vinstrs() {
+    const auto buffer = llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(vinstr_str));
+
+    llvm::SMDiagnostic error;
+    std::unique_ptr<llvm::Module> vinstr_mod = llvm::parseIR(*buffer, error, llctx());
+    if (!vinstr_mod) {
+        throw std::runtime_error("Failed to parse vinstr bitcode");
+    }
+    if (llvm::verifyModule(*vinstr_mod)) {
+        throw std::runtime_error("Failed to verify vinstr module");
+    }
+
+    // For some reason if we try to set internal linkage before we link
+    // modules, then the JIT will be unable to find the symbols.
+    // Instead we collect the function names first, then add internal
+    // linkage to them after linking the modules
+    std::vector<string> vinstr_names;
+    for (const auto& function : vinstr_mod->functions()) {
+        if (function.isDeclaration()) {
+            continue;
+        }
+        vinstr_names.push_back(function.getName().str());
+    }
+
+    llvm::Linker::linkModules(*llmod(), move(vinstr_mod));
+    for (const auto& name : vinstr_names) {
+        llmod()->getFunction(name.c_str())->setLinkage(llvm::Function::InternalLinkage);
+    }
 }

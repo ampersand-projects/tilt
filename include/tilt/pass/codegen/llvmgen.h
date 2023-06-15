@@ -5,14 +5,23 @@
 #include <utility>
 #include <string>
 #include <vector>
+#include <cstdlib>
+#include <fstream>
 
 #include "tilt/pass/irgen.h"
+
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/Linker/Linker.h"
+#include "llvm/IRReader/IRReader.h"
+#include "llvm/Support/SourceMgr.h"
+#include "llvm/Support/MemoryBuffer.h"
 
 using namespace std;
+
+extern const char* vinstr_str;
 
 namespace tilt {
 
@@ -91,6 +100,9 @@ private:
     llvm::Type* lltype(const Type&);
     llvm::Type* lltype(const ExprNode& expr) { return lltype(expr.type); }
     llvm::Type* lltype(const Expr& expr) { return lltype(expr->type); }
+
+    llvm::Type* llregtype() { return llmod()->getTypeByName("struct.region_t"); }
+    llvm::Type* llregptrtype() { return llvm::PointerType::get(llregtype(), 0); }
 
     llvm::Module* llmod() { return _llmod.get(); }
     llvm::LLVMContext& llctx() { return _llctx; }
