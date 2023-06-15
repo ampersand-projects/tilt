@@ -44,7 +44,6 @@ void print_loopIR(Op query_op, string fname)
 PYBIND11_DECLARE_HOLDER_TYPE(ConstNode, _expr<ConstNode>);
 
 PYBIND11_MODULE(pytilt, m) {
-
     /* Structures related to TiLT typing */
     py::enum_<BaseType>(m, "BaseType")
         .value("bool", BaseType::BOOL)
