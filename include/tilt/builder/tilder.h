@@ -35,7 +35,7 @@ _expr<SubLStream> _expr_subls(Sym, Window);
 
 template<typename T>
 struct _expr : public shared_ptr<T> {
-    explicit _expr(shared_ptr<T>&& ptr) : shared_ptr<T>(move(ptr)) {}
+    explicit _expr(shared_ptr<T>&& ptr) : shared_ptr<T>(std::move(ptr)) {}
 
     _expr<Add> operator+(Expr o) const { return _expr_add(*this, o); }
     _expr<Sub> operator-(Expr o) const { return _expr_sub(*this, o); }
@@ -84,7 +84,7 @@ struct _beat : public _expr<Beat> {
     template<typename... Args> \
     struct NAME : public _expr<EXPR> { \
         explicit NAME(Args... args) : \
-            _expr<EXPR>(move(make_shared<EXPR>(forward<Args>(args)...))) \
+            _expr<EXPR>(std::move(make_shared<EXPR>(std::forward<Args>(args)...))) \
         {} \
     };
 

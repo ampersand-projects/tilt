@@ -48,13 +48,13 @@ struct FuncNode : public ExprNode {
     SymTable syms;
 
     FuncNode(string name, Params inputs, Sym output, SymTable syms) :
-        ExprNode(output->type), name(name), inputs(move(inputs)), output(output), syms(move(syms))
+        ExprNode(output->type), name(name), inputs(std::move(inputs)), output(output), syms(std::move(syms))
     {}
 
     virtual const string get_name() const = 0;
 
 protected:
-    FuncNode(string name, Type type) : ExprNode(move(type)), name(name) {}
+    FuncNode(string name, Type type) : ExprNode(std::move(type)), name(name) {}
 };
 typedef shared_ptr<FuncNode> Func;
 

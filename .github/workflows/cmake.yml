@@ -14,10 +14,17 @@ jobs:
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     
-    # We use Ubuntu 20.04 so we have access to LLVM 11 dependency
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
+    - name: Install LLVM and Clang
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 15
+        sudo ln -f /usr/bin/clang-15 /usr/bin/clang
+        sudo ln -f /usr/bin/clang++-15 /usr/bin/clang++
+
     - uses: actions/checkout@v3
       with:
         submodules: true
@@ -36,4 +43,3 @@ jobs:
       # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C ${{env.BUILD_TYPE}}
-

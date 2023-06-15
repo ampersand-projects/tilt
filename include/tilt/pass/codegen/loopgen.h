@@ -27,7 +27,7 @@ private:
 
 class LoopGen : public IRGen<LoopGenCtx, Expr, Expr> {
 public:
-    explicit LoopGen(LoopGenCtx ctx) : _ctx(move(ctx)) {}
+    explicit LoopGen(LoopGenCtx ctx) : _ctx(std::move(ctx)) {}
 
     static Loop Build(Sym, const OpNode*);
 

@@ -67,7 +67,7 @@ llvm::Type* LLVMGen::lltype(const DataType& dtype)
         case BaseType::TIME:
             return lltype(DataType(types::Converter<ts_t>::btype));
         case BaseType::IVAL:
-            return llmod()->getTypeByName("struct.ival_t");
+            return StructType::getTypeByName(llctx(), "struct.ival_t");
         case BaseType::STRUCT: {
             vector<llvm::Type*> lltypes;
             for (auto dt : dtype.dtypes) {
@@ -145,14 +145,15 @@ Value* LLVMGen::visit(const Get& get)
 
 Value* LLVMGen::visit(const New& _new)
 {
-    auto ptr = builder()->CreateAlloca(lltype(_new));
+    auto new_type = lltype(_new);
+    auto ptr = builder()->CreateAlloca(new_type);
 
     for (size_t i = 0; i < _new.inputs.size(); i++) {
-        auto val_ptr = builder()->CreateStructGEP(ptr, i);
+        auto val_ptr = builder()->CreateStructGEP(new_type, ptr, i);
         builder()->CreateStore(eval(_new.inputs[i]), val_ptr);
     }
 
-    return builder()->CreateLoad(ptr);
+    return builder()->CreateLoad(new_type, ptr);
 }
 
 Value* LLVMGen::visit(const ConstNode& cnst)
@@ -378,7 +379,8 @@ Value* LLVMGen::visit(const CommitData& commit)
 Value* LLVMGen::visit(const Read& read)
 {
     auto ptr_val = eval(read.ptr);
-    return builder()->CreateLoad(ptr_val);
+    auto ptr_type = read.ptr->type.dtype;
+    return builder()->CreateLoad(lltype(ptr_type.deref()), ptr_val);
 }
 
 Value* LLVMGen::visit(const Write& write)
@@ -398,8 +400,7 @@ Value* LLVMGen::visit(const AllocRegion& alloc)
     auto data_arr = builder()->CreateAlloca(lltype(alloc.type.dtype), size_val);
     auto char_arr = builder()->CreateBitCast(data_arr, lltype(types::CHAR_PTR));
 
-    auto reg_type = lltype(alloc);
-    auto reg_val = builder()->CreateAlloca(reg_type->getPointerElementType());
+    auto reg_val = builder()->CreateAlloca(llregtype());
     return llcall("init_region", lltype(alloc), { reg_val, time_val, size_val, tl_arr, char_arr });
 }
 
@@ -408,9 +409,8 @@ Value* LLVMGen::visit(const MakeRegion& make_reg)
     auto in_reg_val = eval(make_reg.reg);
     auto st_val = eval(make_reg.st);
     auto et_val = eval(make_reg.et);
-    auto reg_type = lltype(make_reg);
-    auto out_reg_val = builder()->CreateAlloca(reg_type->getPointerElementType());
-    return llcall("make_region", reg_type, { out_reg_val, in_reg_val, st_val, et_val });
+    auto out_reg_val = builder()->CreateAlloca(llregtype());
+    return llcall("make_region", lltype(make_reg), { out_reg_val, in_reg_val, st_val, et_val });
 }
 
 Value* LLVMGen::visit(const Call& call)
@@ -507,9 +507,9 @@ Value* LLVMGen::visit(const LoopNode& loop)
 unique_ptr<llvm::Module> LLVMGen::Build(const Loop loop, llvm::LLVMContext& llctx)
 {
     LLVMGenCtx ctx(loop.get(), &llctx);
-    LLVMGen llgen(move(ctx));
+    LLVMGen llgen(std::move(ctx));
     loop->Accept(llgen);
-    return move(llgen._llmod);
+    return std::move(llgen._llmod);
 }
 
 void LLVMGen::register_vinstrs() {
@@ -536,7 +536,7 @@ void LLVMGen::register_vinstrs() {
         vinstr_names.push_back(function.getName().str());
     }
 
-    llvm::Linker::linkModules(*llmod(), move(vinstr_mod));
+    llvm::Linker::linkModules(*llmod(), std::move(vinstr_mod));
     for (const auto& name : vinstr_names) {
         llmod()->getFunction(name.c_str())->setLinkage(llvm::Function::InternalLinkage);
     }

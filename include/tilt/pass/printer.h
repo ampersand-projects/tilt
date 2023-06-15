@@ -27,10 +27,10 @@ private:
 class IRPrinter : public Visitor {
 public:
     IRPrinter() : IRPrinter(IRPrinterCtx()) {}
-    explicit IRPrinter(IRPrinterCtx ctx) : IRPrinter(move(ctx), 2) {}
+    explicit IRPrinter(IRPrinterCtx ctx) : IRPrinter(std::move(ctx), 2) {}
 
     IRPrinter(IRPrinterCtx ctx, size_t tabstop) :
-        ctx(move(ctx)), tabstop(tabstop)
+        ctx(std::move(ctx)), tabstop(tabstop)
     {}
 
     static string Build(const Expr);

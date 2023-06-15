@@ -23,7 +23,7 @@ void run_op(string query_name, Op op, ts_t st, ts_t et, region_t* out_reg, regio
     auto& llctx = jit->GetCtx();
 
     auto llmod = LLVMGen::Build(loop, llctx);
-    jit->AddModule(move(llmod));
+    jit->AddModule(std::move(llmod));
 
     auto loop_addr = (region_t* (*)(ts_t, ts_t, region_t*, region_t*)) jit->Lookup(loop->get_name());
 
@@ -96,7 +96,7 @@ void select_test(string query_name, function<Expr(Expr)> sel_expr, function<OutT
             out.push_back({in[i].st, in[i].et, sel_fn(in[i].payload)});
         }
 
-        return move(out);
+        return std::move(out);
     };
 
     unary_op_test<InTy, OutTy>(query_name, sel_op, 0, len * dur, sel_query_fn, len, dur);
@@ -287,7 +287,7 @@ void moving_sum_test()
             out[i] = {in[i].st, in[i].et, payload};
         }
 
-        return move(out);
+        return std::move(out);
     };
 
     unary_op_test<int32_t, int32_t>("moving_sum", mov_op, 0, len * dur, mov_query_fn, len, dur);
@@ -325,7 +325,7 @@ void norm_test()
             }
         }
 
-        return move(out);
+        return std::move(out);
     };
 
     unary_op_test<float, float>("norm", norm_op, 0, len * dur, norm_query_fn, len, dur);
@@ -355,7 +355,7 @@ void run_resample(string query_name, int64_t iperiod, int64_t operiod)
             }
         }
 
-        return move(out);
+        return std::move(out);
     };
 
     unary_op_test<float, float>(query_name, resample_op, 0, len * dur, resample_query_fn, len, dur);
