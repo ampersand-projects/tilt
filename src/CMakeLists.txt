@@ -8,6 +8,13 @@ set(SRC_FILES
     engine/engine.cpp
 )
 
+find_package(LLVM 11.0.0 REQUIRED CONFIG)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+add_definitions(${LLVM_DEFINITIONS})
+llvm_map_components_to_libnames(llvm_libs native orcjit mcjit objcarcopts)
+
 # Generate vinstr IR for JIT
 #
 # We have two commands that run scripts/gen_vinstr.sh because
@@ -21,5 +28,5 @@ add_custom_command(
 add_library(tilt STATIC ${SRC_FILES} ${CMAKE_CURRENT_BINARY_DIR}/vinstr_str.cpp)
 
 target_link_libraries(tilt ${llvm_libs})
-target_include_directories(tilt PUBLIC ${LLVM_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(tilt PUBLIC ${LLVM_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_compile_options(tilt PRIVATE -Wall -Wextra -pedantic -Werror -Wno-unused-parameter)
