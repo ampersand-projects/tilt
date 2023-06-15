@@ -192,7 +192,7 @@ Expr LoopGen::visit(const Call& call)
     for (const auto& arg : call.args) {
         args.push_back(eval(arg));
     }
-    return _call(call.name, call.type, move(args));
+    return _call(call.name, call.type, std::move(args));
 }
 
 Expr LoopGen::visit(const Exists& exists)
@@ -221,7 +221,7 @@ Expr LoopGen::visit(const New& new_expr)
     for (const auto& input : new_expr.inputs) {
         input_vals.push_back(eval(input));
     }
-    return _new(move(input_vals));
+    return _new(std::move(input_vals));
 }
 
 Expr LoopGen::visit(const Get& get) { return _get(eval(get.input), get.n); }
@@ -236,7 +236,7 @@ Expr LoopGen::visit(const NaryExpr& e)
     for (auto arg : e.args) {
         args.push_back(eval(arg));
     }
-    return make_shared<NaryExpr>(e.type.dtype, e.op, move(args));
+    return make_shared<NaryExpr>(e.type.dtype, e.op, std::move(args));
 }
 
 Expr LoopGen::visit(const SubLStream& subls)
@@ -319,7 +319,7 @@ Expr LoopGen::visit(const OpNode& op)
     for (const auto& input : inputs) {
         args.push_back(input);
     }
-    return _call(inner_loop->get_name(), inner_loop->type, move(args));
+    return _call(inner_loop->get_name(), inner_loop->type, std::move(args));
 }
 
 Expr LoopGen::visit(const Reduce& red)
@@ -371,7 +371,7 @@ Loop LoopGen::Build(Sym sym, const OpNode* op)
 {
     auto loop = _loop(sym);
     LoopGenCtx ctx(sym, op, loop);
-    LoopGen loopgen(move(ctx));
+    LoopGen loopgen(std::move(ctx));
     loopgen.build_loop();
     return loopgen.ctx().loop;
 }

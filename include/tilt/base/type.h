@@ -158,10 +158,10 @@ struct Type {
     const Iter iter;
 
     Type(DataType dtype, Iter iter) :
-        dtype(move(dtype)), iter(iter)
+        dtype(std::move(dtype)), iter(iter)
     {}
 
-    explicit Type(DataType dtype) : Type(move(dtype), Iter()) {}
+    explicit Type(DataType dtype) : Type(std::move(dtype), Iter()) {}
 
     bool is_val() const { return iter.period == 0; }
     bool is_beat() const { return iter.period > 0 && dtype.btype == BaseType::TIME; }

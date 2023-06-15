@@ -11,7 +11,7 @@ using namespace std;
 namespace tilt {
 
 struct LStream : public ExprNode {
-    explicit LStream(Type type) : ExprNode(move(type)) { ASSERT(!this->type.is_val()); }
+    explicit LStream(Type type) : ExprNode(std::move(type)) { ASSERT(!this->type.is_val()); }
 };
 
 struct Out : public Symbol {

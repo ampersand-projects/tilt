@@ -20,7 +20,7 @@ struct Call : public ExprNode {
     vector<Expr> args;
 
     Call(string name, Type type, vector<Expr> args) :
-        ExprNode(type), name(name), args(move(args))
+        ExprNode(type), name(name), args(std::move(args))
     {}
 
     void Accept(Visitor&) const final;
@@ -109,7 +109,7 @@ struct NaryExpr : public ValNode {
     vector<Expr> args;
 
     NaryExpr(DataType dtype, MathOp op, vector<Expr> args) :
-        ValNode(dtype), op(op), args(move(args))
+        ValNode(dtype), op(op), args(std::move(args))
     {
         ASSERT(!arg(0)->type.dtype.is_ptr() && !arg(0)->type.dtype.is_struct());
     }

@@ -232,7 +232,7 @@ struct LoopNode : public FuncNode {
     // Inner loops
     vector<shared_ptr<LoopNode>> inner_loops;
 
-    LoopNode(string name, Type type) : FuncNode(name, move(type)) {}
+    LoopNode(string name, Type type) : FuncNode(name, std::move(type)) {}
     explicit LoopNode(Sym sym) : LoopNode(sym->name, sym->type) {}
 
     const string get_name() const override { return "loop_" + this->name; }
