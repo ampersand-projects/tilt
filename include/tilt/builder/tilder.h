@@ -65,8 +65,8 @@ struct _sym : public _expr<Symbol> {
 };
 
 struct _out : public _expr<Out> {
-    explicit _out(DataType dtype) : _expr<Out>(make_shared<Out>(dtype)) {}
-    explicit _out(const Out& out) : _out(out.type.dtype) {}
+    explicit _out(DataType dtype, Iter iter) : _expr<Out>(make_shared<Out>(dtype, iter)) {}
+    explicit _out(const Out& out) : _out(out.type.dtype, out.type.iter) {}
 
     _expr<Element> operator[](Point pt) const { return _expr_elem(*this, pt); }
     _expr<SubLStream> operator[](Window win) const { return _expr_subls(*this, win); }

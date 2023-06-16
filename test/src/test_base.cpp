@@ -86,7 +86,7 @@ void select_test(string query_name, function<Expr(Expr)> sel_expr, function<OutT
     size_t len = 1000;
     int64_t dur = 1;
 
-    auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter(0, -1)));
+    auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter(0, dur)));
     auto sel_op = _Select(in_sym, sel_expr);
 
     auto sel_query_fn = [sel_fn] (vector<Event<InTy>> in) {
@@ -272,7 +272,7 @@ void moving_sum_test()
     int64_t dur = 1;
     int64_t w = 10;
 
-    auto in_sym = _sym("in", tilt::Type(types::INT32, _iter(0, -1)));
+    auto in_sym = _sym("in", tilt::Type(types::INT32, _iter(0, dur)));
     auto mov_op = _MovingSum(in_sym, dur, w);
 
     auto mov_query_fn = [w] (vector<Event<int32_t>> in) {
@@ -299,7 +299,7 @@ void norm_test()
     int64_t dur = 1;
     int64_t w = 10;
 
-    auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
+    auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, dur)));
     auto norm_op = _Norm("norm", in_sym, w);
 
     auto norm_query_fn = [w] (vector<Event<float>> in) {
@@ -336,7 +336,7 @@ void run_resample(string query_name, int64_t iperiod, int64_t operiod)
     size_t len = 100;
     int64_t dur = iperiod;
 
-    auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, -1)));
+    auto in_sym = _sym("in", tilt::Type(types::FLOAT32, _iter(0, dur)));
     auto resample_op = _Resample(query_name, in_sym, iperiod, operiod);
 
     auto resample_query_fn = [iperiod, operiod] (vector<Event<float>> in) {

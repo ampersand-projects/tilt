@@ -138,7 +138,10 @@ struct Iter {
 
     Iter(int64_t offset, int64_t period) :
         offset(offset), period(period)
-    {}
+    {
+        ASSERT(period >= 0);
+        ASSERT(offset == 0);
+    }
 
     Iter() : offset(0), period(0) {}
 
@@ -154,24 +157,26 @@ struct Iter {
 struct Type {
     const DataType dtype;
     const Iter iter;
+    const bool out_flag;
 
-    Type(DataType dtype, Iter iter) :
-        dtype(std::move(dtype)), iter(iter)
+    Type(DataType dtype, Iter iter, bool out_flag = false) :
+        dtype(std::move(dtype)), iter(iter), out_flag(out_flag)
     {}
 
-    explicit Type(DataType dtype) : Type(std::move(dtype), Iter()) {}
+    explicit Type(DataType dtype) : Type(std::move(dtype), Iter(), false) {}
 
     bool is_val() const { return iter.period == 0; }
     bool is_beat() const { return iter.period > 0 && dtype.btype == BaseType::TIME; }
-    bool is_out() const { return iter.period == -2; }
+    bool is_out() const { return out_flag; }
 
     bool operator==(const Type& o) const
     {
         return (this->dtype == o.dtype)
-            && (this->iter == o.iter);
+            && (this->iter == o.iter)
+            && (this->out_flag == o.out_flag);
     }
 
-    string str() const { return iter.str() + " " + dtype.str(); }
+    string str() const { return iter.str() + " " + dtype.str() + " " + to_string(out_flag); }
 };
 
 enum class MathOp {
