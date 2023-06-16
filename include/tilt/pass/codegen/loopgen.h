@@ -34,7 +34,7 @@ public:
 private:
     LoopGenCtx& ctx() override { return _ctx; }
 
-    Expr get_timer(const Point, bool);
+    Expr get_timer(const Point);
     Sym get_ref(const Sym sym) { return ctx().sym_ref.at(sym); }
     void set_ref(Sym sym, Sym ref) { ctx().sym_ref[sym] = ref; }
     void build_tloop(function<Expr()>, function<Expr()>);

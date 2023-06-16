@@ -7,29 +7,10 @@ using namespace tilt;
 using namespace tilt::tilder;
 using namespace std;
 
-Expr LoopGen::get_timer(const Point pt, bool use_base = false)
+Expr LoopGen::get_timer(const Point pt)
 {
-    Expr t = nullptr;
-    if (use_base) {
-        auto t_base = ctx().loop->state_bases[ctx().loop->t];
-        t = _add(t_base, _ts(ctx().op->iter.period));
-    } else {
-        t = ctx().loop->t;
-    }
-    return _add(t, _ts(pt.offset));
-}
-
-Expr get_beat_idx(Sym reg, Expr time)
-{
-    auto period = _ts(reg->type.iter.period);
-    auto offset = _ts(reg->type.iter.offset + 1);
-    return _add(_cast(types::TIME, _div(_sub(time, offset), period)), _ts(1));
-}
-
-Expr get_beat_time(Sym reg, Expr idx)
-{
-    auto period = _ts(reg->type.iter.period);
-    return _mul(_cast(types::TIME, idx), period);
+    auto t_base = ctx().loop->state_bases[ctx().loop->t];
+    return _add(t_base, _ts(pt.offset));
 }
 
 void LoopGen::build_tloop(function<Expr()> true_body, function<Expr()> false_body)
@@ -54,7 +35,7 @@ void LoopGen::build_tloop(function<Expr()> true_body, function<Expr()> false_bod
 
     // Create loop counter
     auto t_base = _time("t_base");
-    set_expr(t_base, _sub(t_start, _ts(1)));
+    set_expr(t_base, t_start);
     loop->t = _time("t");
     loop->state_bases[loop->t] = t_base;
 
@@ -72,7 +53,7 @@ void LoopGen::build_tloop(function<Expr()> true_body, function<Expr()> false_bod
     eval(ctx().op->output);
 
     // Loop counter update expression
-    set_expr(loop->t, _min(t_end, get_timer(_pt(0), true)));
+    set_expr(loop->t, _add(get_timer(_pt(0)), _ts(ctx().op->iter.period)));
 
     // Create loop output
     set_expr(loop->output, _ifelse(pred_expr, true_body(), false_body()));
@@ -82,6 +63,7 @@ void LoopGen::build_loop()
 {
     auto true_body = [&]() -> Expr {
         auto loop = ctx().loop;
+        auto t_base = loop->state_bases[loop->t];
         auto output_base = loop->state_bases[loop->output];
         auto out_expr = get_sym(ctx().op->output);
 
@@ -89,11 +71,11 @@ void LoopGen::build_loop()
         //      1. Outer loop returns the output region of the inner loop
         //      2. Inner loop updates the output region
         if (out_expr->type.is_val()) {
-            auto new_reg = _commit_data(output_base, loop->t);
+            auto new_reg = _commit_data(output_base, t_base);
             auto new_reg_sym = _sym("new_reg", new_reg);
             set_expr(new_reg_sym, new_reg);
 
-            auto dptr = _fetch(new_reg_sym, loop->t);
+            auto dptr = _fetch(new_reg_sym, t_base);
             return _write(new_reg_sym, dptr, out_expr);
         } else {
             return out_expr;
@@ -195,8 +177,8 @@ Expr LoopGen::visit(const SubLStream& subls)
     if (reg->type.is_beat()) {
         return reg;
     } else {
-        auto st = get_timer(subls.win.start, subls.lstream->type.is_out());
-        auto et = get_timer(subls.win.end, subls.lstream->type.is_out());
+        auto st = _add(ctx().loop->t, _ts(subls.win.start.offset));
+        auto et = _add(ctx().loop->t, _ts(subls.win.end.offset));
         return _make_reg(reg, st, et);
     }
 }
@@ -209,7 +191,7 @@ Expr LoopGen::visit(const Element& elem)
     if (reg->type.is_beat()) {
         throw runtime_error("Not implemented");
     } else {
-        auto time = get_timer(elem.pt, elem.lstream->type.is_out());
+        auto time = get_timer(elem.pt);
         auto ptr = _fetch(reg, time);
         auto ptr_sym = _sym(ctx().sym->name + "_ptr", ptr);
         set_expr(ptr_sym, ptr);
@@ -227,8 +209,8 @@ Expr LoopGen::visit(const OpNode& op)
 
     outer_loop->inner_loops.push_back(inner_loop);
 
-    auto t_end = get_timer(_pt(0));
-    auto t_start = get_timer(_pt(-outer_op->iter.period));
+    auto t_start = _sub(ctx().loop->t, _ts(outer_op->iter.period));
+    auto t_end = ctx().loop->t;
 
     vector<Expr> inputs;
     Val size_expr = _ts(1);
@@ -273,7 +255,7 @@ Expr LoopGen::visit(const Reduce& red)
     auto e = _elem(red.lstream, _pt(0));
     auto e_sym = _sym("e", e);
     auto red_op = _op(
-        _iter(0, 1),
+        _iter(0, red.lstream->type.iter.period),
         Params{red.lstream},
         SymTable{
             {e_sym, e}
