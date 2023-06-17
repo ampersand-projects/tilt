@@ -133,25 +133,23 @@ struct DataType {
 };
 
 struct Iter {
-    int64_t offset;
     int64_t period;
 
     Iter(int64_t offset, int64_t period) :
-        offset(offset), period(period)
+        period(period)
     {
         ASSERT(period >= 0);
         ASSERT(offset == 0);
     }
 
-    Iter() : offset(0), period(0) {}
+    Iter() : period(0) {}
 
     bool operator==(const Iter& o) const
     {
-        return (this->offset == o.offset)
-            && (this->period == o.period);
+        return (this->period == o.period);
     }
 
-    string str() const { return "(" + to_string(offset) + ", " + to_string(period) + ")"; }
+    string str() const { return "(0, " + to_string(period) + ")"; }
 };
 
 struct Type {

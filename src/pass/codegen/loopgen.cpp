@@ -19,19 +19,6 @@ Expr LoopGen::get_timer(const Point pt, bool use_base = false)
     return _add(t, _ts(pt.offset));
 }
 
-Expr get_beat_idx(Sym reg, Expr time)
-{
-    auto period = _ts(reg->type.iter.period);
-    auto offset = _ts(reg->type.iter.offset + 1);
-    return _add(_cast(types::TIME, _div(_sub(time, offset), period)), _ts(1));
-}
-
-Expr get_beat_time(Sym reg, Expr idx)
-{
-    auto period = _ts(reg->type.iter.period);
-    return _mul(_cast(types::TIME, idx), period);
-}
-
 void LoopGen::build_tloop(function<Expr()> true_body, function<Expr()> false_body)
 {
     auto loop = ctx().loop;
