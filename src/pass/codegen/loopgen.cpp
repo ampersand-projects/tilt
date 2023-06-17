@@ -7,16 +7,10 @@ using namespace tilt;
 using namespace tilt::tilder;
 using namespace std;
 
-Expr LoopGen::get_timer(const Point pt, bool use_base = false)
+Expr LoopGen::get_timer(const Point pt)
 {
-    Expr t = nullptr;
-    if (use_base) {
-        auto t_base = ctx().loop->state_bases[ctx().loop->t];
-        t = _add(t_base, _ts(ctx().op->iter.period));
-    } else {
-        t = ctx().loop->t;
-    }
-    return _add(t, _ts(pt.offset));
+    auto t_base = ctx().loop->state_bases[ctx().loop->t];
+    return _add(t_base, _ts(pt.offset));
 }
 
 void LoopGen::build_tloop(function<Expr()> true_body, function<Expr()> false_body)
@@ -41,7 +35,7 @@ void LoopGen::build_tloop(function<Expr()> true_body, function<Expr()> false_bod
 
     // Create loop counter
     auto t_base = _time("t_base");
-    set_expr(t_base, _sub(t_start, _ts(1)));
+    set_expr(t_base, t_start);
     loop->t = _time("t");
     loop->state_bases[loop->t] = t_base;
 
@@ -59,7 +53,7 @@ void LoopGen::build_tloop(function<Expr()> true_body, function<Expr()> false_bod
     eval(ctx().op->output);
 
     // Loop counter update expression
-    set_expr(loop->t, _min(t_end, get_timer(_pt(0), true)));
+    set_expr(loop->t, _add(get_timer(_pt(0)), _ts(ctx().op->iter.period)));
 
     // Create loop output
     set_expr(loop->output, _ifelse(pred_expr, true_body(), false_body()));
@@ -69,6 +63,7 @@ void LoopGen::build_loop()
 {
     auto true_body = [&]() -> Expr {
         auto loop = ctx().loop;
+        auto t_base = loop->state_bases[loop->t];
         auto output_base = loop->state_bases[loop->output];
         auto out_expr = get_sym(ctx().op->output);
 
@@ -76,11 +71,11 @@ void LoopGen::build_loop()
         //      1. Outer loop returns the output region of the inner loop
         //      2. Inner loop updates the output region
         if (out_expr->type.is_val()) {
-            auto new_reg = _commit_data(output_base, loop->t);
+            auto new_reg = _commit_data(output_base, t_base);
             auto new_reg_sym = _sym("new_reg", new_reg);
             set_expr(new_reg_sym, new_reg);
 
-            auto dptr = _fetch(new_reg_sym, loop->t);
+            auto dptr = _fetch(new_reg_sym, t_base);
             return _write(new_reg_sym, dptr, out_expr);
         } else {
             return out_expr;
@@ -182,8 +177,8 @@ Expr LoopGen::visit(const SubLStream& subls)
     if (reg->type.is_beat()) {
         return reg;
     } else {
-        auto st = get_timer(subls.win.start, subls.lstream->type.is_out());
-        auto et = get_timer(subls.win.end, subls.lstream->type.is_out());
+        auto st = get_timer(subls.win.start);
+        auto et = get_timer(subls.win.end);
         return _make_reg(reg, st, et);
     }
 }
@@ -196,7 +191,7 @@ Expr LoopGen::visit(const Element& elem)
     if (reg->type.is_beat()) {
         throw runtime_error("Not implemented");
     } else {
-        auto time = get_timer(elem.pt, elem.lstream->type.is_out());
+        auto time = get_timer(elem.pt);
         auto ptr = _fetch(reg, time);
         auto ptr_sym = _sym(ctx().sym->name + "_ptr", ptr);
         set_expr(ptr_sym, ptr);
