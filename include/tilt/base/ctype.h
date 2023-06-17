@@ -17,10 +17,8 @@ struct ival_t {
 struct region_t {
     ts_t st;
     ts_t et;
-    idx_t head;
-    idx_t count;
+    dur_t dur;
     uint32_t mask;
-    ival_t* tl;
     char* data;
 };
 

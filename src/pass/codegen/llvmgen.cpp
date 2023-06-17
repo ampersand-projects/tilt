@@ -396,12 +396,12 @@ Value* LLVMGen::visit(const AllocRegion& alloc)
 {
     auto time_val = eval(alloc.start_time);
     auto size_val = llcall("get_buf_size", lltype(types::UINT32), { eval(alloc.size) });
-    auto tl_arr = builder()->CreateAlloca(lltype(types::IVAL), size_val);
+    auto dur_val = ConstantInt::get(lltype(types::UINT32), alloc.type.iter.period);
     auto data_arr = builder()->CreateAlloca(lltype(alloc.type.dtype), size_val);
     auto char_arr = builder()->CreateBitCast(data_arr, lltype(types::CHAR_PTR));
 
     auto reg_val = builder()->CreateAlloca(llregtype());
-    return llcall("init_region", lltype(alloc), { reg_val, time_val, size_val, tl_arr, char_arr });
+    return llcall("init_region", lltype(alloc), { reg_val, time_val, dur_val, size_val, char_arr });
 }
 
 Value* LLVMGen::visit(const MakeRegion& make_reg)
