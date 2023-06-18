@@ -177,8 +177,8 @@ Expr LoopGen::visit(const SubLStream& subls)
     if (reg->type.is_beat()) {
         return reg;
     } else {
-        auto st = get_timer(subls.win.start);
-        auto et = get_timer(subls.win.end);
+        auto st = _add(ctx().loop->t, _ts(subls.win.start.offset));
+        auto et = _add(ctx().loop->t, _ts(subls.win.end.offset));
         return _make_reg(reg, st, et);
     }
 }
@@ -209,8 +209,8 @@ Expr LoopGen::visit(const OpNode& op)
 
     outer_loop->inner_loops.push_back(inner_loop);
 
-    auto t_end = get_timer(_pt(0));
-    auto t_start = get_timer(_pt(-outer_op->iter.period));
+    auto t_start = _sub(ctx().loop->t, _ts(outer_op->iter.period));
+    auto t_end = ctx().loop->t;
 
     vector<Expr> inputs;
     Val size_expr = _ts(1);
@@ -255,7 +255,7 @@ Expr LoopGen::visit(const Reduce& red)
     auto e = _elem(red.lstream, _pt(0));
     auto e_sym = _sym("e", e);
     auto red_op = _op(
-        _iter(0, 1),
+        _iter(0, red.lstream->type.iter.period),
         Params{red.lstream},
         SymTable{
             {e_sym, e}
