@@ -3,10 +3,12 @@
 #include <algorithm>
 #include <string>
 #include <numeric>
+#include <iostream>
 
 #include "tilt/pass/codegen/loopgen.h"
 #include "tilt/pass/codegen/llvmgen.h"
 #include "tilt/pass/codegen/vinstr.h"
+#include "tilt/pass/printer.h"
 #include "tilt/engine/engine.h"
 
 #include "test_base.h"
@@ -18,11 +20,13 @@ void run_op(string query_name, Op op, ts_t st, ts_t et, region_t* out_reg, regio
 {
     auto op_sym = _sym(query_name, op);
     auto loop = LoopGen::Build(op_sym, op.get());
+    std::cout << IRPrinter::Build(loop) << std::endl;
 
     auto jit = ExecEngine::Get();
     auto& llctx = jit->GetCtx();
 
     auto llmod = LLVMGen::Build(loop, llctx);
+    std::cout << IRPrinter::Build(llmod.get()) << std::endl;
     jit->AddModule(std::move(llmod));
 
     auto loop_addr = (region_t* (*)(ts_t, ts_t, region_t*, region_t*)) jit->Lookup(loop->get_name());
@@ -31,15 +35,17 @@ void run_op(string query_name, Op op, ts_t st, ts_t et, region_t* out_reg, regio
 }
 
 template<typename InTy, typename OutTy>
-void op_test(string query_name, Op op, ts_t st, ts_t et, dur_t idur, dur_t odur, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
+void op_test(string query_name, Op op, ts_t st, ts_t et, dur_t idur, dur_t odur,
+             QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
 {
     auto in_st = input[0].st;
     auto true_out = query_fn(input);
 
     region_t in_reg;
     auto in_data = vector<InTy>(input.size());
-    auto in_data_ptr = reinterpret_cast<char*>(in_data.data());
-    init_region(&in_reg, in_st, idur, get_buf_size(input.size()), in_data_ptr);
+    auto in_bit = vector<char>(input.size());
+    init_region(&in_reg, in_st, idur, get_buf_size(input.size()),
+                reinterpret_cast<char*>(in_data.data()), in_bit.data());
     for (size_t i = 0; i < input.size(); i++) {
         auto t = input[i].st;
         commit_data(&in_reg, t);
@@ -49,8 +55,9 @@ void op_test(string query_name, Op op, ts_t st, ts_t et, dur_t idur, dur_t odur,
 
     region_t out_reg;
     auto out_data = vector<OutTy>(true_out.size());
-    auto out_data_ptr = reinterpret_cast<char*>(out_data.data());
-    init_region(&out_reg, st, odur, get_buf_size(true_out.size()), out_data_ptr);
+    auto out_bit = vector<char>(true_out.size());
+    init_region(&out_reg, st, odur, get_buf_size(true_out.size()),
+                reinterpret_cast<char*>(out_data.data()), out_bit.data());
 
     run_op(query_name, op, st, et, &out_reg, &in_reg);
 
@@ -65,7 +72,8 @@ void op_test(string query_name, Op op, ts_t st, ts_t et, dur_t idur, dur_t odur,
 }
 
 template<typename InTy, typename OutTy>
-void unary_op_test(string query_name, Op op, ts_t st, ts_t et, dur_t idur, dur_t odur, QueryFn<InTy, OutTy> query_fn, size_t len)
+void unary_op_test(string query_name, Op op, ts_t st, ts_t et, dur_t idur, dur_t odur,
+                   QueryFn<InTy, OutTy> query_fn, size_t len)
 {
     std::srand(time(nullptr));
 
@@ -84,7 +92,7 @@ template<typename InTy, typename OutTy>
 void select_test(string query_name, function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
 {
     size_t len = 1000;
-    int64_t dur = 5;
+    int64_t dur = 1;
 
     auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter(0, dur)));
     auto sel_op = _Select(in_sym, sel_expr);
