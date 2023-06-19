@@ -18,7 +18,7 @@ int64_t get_ckpt(region_t* reg, ts_t t) { return t; }
 
 char* fetch(region_t* reg, ts_t t, uint32_t bytes)
 {
-    return reg->data + (((t / reg->dur) & reg->mask) * bytes);
+    return reg->data + (t * bytes);
 }
 
 region_t* make_region(region_t* out_reg, region_t* in_reg, ts_t st, ts_t et)
@@ -46,7 +46,7 @@ region_t* init_region(region_t* reg, ts_t t, dur_t dur, uint32_t size, char* dat
 region_t* commit_data(region_t* reg, ts_t t, char bit)
 {
     reg->et = t;
-    reg->bitfield[t / reg->dur] = bit;
+    reg->bitfield[t] = bit;
     return reg;
 }
 
