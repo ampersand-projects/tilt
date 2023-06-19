@@ -373,7 +373,7 @@ Value* LLVMGen::visit(const CommitNull& commit)
 
 Value* LLVMGen::visit(const CommitData& commit)
 {
-    return llcall("commit_data", lltype(commit), { commit.reg, commit.time });
+    return llcall("commit_data", lltype(commit), { commit.reg, commit.time, commit.pred });
 }
 
 Value* LLVMGen::visit(const Read& read)

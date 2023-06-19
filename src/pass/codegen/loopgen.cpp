@@ -65,7 +65,7 @@ void LoopGen::build_loop()
         auto t_base = loop->state_bases[loop->t];
         auto output_base = loop->state_bases[loop->output];
         auto out_expr = get_sym(ctx().op->output);
-        auto pred_expr = _cast(types::UINT8, eval(ctx().op->pred));
+        auto pred_expr = _cast(types::INT8, eval(ctx().op->pred));
 
         // Update loop output:
         //      1. Outer loop returns the output region of the inner loop

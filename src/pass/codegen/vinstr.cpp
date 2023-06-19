@@ -46,7 +46,7 @@ region_t* init_region(region_t* reg, ts_t t, dur_t dur, uint32_t size, char* dat
 region_t* commit_data(region_t* reg, ts_t t, char bit)
 {
     reg->et = t;
-    reg->bitfield[t] = bit;
+    reg->bitfield[t / reg->dur] = bit;
     return reg;
 }
 

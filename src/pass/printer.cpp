@@ -209,7 +209,7 @@ void IRPrinter::Visit(const GetEndTime& get)
 
 void IRPrinter::Visit(const CommitData& commit)
 {
-    emitfunc("commit_data", { commit.reg, commit.time });
+    emitfunc("commit_data", { commit.reg, commit.time, commit.pred });
 }
 
 void IRPrinter::Visit(const CommitNull& commit)

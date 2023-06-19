@@ -179,6 +179,9 @@ struct LoopNode : public FuncNode {
     // Inner loops
     vector<shared_ptr<LoopNode>> inner_loops;
 
+    // output pred
+    Sym pred;
+
     LoopNode(string name, Type type) : FuncNode(name, std::move(type)) {}
     explicit LoopNode(Sym sym) : LoopNode(sym->name, sym->type) {}
 
