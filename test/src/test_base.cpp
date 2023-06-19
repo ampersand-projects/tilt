@@ -35,7 +35,8 @@ void run_op(string query_name, Op op, ts_t st, ts_t et, region_t* out_reg, regio
 }
 
 template<typename InTy, typename OutTy>
-void op_test(string query_name, Op op, ts_t st, ts_t et, dur_t idur, dur_t odur, QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
+void op_test(string query_name, Op op, ts_t st, ts_t et, dur_t idur, dur_t odur,
+             QueryFn<InTy, OutTy> query_fn, vector<Event<InTy>> input)
 {
     auto in_st = input[0].st;
     auto true_out = query_fn(input);
@@ -71,7 +72,8 @@ void op_test(string query_name, Op op, ts_t st, ts_t et, dur_t idur, dur_t odur,
 }
 
 template<typename InTy, typename OutTy>
-void unary_op_test(string query_name, Op op, ts_t st, ts_t et, dur_t idur, dur_t odur, QueryFn<InTy, OutTy> query_fn, size_t len)
+void unary_op_test(string query_name, Op op, ts_t st, ts_t et, dur_t idur, dur_t odur,
+                   QueryFn<InTy, OutTy> query_fn, size_t len)
 {
     std::srand(time(nullptr));
 
@@ -90,7 +92,7 @@ template<typename InTy, typename OutTy>
 void select_test(string query_name, function<Expr(Expr)> sel_expr, function<OutTy(InTy)> sel_fn)
 {
     size_t len = 1000;
-    int64_t dur = 5;
+    int64_t dur = 1;
 
     auto in_sym = _sym("in", tilt::Type(types::STRUCT<InTy>(), _iter(0, dur)));
     auto sel_op = _Select(in_sym, sel_expr);

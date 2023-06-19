@@ -1,3 +1,6 @@
+#include <cstdlib>
+#include <iostream>
+
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/IRReader/IRReader.h"
@@ -6,9 +9,6 @@
 
 #include "tilt/pass/printer.h"
 #include "tilt/engine/engine.h"
-
-#include <cstdlib>
-#include <iostream>
 
 using namespace tilt;
 using namespace std::placeholders;
