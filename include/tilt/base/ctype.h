@@ -20,6 +20,7 @@ struct region_t {
     dur_t dur;
     uint32_t mask;
     char* data;
+    char* bitfield;
 };
 
 }  // extern "C"
