@@ -274,7 +274,12 @@ Expr LoopGen::visit(const Reduce& red)
         auto t = loop->t;
         auto t_base = loop->state_bases[t];
         auto out_sym = get_sym(ctx().op->output);
-        return eval(red.acc(output_base, t_base, t, out_sym));
+
+        auto pred = _cast(types::FLOAT32, eval(ctx().op->pred));
+        auto res_sym = _sym("res", output_base->type);
+        set_expr(res_sym, _mul(pred, out_sym));
+        
+        return eval(red.acc(output_base, t_base, t, res_sym));
     };
 
     auto false_body = [&]() -> Expr {
