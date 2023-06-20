@@ -16,6 +16,8 @@ ts_t get_end_time(region_t* reg) { return reg->et; }
 
 int64_t get_ckpt(region_t* reg, ts_t t) { return t; }
 
+char get_bit(region_t* reg, ts_t t) { return reg->bitfield[t]; }
+
 char* fetch(region_t* reg, ts_t t, uint32_t bytes)
 {
     return reg->data + (t * bytes);
