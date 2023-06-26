@@ -50,7 +50,7 @@ class CMakeBuildExtension(build_ext):
 setup(
     name = "pytilt",
     version = "0.1",
-    ext_modules = [ CMakeExtension( "pytilt" ) ],
+    ext_modules = [CMakeExtension("pytilt")],
     cmdclass={
         'build_ext': CMakeBuildExtension
     },

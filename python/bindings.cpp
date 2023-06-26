@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include <fstream>
+#include <iostream>
 
 #include "tilt/base/type.h"
 #include "tilt/builder/tilder.h"
@@ -23,15 +23,16 @@ using namespace tilt::tilder;
 
 namespace py = pybind11;
 
-void print_loopIR(Op query_op, string fname)
+void print_IR(Op query_op)
 {
+    cout << "TiLT IR:" << endl;
+    cout << IRPrinter::Build(query_op) << endl;
+
     auto query_op_sym = _sym("query", query_op);
     auto loop = LoopGen::Build(query_op_sym, query_op.get());
 
-    ofstream f;
-    f.open(fname);
-    f << IRPrinter::Build(loop);
-    f.close();
+    cout << "Loop IR:" << endl;
+    cout << IRPrinter::Build(loop);
 }
 
 #define REGISTER_NOINIT_CLASS(CLASS, PARENT, MODULE, NAME) \
@@ -40,6 +41,14 @@ void print_loopIR(Op query_op, string fname)
 #define REGISTER_INIT_CLASS(CLASS, PARENT, MODULE, NAME, ...) \
     py::class_<CLASS, shared_ptr<CLASS>, PARENT>(MODULE, NAME) \
         .def(py::init<__VA_ARGS__>());
+
+#define REGISTER_UNARY_EXPR(MODULE, EXPR, NAME) \
+    py::class_<EXPR, shared_ptr<EXPR>, UnaryExpr>(MODULE, NAME) \
+        .def(py::init<Expr>());
+
+#define REGISTER_BINARY_EXPR(MODULE, EXPR, NAME) \
+    py::class_<EXPR, shared_ptr<EXPR>, BinaryExpr>(MODULE, NAME) \
+        .def(py::init<Expr, Expr>());
 
 PYBIND11_DECLARE_HOLDER_TYPE(ConstNode, _expr<ConstNode>);
 
@@ -131,39 +140,31 @@ PYBIND11_MODULE(pytilt, m) {
     REGISTER_NOINIT_CLASS(UnaryExpr, NaryExpr, m, "unary_expr")
     REGISTER_NOINIT_CLASS(BinaryExpr, NaryExpr, m, "binary_expr")
 
-#define REGISTER_UNARY_EXPR(EXPR, NAME) \
-    py::class_<EXPR, shared_ptr<EXPR>, UnaryExpr>(m, NAME) \
-        .def(py::init<Expr>());
-
-#define REGISTER_BINARY_EXPR(EXPR, NAME) \
-    py::class_<EXPR, shared_ptr<EXPR>, BinaryExpr>(m, NAME) \
-        .def(py::init<Expr, Expr>());
-
     /* Arithmetic Expressions */
-    REGISTER_BINARY_EXPR(Add, "add")
-    REGISTER_BINARY_EXPR(Sub, "sub")
-    REGISTER_BINARY_EXPR(Mul, "mul")
-    REGISTER_BINARY_EXPR(Div, "div")
-    REGISTER_BINARY_EXPR(Max, "max")
-    REGISTER_BINARY_EXPR(Min, "min")
-    REGISTER_UNARY_EXPR(Abs, "abs")
-    REGISTER_UNARY_EXPR(Neg, "neg")
-    REGISTER_BINARY_EXPR(Mod, "mod")
-    REGISTER_UNARY_EXPR(Sqrt, "sqrt")
-    REGISTER_BINARY_EXPR(Pow, "pow")
-    REGISTER_UNARY_EXPR(Ceil, "ceil")
-    REGISTER_UNARY_EXPR(Floor, "floor")
-    REGISTER_BINARY_EXPR(LessThan, "lt")
-    REGISTER_BINARY_EXPR(LessThanEqual, "lte")
-    REGISTER_BINARY_EXPR(GreaterThan, "gt")
-    REGISTER_BINARY_EXPR(GreaterThanEqual, "gte")
-    REGISTER_BINARY_EXPR(Equals, "eq")
+    REGISTER_BINARY_EXPR(m, Add, "add")
+    REGISTER_BINARY_EXPR(m, Sub, "sub")
+    REGISTER_BINARY_EXPR(m, Mul, "mul")
+    REGISTER_BINARY_EXPR(m, Div, "div")
+    REGISTER_BINARY_EXPR(m, Max, "max")
+    REGISTER_BINARY_EXPR(m, Min, "min")
+    REGISTER_UNARY_EXPR(m, Abs, "abs")
+    REGISTER_UNARY_EXPR(m, Neg, "neg")
+    REGISTER_BINARY_EXPR(m, Mod, "mod")
+    REGISTER_UNARY_EXPR(m, Sqrt, "sqrt")
+    REGISTER_BINARY_EXPR(m, Pow, "pow")
+    REGISTER_UNARY_EXPR(m, Ceil, "ceil")
+    REGISTER_UNARY_EXPR(m, Floor, "floor")
+    REGISTER_BINARY_EXPR(m, LessThan, "lt")
+    REGISTER_BINARY_EXPR(m, LessThanEqual, "lte")
+    REGISTER_BINARY_EXPR(m, GreaterThan, "gt")
+    REGISTER_BINARY_EXPR(m, GreaterThanEqual, "gte")
+    REGISTER_BINARY_EXPR(m, Equals, "eq")
 
     /* Logical Expressions */
     REGISTER_INIT_CLASS(Exists, ValNode, m, "exists", Sym)
-    REGISTER_UNARY_EXPR(Not, "not")
-    REGISTER_BINARY_EXPR(And, "and")
-    REGISTER_BINARY_EXPR(Or, "or")
+    REGISTER_UNARY_EXPR(m, Not, "not")
+    REGISTER_BINARY_EXPR(m, And, "and")
+    REGISTER_BINARY_EXPR(m, Or, "or")
 
     /* Misc Expressions */
     REGISTER_INIT_CLASS(Get, ValNode, m, "get", Expr, size_t)
@@ -173,9 +174,6 @@ PYBIND11_MODULE(pytilt, m) {
 
     /* Reduction Node */
     REGISTER_INIT_CLASS(Reduce, ValNode, m, "reduce", Sym, Val, AccTy)
-
-#undef REGISTER_UNARY_EXPR
-#undef REGISTER_BINARY_EXPR
 
     /* Operator Definition */
     py::class_<OpNode, Op>(m, "op")
@@ -188,5 +186,5 @@ PYBIND11_MODULE(pytilt, m) {
               py::arg("aux") = map<Sym, Sym>{});
 
     /* Temp */
-    m.def("print_loopIR", &print_loopIR);
+    m.def("print_IR", &print_IR);
 }
