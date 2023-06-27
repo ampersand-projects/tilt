@@ -43,14 +43,14 @@ void print_IR(Op query_op)
         .def(py::init<__VA_ARGS__>());
 
 #define REGISTER_UNARY_EXPR(MODULE, EXPR, NAME) \
-    py::class_<EXPR, shared_ptr<EXPR>, UnaryExpr>(MODULE, NAME) \
-        .def(py::init<Expr>());
+    REGISTER_INIT_CLASS(EXPR, UnaryExpr, MODULE, NAME, Expr)
 
 #define REGISTER_BINARY_EXPR(MODULE, EXPR, NAME) \
-    py::class_<EXPR, shared_ptr<EXPR>, BinaryExpr>(MODULE, NAME) \
-        .def(py::init<Expr, Expr>());
+    REGISTER_INIT_CLASS(EXPR, BinaryExpr, MODULE, NAME, Expr, Expr)
 
-PYBIND11_DECLARE_HOLDER_TYPE(ConstNode, _expr<ConstNode>);
+#define REGISTER_NOPARENT_INIT_CLASS(CLASS, MODULE, NAME, ...) \
+    py::class_<CLASS, shared_ptr<CLASS>>(MODULE, NAME) \
+        .def(py::init<__VA_ARGS__>());
 
 PYBIND11_MODULE(pytilt, m) {
     /* Structures related to TiLT typing */
@@ -96,44 +96,20 @@ PYBIND11_MODULE(pytilt, m) {
               });
     REGISTER_NOINIT_CLASS(ValNode, ExprNode, m, "val")
 
-    /* Element/Substream/Windowing and Related Type Bindings */
-    REGISTER_NOINIT_CLASS(Element, ValNode, m, "elem")
-    REGISTER_NOINIT_CLASS(LStream, ExprNode, m, "lstream")
-    REGISTER_NOINIT_CLASS(SubLStream, LStream, m, "sublstream")
-
     /* Symbol Definition */
     py::class_<Symbol, Sym, ExprNode>(m, "sym")
         .def(py::init<string, Type>())
-        .def("point",
-              [](Sym sym, int64_t o) {
-                    return _expr_elem(sym, Point(o));
-              })
-        .def("window",
-              [](Sym sym, int64_t start, int64_t end) {
-                    return _expr_subls(sym, Window(start, end));
-              })
-        .def("getType",
-              [](Sym sym) {
-                    return sym->type;
-              });
+        .def(py::init<string, Expr>());
+
+    /* Element/Substream/Windowing and Related Type Bindings */
+    REGISTER_NOPARENT_INIT_CLASS(Point, m, "point", int64_t)
+    REGISTER_NOPARENT_INIT_CLASS(Window, m, "window", int64_t, int64_t)
+    REGISTER_INIT_CLASS(Element, ValNode, m, "elem", Sym, Point)
+    REGISTER_NOINIT_CLASS(LStream, ExprNode, m, "lstream")
+    REGISTER_INIT_CLASS(SubLStream, LStream, m, "sublstream", Sym, Window)
 
     /* Constant Expressions */
-    REGISTER_NOINIT_CLASS(ConstNode, ValNode, m, "const")
-    m.def("i8", &_i8);
-    m.def("i16", &_i16);
-    m.def("i32", &_i32);
-    m.def("i64", &_i64);
-    m.def("u8", &_u8);
-    m.def("u16", &_u16);
-    m.def("u32", &_u32);
-    m.def("u64", &_u64);
-    m.def("f32", &_f32);
-    m.def("f64", &_f64);
-    // m.def("ch", &_ch); /* tilt::tilder::_ch is declared but not defined */
-    m.def("ts", &tilt::tilder::_ts); /* _ts is also a struct defined in cpython */
-    m.def("idx", &_idx);
-    m.def("true", &_true);
-    m.def("false", &_false);
+    REGISTER_INIT_CLASS(ConstNode, ValNode, m, "const", BaseType, double)
 
     /* Nary Expressions */
     REGISTER_NOINIT_CLASS(NaryExpr, ValNode, m, "nary_expr")
