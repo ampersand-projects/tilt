@@ -35,21 +35,8 @@ void print_IR(Op query_op)
     cout << IRPrinter::Build(loop);
 }
 
-#define REGISTER_NOINIT_CLASS(CLASS, PARENT, MODULE, NAME) \
-    py::class_<CLASS, shared_ptr<CLASS>, PARENT>(MODULE, NAME);
-
-#define REGISTER_INIT_CLASS(CLASS, PARENT, MODULE, NAME, ...) \
+#define REGISTER_CLASS(CLASS, PARENT, MODULE, NAME, ...) \
     py::class_<CLASS, shared_ptr<CLASS>, PARENT>(MODULE, NAME) \
-        .def(py::init<__VA_ARGS__>());
-
-#define REGISTER_UNARY_EXPR(MODULE, EXPR, NAME) \
-    REGISTER_INIT_CLASS(EXPR, UnaryExpr, MODULE, NAME, Expr)
-
-#define REGISTER_BINARY_EXPR(MODULE, EXPR, NAME) \
-    REGISTER_INIT_CLASS(EXPR, BinaryExpr, MODULE, NAME, Expr, Expr)
-
-#define REGISTER_NOPARENT_INIT_CLASS(CLASS, MODULE, NAME, ...) \
-    py::class_<CLASS, shared_ptr<CLASS>>(MODULE, NAME) \
         .def(py::init<__VA_ARGS__>());
 
 PYBIND11_MODULE(pytilt, m) {
@@ -88,13 +75,11 @@ PYBIND11_MODULE(pytilt, m) {
     py::class_<Type>(m, "Type")
         .def(py::init<DataType, Iter>());
 
-    /* ExprNode and Derived Structures Declarations */
-    py::class_<ExprNode, Expr>(m, "expr")
-        .def("getType",
-              [](Expr expr) {
-                    return expr->type;
-              });
-    REGISTER_NOINIT_CLASS(ValNode, ExprNode, m, "val")
+    /* ExprNode and Derived Structures Declarations
+        Note: ExprNode and ValNode are both pure virtual classes
+    */
+    py::class_<ExprNode, Expr>(m, "expr");
+    py::class_<ValNode, Val, ExprNode>(m, "val");
 
     /* Symbol Definition */
     py::class_<Symbol, Sym, ExprNode>(m, "sym")
@@ -102,54 +87,57 @@ PYBIND11_MODULE(pytilt, m) {
         .def(py::init<string, Expr>());
 
     /* Element/Substream/Windowing and Related Type Bindings */
-    REGISTER_NOPARENT_INIT_CLASS(Point, m, "point", int64_t)
-    REGISTER_NOPARENT_INIT_CLASS(Window, m, "window", int64_t, int64_t)
-    REGISTER_INIT_CLASS(Element, ValNode, m, "elem", Sym, Point)
-    REGISTER_NOINIT_CLASS(LStream, ExprNode, m, "lstream")
-    REGISTER_INIT_CLASS(SubLStream, LStream, m, "sublstream", Sym, Window)
+    py::class_<Point, shared_ptr<Point>>(m, "point")
+        .def(py::init<int64_t>());
+    py::class_<Window, shared_ptr<Window>>(m, "window")
+        .def(py::init<int64_t, int64_t>());
+    REGISTER_CLASS(Element, ValNode, m, "elem", Sym, Point)
+    py::class_<LStream, shared_ptr<LStream>, ExprNode>(m, "lstream");
+    REGISTER_CLASS(SubLStream, LStream, m, "sublstream", Sym, Window)
 
     /* Constant Expressions */
-    REGISTER_INIT_CLASS(ConstNode, ValNode, m, "const", BaseType, double)
+    REGISTER_CLASS(ConstNode, ValNode, m, "const", BaseType, double)
+
+    /* Math Operators for Nary Expressions */
+    py::enum_<MathOp>(m, "MathOp")
+        .value("add", MathOp::ADD)
+        .value("sub", MathOp::SUB)
+        .value("mul", MathOp::MUL)
+        .value("div", MathOp::DIV)
+        .value("max", MathOp::MAX)
+        .value("min", MathOp::MIN)
+        .value("mod", MathOp::MOD)
+        .value("sqrt", MathOp::SQRT)
+        .value("pow", MathOp::POW)
+        .value("abs", MathOp::ABS)
+        .value("neg", MathOp::NEG)
+        .value("ceil", MathOp::CEIL)
+        .value("floor", MathOp::FLOOR)
+        .value("lt", MathOp::LT)
+        .value("lte", MathOp::LTE)
+        .value("gt", MathOp::GT)
+        .value("gte", MathOp::GTE)
+        .value("eq", MathOp::EQ)
+        .value("not", MathOp::NOT)
+        .value("and", MathOp::AND)
+        .value("or", MathOp::OR);
 
     /* Nary Expressions */
-    REGISTER_NOINIT_CLASS(NaryExpr, ValNode, m, "nary_expr")
-    REGISTER_NOINIT_CLASS(UnaryExpr, NaryExpr, m, "unary_expr")
-    REGISTER_NOINIT_CLASS(BinaryExpr, NaryExpr, m, "binary_expr")
-
-    /* Arithmetic Expressions */
-    REGISTER_BINARY_EXPR(m, Add, "add")
-    REGISTER_BINARY_EXPR(m, Sub, "sub")
-    REGISTER_BINARY_EXPR(m, Mul, "mul")
-    REGISTER_BINARY_EXPR(m, Div, "div")
-    REGISTER_BINARY_EXPR(m, Max, "max")
-    REGISTER_BINARY_EXPR(m, Min, "min")
-    REGISTER_UNARY_EXPR(m, Abs, "abs")
-    REGISTER_UNARY_EXPR(m, Neg, "neg")
-    REGISTER_BINARY_EXPR(m, Mod, "mod")
-    REGISTER_UNARY_EXPR(m, Sqrt, "sqrt")
-    REGISTER_BINARY_EXPR(m, Pow, "pow")
-    REGISTER_UNARY_EXPR(m, Ceil, "ceil")
-    REGISTER_UNARY_EXPR(m, Floor, "floor")
-    REGISTER_BINARY_EXPR(m, LessThan, "lt")
-    REGISTER_BINARY_EXPR(m, LessThanEqual, "lte")
-    REGISTER_BINARY_EXPR(m, GreaterThan, "gt")
-    REGISTER_BINARY_EXPR(m, GreaterThanEqual, "gte")
-    REGISTER_BINARY_EXPR(m, Equals, "eq")
+    REGISTER_CLASS(NaryExpr, ValNode, m, "nary_expr", DataType, MathOp, vector<Expr>)
+    REGISTER_CLASS(UnaryExpr, NaryExpr, m, "unary_expr", DataType, MathOp, Expr)
+    REGISTER_CLASS(BinaryExpr, NaryExpr, m, "binary_expr", DataType, MathOp, Expr, Expr)
 
     /* Logical Expressions */
-    REGISTER_INIT_CLASS(Exists, ValNode, m, "exists", Sym)
-    REGISTER_UNARY_EXPR(m, Not, "not")
-    REGISTER_BINARY_EXPR(m, And, "and")
-    REGISTER_BINARY_EXPR(m, Or, "or")
+    REGISTER_CLASS(Exists, ValNode, m, "exists", Sym)
 
     /* Misc Expressions */
-    REGISTER_INIT_CLASS(Get, ValNode, m, "get", Expr, size_t)
-    REGISTER_INIT_CLASS(New, ValNode, m, "new", vector<Expr>)
-    REGISTER_INIT_CLASS(IfElse, ExprNode, m, "ifelse", Expr, Expr, Expr)
-    REGISTER_INIT_CLASS(Cast, ValNode, m, "cast", DataType, Expr)
+    REGISTER_CLASS(Get, ValNode, m, "get", Expr, size_t)
+    REGISTER_CLASS(New, ValNode, m, "new", vector<Expr>)
+    REGISTER_CLASS(IfElse, ExprNode, m, "ifelse", Expr, Expr, Expr)
+    REGISTER_CLASS(Cast, ValNode, m, "cast", DataType, Expr)
 
     /* Reduction Node */
-    REGISTER_INIT_CLASS(Reduce, ValNode, m, "reduce", Sym, Val, AccTy)
+    REGISTER_CLASS(Reduce, ValNode, m, "reduce", Sym, Val, AccTy)
 
     /* Operator Definition */
     py::class_<OpNode, Op>(m, "op")
