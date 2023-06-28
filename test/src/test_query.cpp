@@ -12,7 +12,7 @@ Op _Select(_sym in, function<Expr(Expr)> sel_expr)
     auto sel = sel_expr(_get(e_sym, 0));
     auto sel_sym = _sym("sel", sel);
     auto sel_op = _op(
-        _iter(0, 1),
+        in->type.iter,
         Params{ in },
         SymTable{ {e_sym, e}, {sel_sym, sel} },
         _exists(e_sym),

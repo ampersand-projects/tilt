@@ -213,7 +213,7 @@ Expr LoopGen::visit(const OpNode& op)
     auto t_end = ctx().loop->t;
 
     vector<Expr> inputs;
-    Val size_expr = _ts(1);
+    Val size_expr = _ts(10000);
     for (const auto& input : inner_op->inputs) {
         auto input_val = eval(input);
         if (!input_val->type.is_beat()) {
