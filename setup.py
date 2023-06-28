@@ -48,9 +48,9 @@ class CMakeBuildExtension(build_ext):
 
 # setup extension module
 setup(
-    name = "pytilt",
+    name = "tilt",
     version = "0.1",
-    ext_modules = [CMakeExtension("pytilt")],
+    ext_modules = [CMakeExtension("tilt.ir")],
     cmdclass={
         'build_ext': CMakeBuildExtension
     },

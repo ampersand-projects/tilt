@@ -39,7 +39,7 @@ void print_IR(Op query_op)
     py::class_<CLASS, shared_ptr<CLASS>, PARENT>(MODULE, NAME) \
         .def(py::init<__VA_ARGS__>());
 
-PYBIND11_MODULE(pytilt, m) {
+PYBIND11_MODULE(ir, m) {
     /* Structures related to TiLT typing */
     py::enum_<BaseType>(m, "BaseType")
         .value("bool", BaseType::BOOL)
