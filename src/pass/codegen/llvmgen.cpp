@@ -46,7 +46,7 @@ llvm::Type* LLVMGen::lltype(const DataType& dtype)
 {
     switch (dtype.btype) {
         case BaseType::BOOL:
-            return llvm::Type::getInt1Ty(llctx());
+            return llvm::Type::getInt8Ty(llctx());
         case BaseType::INT8:
         case BaseType::UINT8:
             return llvm::Type::getInt8Ty(llctx());
