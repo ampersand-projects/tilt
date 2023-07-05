@@ -39,6 +39,7 @@ Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<Expr> arg
 Value* LLVMGen::llsizeof(llvm::Type* type)
 {
     auto size = llmod()->getDataLayout().getTypeSizeInBits(type).getFixedSize();
+    ASSERT(size % 8 == 0);
     return ConstantInt::get(lltype(types::UINT32), size/8);
 }
 
