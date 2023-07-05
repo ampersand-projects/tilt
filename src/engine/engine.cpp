@@ -1,7 +1,14 @@
 #include "llvm/IR/Verifier.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/IRReader/IRReader.h"
+#include "llvm/Support/SourceMgr.h"
 #include "llvm/ExecutionEngine/Orc/ExecutorProcessControl.h"
 
+#include "tilt/pass/printer.h"
 #include "tilt/engine/engine.h"
+
+#include <cstdlib>
+#include <iostream>
 
 using namespace tilt;
 using namespace std::placeholders;
@@ -52,7 +59,27 @@ Expected<ThreadSafeModule> ExecEngine::optimize_module(ThreadSafeModule tsm, con
         llvm::legacy::PassManager mpm;
         builder.populateModulePassManager(mpm);
         mpm.run(m);
+        std::cout << "Optimized LLVM IR(1)" << std::endl;
+        std::cout << IRPrinter::Build(&m) << std::endl;
     });
+
+    std::error_code EC;
+    raw_fd_ostream tmp_file("/tmp/llvm-ir.ll", EC, sys::fs::OF_Text);
+    tsm.getModuleUnlocked()->print(tmp_file, nullptr);
+
+    // FIXME: can add -force-vector-width=W
+    std::string command = "opt -O3 -S -o /tmp/opt-llvm-ir.ll /tmp/llvm-ir.ll";
+    std::string options = " -force-vector-width=8";
+    std::system((command + options).c_str());
+
+    llvm::SMDiagnostic err;
+    auto opt_mod = parseIRFile("/tmp/opt-llvm-ir.ll", err, *tsm.getContext().getContext());
+
+    std::cout << std::endl << "Optimized LLVM IR (2)" << std::endl;
+    std::cout << IRPrinter::Build(opt_mod.get()) << std::endl;
+
+    auto ctx = tsm.getContext();
+    auto new_tsm = ThreadSafeModule(std::move(opt_mod), ctx);
 
     return std::move(tsm);
 }
