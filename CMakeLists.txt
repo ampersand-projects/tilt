@@ -13,3 +13,9 @@ add_subdirectory(src)
 
 enable_testing()
 add_subdirectory(test)
+
+option(BUILD_PYTILT "Option description" OFF)
+if(BUILD_PYTILT)
+    add_subdirectory(third_party/pybind11)
+    add_subdirectory(python)
+endif()

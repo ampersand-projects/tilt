@@ -36,3 +36,8 @@ Clone TiLT repository along with the submodules
     cd build
     cmake -DLLVM_DIR=<install_path>/lib/cmake/llvm ..
     cmake --build .
+
+## Building PyTiLT from source
+
+    export LLVM_INSTALL_PATH=<install_path>
+    python3 setup.py install
