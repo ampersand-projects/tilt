@@ -13,7 +13,6 @@ using namespace tilt;
 namespace py = pybind11;
 
 PYBIND11_MODULE(region, m) {
-
     py::class_<PyReg> reg(m, "reg");
     reg.def(py::init<idx_t, shared_ptr<DataType>>());
 

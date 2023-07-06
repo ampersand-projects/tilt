@@ -1,5 +1,7 @@
-#ifndef INCLUDE_TILT_PYTHON_REGION_CVTR_H_
-#define INCLUDE_TILT_PYTHON_REGION_CVTR_H_
+#ifndef PYTHON_REGION_INCLUDE_CVTR_H_
+#define PYTHON_REGION_INCLUDE_CVTR_H_
+
+#include <memory>
 
 #include "tilt/base/type.h"
 
@@ -9,4 +11,5 @@ public:
     static uint32_t dt_to_bytes(std::shared_ptr<tilt::DataType> dt);
 };
 
-#endif // INCLUDE_TILT_PYTHON_REGION_CVTR_H_
+#endif  // PYTHON_REGION_INCLUDE_CVTR_H_
+

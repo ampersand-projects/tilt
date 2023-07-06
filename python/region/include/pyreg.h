@@ -1,5 +1,5 @@
-#ifndef INCLUDE_TILT_PYTHON_REGION_PYREG_H_
-#define INCLUDE_TILT_PYTHON_REGION_PYREG_H_
+#ifndef PYTHON_REGION_INCLUDE_PYREG_H_
+#define PYTHON_REGION_INCLUDE_PYREG_H_
 
 #include <pybind11/pybind11.h>
 
@@ -41,4 +41,4 @@ private:
     std::shared_ptr<tilt::DataType> schema;
 };
 
-#endif // INCLUDE_TILT_PYTHON_REGION_PYREG_H_
+#endif  // PYTHON_REGION_INCLUDE_PYREG_H_
