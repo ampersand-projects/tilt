@@ -1,5 +1,5 @@
 import tilt
-from tilt import ir
+from tilt import ir, utils, region
 
 ### Example 1 ###
 ### Print out the Loop IR for a Select operator ###
@@ -21,7 +21,7 @@ sel_op = ir.op(
     res_sym
 )
 
-ir.print_IR(sel_op)
+utils.print_IR(sel_op)
 
 
 ### Example 2 ###
@@ -41,4 +41,54 @@ sum_op = ir.op(
     sum_sym
 )
 
-ir.print_IR(sum_op)
+utils.print_IR(sum_op)
+
+
+### Example 3 ###
+### Populate an input stream ###
+in_reg = region.reg(4, ir.DataType(ir.BaseType.f32))
+print(in_reg)
+in_reg.commit_data(10)
+in_reg.write_data(1.5, 10, in_reg.get_end_idx())
+in_reg.commit_data(15)
+in_reg.write_data(2.2, 15, in_reg.get_end_idx())
+print(in_reg)
+
+
+### Example 4 ###
+### Populate an input stream with a simple structured data type ###
+struct_dt = ir.DataType(
+                ir.BaseType.struct,
+                [ir.DataType(ir.BaseType.f32),
+                 ir.DataType(ir.BaseType.i16)])
+struct_reg = region.reg(4, struct_dt)
+struct_reg.commit_data(1)
+struct_reg.write_data([1.5, 32], 1, struct_reg.get_end_idx())
+struct_reg.commit_data(3)
+struct_reg.write_data([2, -2], 3, struct_reg.get_end_idx())
+struct_reg.commit_data(7)
+struct_reg.write_data([3.9, 15], 7, struct_reg.get_end_idx())
+print(struct_reg)
+
+
+### Example 5 ###
+### Populate an input stream with a nested structured data type ###
+nest_dt = ir.DataType(
+    ir.BaseType.struct,
+    [
+        ir.DataType(
+            ir.BaseType.struct,
+            [ir.DataType(ir.BaseType.i64), ir.DataType(ir.BaseType.i64)]
+        ),
+        ir.DataType(
+            ir.BaseType.struct,
+            [ir.DataType(ir.BaseType.f32), ir.DataType(ir.BaseType.u16)]
+        )
+    ]
+)
+nest_reg = region.reg(5, nest_dt)
+for i in range(5):
+    nest_reg.commit_data(i+1)
+    nest_reg.write_data([[i, -i], [i + 0.5, i + 1]],
+                        i+1, nest_reg.get_end_idx())
+print(nest_reg)

@@ -23,18 +23,6 @@ using namespace tilt::tilder;
 
 namespace py = pybind11;
 
-void print_IR(Op query_op)
-{
-    cout << "TiLT IR:" << endl;
-    cout << IRPrinter::Build(query_op) << endl;
-
-    auto query_op_sym = _sym("query", query_op);
-    auto loop = LoopGen::Build(query_op_sym, query_op.get());
-
-    cout << "Loop IR:" << endl;
-    cout << IRPrinter::Build(loop);
-}
-
 #define REGISTER_CLASS(CLASS, PARENT, MODULE, NAME, ...) \
     py::class_<CLASS, shared_ptr<CLASS>, PARENT>(MODULE, NAME) \
         .def(py::init<__VA_ARGS__>());
@@ -59,7 +47,7 @@ PYBIND11_MODULE(ir, m) {
         .value("idx", BaseType::INDEX)
         .value("ival", BaseType::IVAL);
 
-    py::class_<DataType>(m, "DataType")
+    py::class_<DataType, shared_ptr<DataType>>(m, "DataType")
         .def(py::init<BaseType, vector<DataType>, size_t>(),
               py::arg("btype"),
               py::arg("dtypes") = vector<DataType>{},
@@ -148,7 +136,4 @@ PYBIND11_MODULE(ir, m) {
               py::arg("pred"),
               py::arg("output"),
               py::arg("aux") = map<Sym, Sym>{});
-
-    /* Temp */
-    m.def("print_IR", &print_IR);
 }
