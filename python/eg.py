@@ -56,39 +56,16 @@ print(in_reg)
 
 
 ### Example 4 ###
-### Populate an input stream with a simple structured data type ###
+### Populate an input stream with a structured data type ###
 struct_dt = ir.DataType(
                 ir.BaseType.struct,
-                [ir.DataType(ir.BaseType.f32),
-                 ir.DataType(ir.BaseType.i16)])
+                [ir.DataType(ir.BaseType.i16),
+                 ir.DataType(ir.BaseType.f32)])
 struct_reg = region.reg(4, struct_dt)
 struct_reg.commit_data(1)
-struct_reg.write_data([1.5, 32], 1, struct_reg.get_end_idx())
+struct_reg.write_data([1, 32.5], 1, struct_reg.get_end_idx())
 struct_reg.commit_data(3)
 struct_reg.write_data([2, -2], 3, struct_reg.get_end_idx())
 struct_reg.commit_data(7)
-struct_reg.write_data([3.9, 15], 7, struct_reg.get_end_idx())
+struct_reg.write_data([4, 15.9], 7, struct_reg.get_end_idx())
 print(struct_reg)
-
-
-### Example 5 ###
-### Populate an input stream with a nested structured data type ###
-nest_dt = ir.DataType(
-    ir.BaseType.struct,
-    [
-        ir.DataType(
-            ir.BaseType.struct,
-            [ir.DataType(ir.BaseType.i64), ir.DataType(ir.BaseType.i64)]
-        ),
-        ir.DataType(
-            ir.BaseType.struct,
-            [ir.DataType(ir.BaseType.f32), ir.DataType(ir.BaseType.u16)]
-        )
-    ]
-)
-nest_reg = region.reg(5, nest_dt)
-for i in range(5):
-    nest_reg.commit_data(i+1)
-    nest_reg.write_data([[i, -i], [i + 0.5, i + 1]],
-                        i+1, nest_reg.get_end_idx())
-print(nest_reg)

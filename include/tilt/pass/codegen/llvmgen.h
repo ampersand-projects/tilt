@@ -9,6 +9,7 @@
 #include <fstream>
 
 #include "tilt/pass/irgen.h"
+#include "tilt/pass/codegen/llvmtype.h"
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
@@ -44,7 +45,8 @@ public:
     explicit LLVMGen(LLVMGenCtx llgenctx) :
         _ctx(std::move(llgenctx)), _llctx(*ctx().llctx),
         _llmod(make_unique<llvm::Module>(ctx().loop->name, _llctx)),
-        _builder(make_unique<llvm::IRBuilder<>>(_llctx))
+        _builder(make_unique<llvm::IRBuilder<>>(_llctx)),
+        _lltypegen(make_unique<LLVMTypeGen>(_llctx))
     {
         register_vinstrs();
     }
@@ -99,7 +101,7 @@ private:
 
     llvm::Value* llsizeof(llvm::Type*);
 
-    llvm::Type* lltype(const DataType&);
+    llvm::Type* lltype(const DataType& dtype) { return lltypegen()->lltype(dtype); }
     llvm::Type* lltype(const Type&);
     llvm::Type* lltype(const ExprNode& expr) { return lltype(expr.type); }
     llvm::Type* lltype(const Expr& expr) { return lltype(expr->type); }
@@ -110,11 +112,13 @@ private:
     llvm::Module* llmod() { return _llmod.get(); }
     llvm::LLVMContext& llctx() { return _llctx; }
     llvm::IRBuilder<>* builder() { return _builder.get(); }
+    LLVMTypeGen* lltypegen() { return _lltypegen.get(); }
 
     LLVMGenCtx _ctx;
     llvm::LLVMContext& _llctx;
     unique_ptr<llvm::Module> _llmod;
     unique_ptr<llvm::IRBuilder<>> _builder;
+    unique_ptr<LLVMTypeGen> _lltypegen;
 };
 
 }  // namespace tilt

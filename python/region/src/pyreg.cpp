@@ -10,8 +10,7 @@
 #include "tilt/base/ctype.h"
 #include "tilt/base/type.h"
 #include "tilt/pass/codegen/vinstr.h"
-
-#include "cvtr.h"
+#include "tilt/pass/codegen/llvmtype.h"
 
 using namespace std;
 using namespace tilt;
@@ -23,10 +22,11 @@ PyReg::PyReg(idx_t size,
 {
     this->max_size = get_buf_size(size);
     this->schema = schema;
+    this->schema_padding = LLVMTypeGen::getStructPadding(*schema);
 
     this->reg = make_unique<region_t>();
     ival_t* tl = new ival_t[max_size];
-    char* data = new char[max_size * Cvtr::dt_to_bytes(schema)];
+    char* data = new char[max_size * schema_padding.total_bytes];
     init_region(this->reg.get(), 0, this->max_size, tl, data);
 }
 
@@ -55,7 +55,7 @@ string PyReg::str(void)
 
     os << "Timestamps and Data:" << endl;
     os << "[";
-    uint32_t payload_bytes = Cvtr::dt_to_bytes(schema);
+    uint32_t payload_bytes = schema_padding.total_bytes;
     for (int i = 0; i < reg->count; i++) {
         ival_t tl_i = reg->tl[i];
         os << "[";
@@ -103,12 +103,14 @@ void PyReg::append_data_to_sstream(ostringstream &os, DataType dt, char* fetch)
             break;
         case BaseType::STRUCT: {
             os << "[";
-            int offset = 0;
-            for (const auto& dtype : dt.dtypes) {
-                append_data_to_sstream(os, dtype, fetch + offset);
+
+            uint64_t offset;
+            for (int i = 0; i < dt.dtypes.size(); ++i) {
+                offset = schema_padding.offsets[i];
+                append_data_to_sstream(os, dt.dtypes[i], fetch + offset);
                 os << ",";
-                offset += Cvtr::dt_to_bytes(dtype);
             }
+
             os.seekp(-1, os.cur);
             os << "]";
             break;
@@ -130,7 +132,7 @@ void PyReg::write_data(py::object payload, ts_t t, idx_t i)
     write_data_to_ptr(payload,
                       *schema,
                       fetch(reg.get(), t, i,
-                            Cvtr::dt_to_bytes(schema)));
+                            schema_padding.total_bytes));
 }
 
 void PyReg::write_data_to_ptr(py::object payload, DataType dt, char* raw_data_ptr)
@@ -168,12 +170,13 @@ void PyReg::write_data_to_ptr(py::object payload, DataType dt, char* raw_data_pt
             break;
         case BaseType::STRUCT: {
             py::list payload_list = payload.cast<py::list>();
-            int offset = 0;
+
+            uint64_t offset;
             for (int i = 0; i < dt.dtypes.size(); i++) {
+                offset = schema_padding.offsets[i];
                 write_data_to_ptr(payload_list[i],
                                   dt.dtypes[i],
                                   raw_data_ptr + offset);
-                offset += Cvtr::dt_to_bytes(dt.dtypes[i]);
             }
             break;
         }

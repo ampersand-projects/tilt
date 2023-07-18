@@ -9,6 +9,7 @@
 
 #include "tilt/base/ctype.h"
 #include "tilt/base/type.h"
+#include "tilt/pass/codegen/llvmtype.h"
 
 namespace py = pybind11;
 
@@ -39,6 +40,7 @@ private:
     std::unique_ptr<region_t> reg;
     uint32_t max_size;
     std::shared_ptr<tilt::DataType> schema;
+    tilt::StructPaddingInfo schema_padding;
 };
 
 #endif  // PYTHON_REGION_INCLUDE_PYREG_H_

@@ -1,5 +1,4 @@
 set(REG_BIND_SRC_FILES
-    src/cvtr.cpp
     src/pyreg.cpp
     src/bindings.cpp
 )
