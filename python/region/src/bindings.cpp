@@ -1,6 +1,10 @@
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 #include <memory>
+#include <stdexcept>
+#include <vector>
+#include <iostream>
 
 #include "pyreg.h"
 
@@ -11,6 +15,23 @@ using namespace std;
 using namespace tilt;
 
 namespace py = pybind11;
+
+void execute(intptr_t addr, ts_t t_start, ts_t t_end, PyReg &out_reg, vector<PyReg> in_reg_vec)
+{
+    auto query = (region_t* (*)(ts_t, ts_t, region_t*, ...)) addr;
+
+    switch (in_reg_vec.size()) {
+        case 1:
+            query(t_start, t_end, out_reg.get_reg(),
+                  in_reg_vec[0].get_reg());
+            break;
+        case 2:
+            query(t_start, t_end, out_reg.get_reg(),
+                  in_reg_vec[0].get_reg(), in_reg_vec[1].get_reg());
+            break;
+        default: throw runtime_error("Invalid number of inputs.");
+    }
+}
 
 PYBIND11_MODULE(region, m) {
     py::class_<PyReg> reg(m, "reg");
@@ -56,4 +77,7 @@ PYBIND11_MODULE(region, m) {
                 commit_null(pyreg.get_reg(), t);
             });
     reg.def("write_data", &PyReg::write_data);
+
+    /* execution binding */
+    m.def("execute", &execute);
 }

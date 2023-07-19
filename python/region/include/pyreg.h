@@ -37,7 +37,7 @@ private:
     void write_btype_data_to_ptr(py::object payload, char* raw_data_ptr);
 
     /* PyReg members */
-    std::unique_ptr<region_t> reg;
+    region_t* reg;
     uint32_t max_size;
     std::shared_ptr<tilt::DataType> schema;
     tilt::StructPaddingInfo schema_padding;
