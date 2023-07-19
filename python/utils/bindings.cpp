@@ -62,5 +62,4 @@ PYBIND11_MODULE(utils, m) {
     m.def("compile", &compile,
           py::arg("query_op"),
           py::arg("query_name") = "query");
-
 }

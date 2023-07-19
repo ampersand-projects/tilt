@@ -21,15 +21,15 @@ struct StructPaddingInfo {
 
 class LLVMTypeGen {
 public:
-    explicit LLVMTypeGen(llvm::LLVMContext& llctx) :
+    explicit LLVMTypeGen(llvm::LLVMContext* llctx) :
         _llctx(llctx)
     {}
 
     llvm::Type* lltype(const DataType&);
     static StructPaddingInfo getStructPadding(const DataType&);
 private:
-    llvm::LLVMContext& llctx() { return _llctx; }
-    llvm::LLVMContext& _llctx;
+    llvm::LLVMContext& llctx() { return *_llctx; }
+    llvm::LLVMContext* _llctx;
 };
 
 }  // namespace tilt

@@ -46,7 +46,7 @@ public:
         _ctx(std::move(llgenctx)), _llctx(*ctx().llctx),
         _llmod(make_unique<llvm::Module>(ctx().loop->name, _llctx)),
         _builder(make_unique<llvm::IRBuilder<>>(_llctx)),
-        _lltypegen(make_unique<LLVMTypeGen>(_llctx))
+        _lltypegen(make_unique<LLVMTypeGen>(&_llctx))
     {
         register_vinstrs();
     }

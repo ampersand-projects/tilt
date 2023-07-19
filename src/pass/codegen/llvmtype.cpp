@@ -60,12 +60,12 @@ StructPaddingInfo LLVMTypeGen::getStructPadding(const DataType& dtype)
 {
     llvm::LLVMContext llctx;
     unique_ptr<llvm::Module> llmod = make_unique<llvm::Module>("temp", llctx);
-    LLVMTypeGen lltypegen(llctx);
+    LLVMTypeGen lltypegen(&llctx);
 
     llvm::Type* dtllvm = (llvm::StructType*)lltypegen.lltype(dtype);
     uint64_t total_bytes = llmod->getDataLayout().getTypeAllocSize(dtllvm);
 
-    if(!dtype.is_struct()) {
+    if (!dtype.is_struct()) {
         return {total_bytes, {}};
     }
 
