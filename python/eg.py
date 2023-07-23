@@ -1,5 +1,7 @@
 import tilt
-from tilt import ir, utils, region
+from tilt import ir, utils, exec
+
+tilt_eng = exec.engine()
 
 ### Example 1 ###
 ### Select Query ###
@@ -23,16 +25,16 @@ sel_op = ir.op(
 
 utils.print_IR(sel_op)
 
-float_in_reg = region.reg(100, ir.DataType(ir.BaseType.f32))
+float_in_reg = exec.reg(100, ir.DataType(ir.BaseType.f32))
 for i in range(100):
     float_in_reg.commit_data(i + 1)
     float_in_reg.write_data(i + 0.5, i + 1, float_in_reg.get_end_idx())
 print(float_in_reg)
-select_out_reg = region.reg(100, ir.DataType(ir.BaseType.f32))
-compiled_sel = utils.compile(sel_op, "querysel")
-region.execute(compiled_sel, 0, 100, select_out_reg, [float_in_reg])
+select_out_reg = exec.reg(100, ir.DataType(ir.BaseType.f32))
+compiled_sel = tilt_eng.compile(sel_op, "querysel")
+tilt_eng.execute(compiled_sel, 0, 100, select_out_reg, [float_in_reg])
 print(select_out_reg)
-
+print(float_in_reg)
 
 ### Example 2 ###
 ### Sum Query ###
@@ -52,22 +54,82 @@ sum_op = ir.op(
 )
 
 utils.print_IR(sum_op)
-sum_out_reg = region.reg(10, ir.DataType(ir.BaseType.f32))
-compiled_sum = utils.compile(sum_op, "querysum")
-region.execute(compiled_sum, 0, 100, sum_out_reg, [float_in_reg])
+sum_out_reg = exec.reg(10, ir.DataType(ir.BaseType.f32))
+compiled_sum = tilt_eng.compile(sum_op, "query_sum")
+tilt_eng.execute(compiled_sum, 0, 100, sum_out_reg, [float_in_reg])
 print(sum_out_reg)
 
+
 ### Example 3 ###
-### Populate an input stream with a structured data type ###
+### Structured data type ###
 struct_dt = ir.DataType(
                 ir.BaseType.struct,
-                [ir.DataType(ir.BaseType.i16),
+                [ir.DataType(ir.BaseType.i8),
                  ir.DataType(ir.BaseType.f32)])
-struct_reg = region.reg(4, struct_dt)
-struct_reg.commit_data(1)
-struct_reg.write_data([1, 32.5], 1, struct_reg.get_end_idx())
-struct_reg.commit_data(3)
-struct_reg.write_data([2, -2], 3, struct_reg.get_end_idx())
-struct_reg.commit_data(7)
-struct_reg.write_data([4, 15.9], 7, struct_reg.get_end_idx())
+struct_reg = exec.reg(10, struct_dt)
+for i in range(10):
+    struct_reg.commit_data(i + 1)
+    struct_reg.write_data([i, i + 0.5], i + 1, struct_reg.get_end_idx())
 print(struct_reg)
+
+struct_stream = ir.sym("struct_in", ir.Type(struct_dt, ir.Iter(0, -1)))
+struct_e = ir.elem(struct_stream, ir.point(0))
+struct_e_sym = ir.sym("struct_e", struct_e)
+struct_res = ir.new([ir.get(struct_e_sym, 0),
+                     ir.binary_expr(
+                         ir.DataType(ir.BaseType.f32),
+                         ir.MathOp.mul,
+                         ir.get(struct_e_sym, 1),
+                         ir.const(ir.BaseType.f32, 3)
+                     )])
+struct_res_sym = ir.sym("struct_res", struct_res)
+struct_op = ir.op(
+    ir.Iter(0, 1),
+    [struct_stream],
+    {struct_e_sym : struct_e, struct_res_sym : struct_res},
+    ir.exists(struct_e_sym),
+    struct_res_sym
+)
+
+utils.print_IR(struct_op)
+struct_out_reg = exec.reg(10, struct_dt)
+compiled_struct = tilt_eng.compile(struct_op, "query_struct")
+tilt_eng.execute(compiled_struct, 0, 10, struct_out_reg, [struct_reg])
+print(struct_out_reg)
+
+
+### Example 4 ###
+### Join Query ###
+right_reg = exec.reg(100, ir.DataType(ir.BaseType.f32))
+for i in range(100):
+    right_reg.commit_data(i + 1)
+    right_reg.write_data(i * 0.5, i + 1, right_reg.get_end_idx())
+
+right_stream = ir.sym("right",
+                      ir.Type(ir.DataType(ir.BaseType.f32),
+                              ir.Iter(0, -1)))
+e_right = ir.elem(right_stream, ir.point(0))
+e_right_sym = ir.sym("e_right", e_right)
+join_res = ir.binary_expr(ir.DataType(ir.BaseType.f32),
+                          ir.MathOp.add,
+                          e_sym,
+                          e_right_sym)
+join_res_sym = ir.sym("join_res", join_res)
+join_pred = ir.binary_expr(ir.DataType(ir.BaseType.bool),
+                           ir.MathOp._and,
+                           ir.exists(e_sym),
+                           ir.exists(e_right_sym))
+join_op = ir.op(
+    ir.Iter(0, 1),
+    [in_stream, right_stream],
+    {e_sym : e, e_right_sym : e_right,
+     join_res_sym : join_res},
+    join_pred,
+    join_res_sym
+)
+
+utils.print_IR(join_op)
+join_out_reg = exec.reg(100, ir.DataType(ir.BaseType.f32))
+compiled_join = tilt_eng.compile(join_op, "query_join")
+tilt_eng.execute(compiled_join, 0, 100, join_out_reg, [float_in_reg, right_reg])
+print(join_out_reg)

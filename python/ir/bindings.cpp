@@ -106,9 +106,9 @@ PYBIND11_MODULE(ir, m) {
         .value("gt", MathOp::GT)
         .value("gte", MathOp::GTE)
         .value("eq", MathOp::EQ)
-        .value("not", MathOp::NOT)
-        .value("and", MathOp::AND)
-        .value("or", MathOp::OR);
+        .value("_not", MathOp::NOT)
+        .value("_and", MathOp::AND)
+        .value("_or", MathOp::OR);
 
     /* Nary Expressions */
     REGISTER_CLASS(NaryExpr, ValNode, m, "nary_expr", DataType, MathOp, vector<Expr>)

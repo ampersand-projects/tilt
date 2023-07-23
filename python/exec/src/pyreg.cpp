@@ -24,10 +24,10 @@ PyReg::PyReg(idx_t size,
     this->schema = schema;
     this->schema_padding = LLVMTypeGen::getStructPadding(*schema);
 
-    this->reg = new region_t;
+    this->reg = make_unique<region_t>();
     ival_t* tl = new ival_t[max_size];
     char* data = new char[max_size * schema_padding.total_bytes];
-    init_region(this->reg, 0, this->max_size, tl, data);
+    init_region(this->reg.get(), 0, this->max_size, tl, data);
 }
 
 PyReg::~PyReg(void)
@@ -38,7 +38,7 @@ PyReg::~PyReg(void)
 
 region_t* PyReg::get_reg(void)
 {
-    return this->reg;
+    return this->reg.get();
 }
 
 string PyReg::str(void)
@@ -60,7 +60,7 @@ string PyReg::str(void)
         ival_t tl_i = reg->tl[i];
         os << "[";
         os << "[" << tl_i.t << "," << tl_i.d << "]" << ",";
-        append_data_to_sstream(os, *schema, fetch(reg, tl_i.t + tl_i.d, i, payload_bytes));
+        append_data_to_sstream(os, *schema, fetch(reg.get(), tl_i.t + tl_i.d, i, payload_bytes));
         os << "]";
     }
     os << "]" << endl;
@@ -131,7 +131,7 @@ void PyReg::write_data(py::object payload, ts_t t, idx_t i)
 {
     write_data_to_ptr(payload,
                       *schema,
-                      fetch(reg, t, i,
+                      fetch(reg.get(), t, i,
                             schema_padding.total_bytes));
 }
 
