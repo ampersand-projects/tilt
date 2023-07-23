@@ -2,7 +2,6 @@
 #define PYTHON_EXEC_INCLUDE_PYENG_H_
 
 #include <string>
-#include <stdint.h>
 #include <vector>
 
 #include "pyreg.h"
