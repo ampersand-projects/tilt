@@ -17,13 +17,11 @@ using namespace tilt;
 
 namespace py = pybind11;
 
-PyReg::PyReg(idx_t size,
-             shared_ptr<DataType> schema)
+PyReg::PyReg(idx_t size, DataType schema) :
+    max_size(get_buf_size(size)),
+    schema(schema),
+    schema_padding(LLVMGen::getStructPadding(schema))
 {
-    this->max_size = get_buf_size(size);
-    this->schema = schema;
-    this->schema_padding = LLVMGen::getStructPadding(*schema);
-
     this->reg = make_unique<region_t>();
     ival_t* tl = new ival_t[max_size];
     char* data = new char[max_size * schema_padding.total_bytes];
@@ -60,7 +58,7 @@ string PyReg::str(void)
         ival_t tl_i = reg->tl[i];
         os << "[";
         os << "[" << tl_i.t << "," << tl_i.d << "]" << ",";
-        append_data_to_sstream(os, *schema, fetch(reg.get(), tl_i.t + tl_i.d, i, payload_bytes));
+        append_data_to_sstream(os, schema, fetch(reg.get(), tl_i.t + tl_i.d, i, payload_bytes));
         os << "]";
     }
     os << "]" << endl;
@@ -130,7 +128,7 @@ void PyReg::append_btype_data_to_sstream(ostringstream &os,
 void PyReg::write_data(py::object payload, ts_t t, idx_t i)
 {
     write_data_to_ptr(payload,
-                      *schema,
+                      schema,
                       fetch(reg.get(), t, i,
                             schema_padding.total_bytes));
 }

@@ -1,5 +1,5 @@
-#ifndef PYTHON_EXEC_INCLUDE_PYENG_H_
-#define PYTHON_EXEC_INCLUDE_PYENG_H_
+#ifndef PYTHON_INCLUDE_PYENG_H_
+#define PYTHON_INCLUDE_PYENG_H_
 
 #include <string>
 #include <vector>
@@ -22,4 +22,4 @@ private:
     tilt::ExecEngine* jit;
 };
 
-#endif  // PYTHON_EXEC_INCLUDE_PYENG_H_
+#endif  // PYTHON_INCLUDE_PYENG_H_

@@ -20,7 +20,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(exec, m) {
     /* region_t wrapper bindings */
     py::class_<PyReg> reg(m, "reg");
-    reg.def(py::init<idx_t, shared_ptr<DataType>>());
+    reg.def(py::init<idx_t, DataType>());
 
     /* implementations for built-in Python methods */
     reg.def("__repr__", &PyReg::str);

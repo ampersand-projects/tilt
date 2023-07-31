@@ -1,5 +1,5 @@
-#ifndef PYTHON_EXEC_INCLUDE_PYREG_H_
-#define PYTHON_EXEC_INCLUDE_PYREG_H_
+#ifndef PYTHON_INCLUDE_PYREG_H_
+#define PYTHON_INCLUDE_PYREG_H_
 
 #include <pybind11/pybind11.h>
 
@@ -16,7 +16,7 @@ namespace py = pybind11;
 class PyReg {
 public:
     PyReg(idx_t size,
-          std::shared_ptr<tilt::DataType> schema);
+          tilt::DataType schema);
     ~PyReg();
     PyReg(const PyReg&) = delete;
 
@@ -40,8 +40,8 @@ private:
     /* PyReg members */
     std::unique_ptr<region_t> reg;
     uint32_t max_size;
-    std::shared_ptr<tilt::DataType> schema;
+    tilt::DataType schema;
     tilt::StructPaddingInfo schema_padding;
 };
 
-#endif  // PYTHON_EXEC_INCLUDE_PYREG_H_
+#endif  // PYTHON_INCLUDE_PYREG_H_
