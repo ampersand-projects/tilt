@@ -9,7 +9,7 @@
 
 #include "tilt/base/ctype.h"
 #include "tilt/base/type.h"
-#include "tilt/pass/codegen/llvmtype.h"
+#include "tilt/pass/codegen/llvmgen.h"
 
 namespace py = pybind11;
 

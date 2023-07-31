@@ -10,7 +10,7 @@
 #include "tilt/base/ctype.h"
 #include "tilt/base/type.h"
 #include "tilt/pass/codegen/vinstr.h"
-#include "tilt/pass/codegen/llvmtype.h"
+#include "tilt/pass/codegen/llvmgen.h"
 
 using namespace std;
 using namespace tilt;
@@ -22,7 +22,7 @@ PyReg::PyReg(idx_t size,
 {
     this->max_size = get_buf_size(size);
     this->schema = schema;
-    this->schema_padding = LLVMTypeGen::getStructPadding(*schema);
+    this->schema_padding = LLVMGen::getStructPadding(*schema);
 
     this->reg = make_unique<region_t>();
     ival_t* tl = new ival_t[max_size];

@@ -3,7 +3,6 @@ set(SRC_FILES
     builder/tilder.cpp
     pass/printer.cpp
     pass/codegen/loopgen.cpp
-    pass/codegen/llvmtype.cpp
     pass/codegen/llvmgen.cpp
     pass/codegen/vinstr.cpp
     engine/engine.cpp

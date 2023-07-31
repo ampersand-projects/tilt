@@ -9,7 +9,6 @@
 #include <fstream>
 
 #include "tilt/pass/irgen.h"
-#include "tilt/pass/codegen/llvmtype.h"
 
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
@@ -26,11 +25,22 @@ extern const char* vinstr_str;
 
 namespace tilt {
 
+struct StructPaddingInfo {
+    uint64_t total_bytes;
+    vector<uint64_t> offsets;
+};
+
 class LLVMGenCtx : public IRGenCtx<Expr, llvm::Value*> {
 public:
     LLVMGenCtx(const LoopNode* loop, llvm::LLVMContext* llctx) :
         IRGenCtx(nullptr, &loop->syms, new map<Sym, llvm::Value*>()),
         loop(loop), llctx(llctx), map_backup(unique_ptr<map<Sym, llvm::Value*>>(out_sym_tbl))
+    {}
+
+    /* ctor should only be used with getStructPadding */
+    LLVMGenCtx(void) :
+        IRGenCtx(nullptr, nullptr, nullptr),
+        loop(nullptr), llctx(nullptr), map_backup(nullptr)
     {}
 
 private:
@@ -45,13 +55,20 @@ public:
     explicit LLVMGen(LLVMGenCtx llgenctx) :
         _ctx(std::move(llgenctx)), _llctx(*ctx().llctx),
         _llmod(make_unique<llvm::Module>(ctx().loop->name, _llctx)),
-        _builder(make_unique<llvm::IRBuilder<>>(_llctx)),
-        _lltypegen(make_unique<LLVMTypeGen>(&_llctx))
+        _builder(make_unique<llvm::IRBuilder<>>(_llctx))
     {
         register_vinstrs();
     }
 
+    /* ctor should only be used with getStructPadding */
+    explicit LLVMGen(llvm::LLVMContext* llctx) :
+        _ctx(LLVMGenCtx()), _llctx(*llctx),
+        _llmod(make_unique<llvm::Module>("temp", _llctx)),
+        _builder(make_unique<llvm::IRBuilder<>>(_llctx))
+    {}
+
     static unique_ptr<llvm::Module> Build(const Loop, llvm::LLVMContext&);
+    static StructPaddingInfo getStructPadding(const DataType&);
 
 private:
     LLVMGenCtx& ctx() override { return _ctx; }
@@ -101,7 +118,7 @@ private:
 
     llvm::Value* llsizeof(llvm::Type*);
 
-    llvm::Type* lltype(const DataType& dtype) { return lltypegen()->lltype(dtype); }
+    llvm::Type* lltype(const DataType& dtype);
     llvm::Type* lltype(const Type&);
     llvm::Type* lltype(const ExprNode& expr) { return lltype(expr.type); }
     llvm::Type* lltype(const Expr& expr) { return lltype(expr->type); }
@@ -112,13 +129,11 @@ private:
     llvm::Module* llmod() { return _llmod.get(); }
     llvm::LLVMContext& llctx() { return _llctx; }
     llvm::IRBuilder<>* builder() { return _builder.get(); }
-    LLVMTypeGen* lltypegen() { return _lltypegen.get(); }
 
     LLVMGenCtx _ctx;
     llvm::LLVMContext& _llctx;
     unique_ptr<llvm::Module> _llmod;
     unique_ptr<llvm::IRBuilder<>> _builder;
-    unique_ptr<LLVMTypeGen> _lltypegen;
 };
 
 }  // namespace tilt
