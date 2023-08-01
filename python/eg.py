@@ -31,10 +31,9 @@ for i in range(100):
     float_in_reg.write_data(i + 0.5, i + 1, float_in_reg.get_end_idx())
 print(float_in_reg)
 select_out_reg = exec.reg(100, ir.DataType(ir.BaseType.f32))
-compiled_sel = tilt_eng.compile(sel_op, "querysel")
-tilt_eng.execute(compiled_sel, 0, 100, select_out_reg, [float_in_reg])
+compiled_sel = tilt_eng.compile(sel_op, "query_sel")
+tilt_eng.execute(compiled_sel, 0, 100, select_out_reg, float_in_reg)
 print(select_out_reg)
-print(float_in_reg)
 
 ### Example 2 ###
 ### Sum Query ###
@@ -54,9 +53,10 @@ sum_op = ir.op(
 )
 
 utils.print_IR(sum_op)
+
 sum_out_reg = exec.reg(10, ir.DataType(ir.BaseType.f32))
 compiled_sum = tilt_eng.compile(sum_op, "query_sum")
-tilt_eng.execute(compiled_sum, 0, 100, sum_out_reg, [float_in_reg])
+tilt_eng.execute(compiled_sum, 0, 100, sum_out_reg, float_in_reg)
 print(sum_out_reg)
 
 
@@ -66,11 +66,6 @@ struct_dt = ir.DataType(
                 ir.BaseType.struct,
                 [ir.DataType(ir.BaseType.i8),
                  ir.DataType(ir.BaseType.f32)])
-struct_reg = exec.reg(10, struct_dt)
-for i in range(10):
-    struct_reg.commit_data(i + 1)
-    struct_reg.write_data([i, i + 0.5], i + 1, struct_reg.get_end_idx())
-print(struct_reg)
 
 struct_stream = ir.sym("struct_in", ir.Type(struct_dt, ir.Iter(0, -1)))
 struct_e = ir.elem(struct_stream, ir.point(0))
@@ -92,9 +87,15 @@ struct_op = ir.op(
 )
 
 utils.print_IR(struct_op)
+
+struct_reg = exec.reg(10, struct_dt)
+for i in range(10):
+    struct_reg.commit_data(i + 1)
+    struct_reg.write_data([i, i + 0.5], i + 1, struct_reg.get_end_idx())
+print(struct_reg)
 struct_out_reg = exec.reg(10, struct_dt)
 compiled_struct = tilt_eng.compile(struct_op, "query_struct")
-tilt_eng.execute(compiled_struct, 0, 10, struct_out_reg, [struct_reg])
+tilt_eng.execute(compiled_struct, 0, 10, struct_out_reg, struct_reg)
 print(struct_out_reg)
 
 
@@ -129,9 +130,10 @@ join_op = ir.op(
 )
 
 utils.print_IR(join_op)
+
 join_out_reg = exec.reg(100, ir.DataType(ir.BaseType.f32))
 compiled_join = tilt_eng.compile(join_op, "query_join")
-tilt_eng.execute(compiled_join, 0, 100, join_out_reg, [float_in_reg, right_reg])
+tilt_eng.execute(compiled_join, 0, 100, join_out_reg, float_in_reg, right_reg)
 print(join_out_reg)
 
 
@@ -151,12 +153,6 @@ nest_dt = ir.DataType(
         )
     ]
 )
-nest_reg = exec.reg(10, nest_dt)
-for i in range(10):
-    nest_reg.commit_data(i + 1)
-    nest_reg.write_data([[i, -i], i - 1, [i + 0.5, i + 1]],
-                        i + 1, nest_reg.get_end_idx())
-print(nest_reg)
 
 nest_stream = ir.sym("nest_in", ir.Type(nest_dt, ir.Iter(0, -1)))
 nest_e = ir.elem(nest_stream, ir.point(0))
@@ -187,7 +183,14 @@ nest_op = ir.op(
 )
 
 utils.print_IR(nest_op)
+
+nest_reg = exec.reg(10, nest_dt)
+for i in range(10):
+    nest_reg.commit_data(i + 1)
+    nest_reg.write_data([[i, -i], i - 1, [i + 0.5, i + 1]],
+                        i + 1, nest_reg.get_end_idx())
+print(nest_reg)
 nest_out_reg = exec.reg(10, nest_dt)
 compiled_nest = tilt_eng.compile(nest_op, "query_nest")
-tilt_eng.execute(compiled_nest, 0, 10, nest_out_reg, [nest_reg])
+tilt_eng.execute(compiled_nest, 0, 10, nest_out_reg, nest_reg)
 print(nest_out_reg)

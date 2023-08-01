@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <utility>
 
 #include "pyeng.h"
 #include "pyreg.h"
@@ -34,20 +35,22 @@ intptr_t PyEng::compile(Op query_op, string query_name)
     return addr;
 }
 
-void PyEng::execute(intptr_t addr, ts_t t_start, ts_t t_end,
-                    PyReg* out_reg, vector<PyReg*> in_reg_vec)
+template<typename... Args>
+void PyEng::execute_va(intptr_t addr, ts_t t_start, ts_t t_end,
+                       region_t* out_reg, Args... in_regs)
 {
     auto query = (region_t* (*)(ts_t, ts_t, region_t*, ...)) addr;
+    query(t_start, t_end, out_reg, (in_regs)...);
+}
 
-    switch (in_reg_vec.size()) {
-        case 1:
-            query(t_start, t_end, out_reg->get_reg(),
-                  in_reg_vec[0]->get_reg());
-            break;
-        case 2:
-            query(t_start, t_end, out_reg->get_reg(),
-                  in_reg_vec[0]->get_reg(), in_reg_vec[1]->get_reg());
-            break;
-        default: throw runtime_error("Invalid number of inputs.");
-    }
+void PyEng::execute(intptr_t addr, ts_t t_start, ts_t t_end, PyReg* out_reg, PyReg* in_reg)
+{
+    execute_va(addr, t_start, t_end, out_reg->get_reg(), in_reg->get_reg());
+}
+
+void PyEng::execute(intptr_t addr, ts_t t_start, ts_t t_end, PyReg* out_reg,
+                    PyReg* in_reg_0, PyReg* in_reg_1)
+{
+    execute_va(addr, t_start, t_end, out_reg->get_reg(),
+               in_reg_0->get_reg(), in_reg_1->get_reg());
 }

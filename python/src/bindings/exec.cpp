@@ -70,5 +70,12 @@ PYBIND11_MODULE(exec, m) {
     engine.def("compile", &PyEng::compile,
           py::arg("query_op"),
           py::arg("query_name") = "query");
-    engine.def("execute", &PyEng::execute);
+    engine.def("execute",
+               static_cast<void (PyEng::*)
+                                (intptr_t, ts_t, ts_t, PyReg*, PyReg*)>
+                          (&PyEng::execute));
+    engine.def("execute",
+               static_cast<void (PyEng::*)
+                                (intptr_t, ts_t, ts_t, PyReg*, PyReg*, PyReg*)>
+                          (&PyEng::execute));
 }
