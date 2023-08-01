@@ -26,13 +26,17 @@ public:
 
 private:
     /* PyReg::str helpers */
-    void append_data_to_sstream(std::ostringstream &os, tilt::DataType dt, char* fetch);
+    void append_data_to_sstream(std::ostringstream &os,
+                                const tilt::DataType& dt,
+                                const tilt::StructPaddingInfo& padding_info,
+                                char* fetch);
     template<typename T>
     void append_btype_data_to_sstream(std::ostringstream &os, char *fetch);
 
     /* PyReg::write_data helpers */
     void write_data_to_ptr(py::object payload,
-                           tilt::DataType dt,
+                           const tilt::DataType& dt,
+                           const tilt::StructPaddingInfo& padding_info,
                            char* raw_data_ptr);
     template<typename T>
     void write_btype_data_to_ptr(py::object payload, char* raw_data_ptr);

@@ -61,12 +61,14 @@ PYBIND11_MODULE(ir, m) {
         .def("str", &Iter::str);
 
     py::class_<Type>(m, "Type")
-        .def(py::init<DataType, Iter>());
+        .def(py::init<DataType, Iter>())
+        .def_readonly("dtype", &Type::dtype);
 
     /* ExprNode and Derived Structures Declarations
         Note: ExprNode and ValNode are both pure virtual classes
     */
-    py::class_<ExprNode, Expr>(m, "expr");
+    py::class_<ExprNode, Expr>(m, "expr")
+        .def_readonly("type", &ExprNode::type);
     py::class_<ValNode, Val, ExprNode>(m, "val");
 
     /* Symbol Definition */

@@ -28,6 +28,7 @@ namespace tilt {
 struct StructPaddingInfo {
     uint64_t total_bytes;
     vector<uint64_t> offsets;
+    map<int, StructPaddingInfo> nested_padding;
 };
 
 class LLVMGenCtx : public IRGenCtx<Expr, llvm::Value*> {
@@ -65,10 +66,12 @@ public:
         _ctx(LLVMGenCtx()), _llctx(*llctx),
         _llmod(make_unique<llvm::Module>("temp", _llctx)),
         _builder(make_unique<llvm::IRBuilder<>>(_llctx))
-    {}
+    {
+        register_vinstrs();
+    }
 
     static unique_ptr<llvm::Module> Build(const Loop, llvm::LLVMContext&);
-    static StructPaddingInfo getStructPadding(const DataType&);
+    static StructPaddingInfo GetStructPadding(const DataType&);
 
 private:
     LLVMGenCtx& ctx() override { return _ctx; }
@@ -129,6 +132,8 @@ private:
     llvm::Module* llmod() { return _llmod.get(); }
     llvm::LLVMContext& llctx() { return _llctx; }
     llvm::IRBuilder<>* builder() { return _builder.get(); }
+
+    StructPaddingInfo build_struct_padding(const DataType&);
 
     LLVMGenCtx _ctx;
     llvm::LLVMContext& _llctx;

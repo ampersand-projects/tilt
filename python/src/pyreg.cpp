@@ -20,7 +20,7 @@ namespace py = pybind11;
 PyReg::PyReg(idx_t size, DataType schema) :
     max_size(get_buf_size(size)),
     schema(schema),
-    schema_padding(LLVMGen::getStructPadding(schema))
+    schema_padding(LLVMGen::GetStructPadding(schema))
 {
     this->reg = make_unique<region_t>();
     ival_t* tl = new ival_t[max_size];
@@ -58,7 +58,8 @@ string PyReg::str(void)
         ival_t tl_i = reg->tl[i];
         os << "[";
         os << "[" << tl_i.t << "," << tl_i.d << "]" << ",";
-        append_data_to_sstream(os, schema, fetch(reg.get(), tl_i.t + tl_i.d, i, payload_bytes));
+        append_data_to_sstream(os, schema, schema_padding,
+                               fetch(reg.get(), tl_i.t + tl_i.d, i, payload_bytes));
         os << "]";
     }
     os << "]" << endl;
@@ -66,7 +67,8 @@ string PyReg::str(void)
     return os.str();
 }
 
-void PyReg::append_data_to_sstream(ostringstream &os, DataType dt, char* fetch)
+void PyReg::append_data_to_sstream(ostringstream &os, const DataType& dt,
+                                   const StructPaddingInfo& padding_info, char* fetch)
 {
     switch (dt.btype) {
         case BaseType::INT8:
@@ -104,8 +106,18 @@ void PyReg::append_data_to_sstream(ostringstream &os, DataType dt, char* fetch)
 
             uint64_t offset;
             for (int i = 0; i < dt.dtypes.size(); ++i) {
-                offset = schema_padding.offsets[i];
-                append_data_to_sstream(os, dt.dtypes[i], fetch + offset);
+                offset = padding_info.offsets[i];
+                if (dt.dtypes[i].btype == BaseType::STRUCT) {
+                    append_data_to_sstream(os,
+                                           dt.dtypes[i],
+                                           padding_info.nested_padding.at(i),
+                                           fetch + offset);
+                } else {
+                    append_data_to_sstream(os,
+                                           dt.dtypes[i],
+                                           padding_info,
+                                           fetch + offset);
+                }
                 os << ",";
             }
 
@@ -129,11 +141,13 @@ void PyReg::write_data(py::object payload, ts_t t, idx_t i)
 {
     write_data_to_ptr(payload,
                       schema,
+                      schema_padding,
                       fetch(reg.get(), t, i,
                             schema_padding.total_bytes));
 }
 
-void PyReg::write_data_to_ptr(py::object payload, DataType dt, char* raw_data_ptr)
+void PyReg::write_data_to_ptr(py::object payload, const DataType& dt,
+                              const StructPaddingInfo& padding_info, char* raw_data_ptr)
 {
     switch (dt.btype) {
         case BaseType::INT8:
@@ -171,10 +185,18 @@ void PyReg::write_data_to_ptr(py::object payload, DataType dt, char* raw_data_pt
 
             uint64_t offset;
             for (int i = 0; i < dt.dtypes.size(); i++) {
-                offset = schema_padding.offsets[i];
-                write_data_to_ptr(payload_list[i],
-                                  dt.dtypes[i],
-                                  raw_data_ptr + offset);
+                offset = padding_info.offsets[i];
+                if (dt.dtypes[i].btype == BaseType::STRUCT) {
+                    write_data_to_ptr(payload_list[i],
+                                    dt.dtypes[i],
+                                    padding_info.nested_padding.at(i),
+                                    raw_data_ptr + offset);
+                } else {
+                    write_data_to_ptr(payload_list[i],
+                                    dt.dtypes[i],
+                                    padding_info,
+                                    raw_data_ptr + offset);
+                }
             }
             break;
         }

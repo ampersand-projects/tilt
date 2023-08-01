@@ -1,4 +1,5 @@
 #include "tilt/base/type.h"
+#include "tilt/engine/engine.h"
 #include "tilt/pass/codegen/llvmgen.h"
 
 #include "llvm/IR/Function.h"
@@ -534,26 +535,36 @@ unique_ptr<llvm::Module> LLVMGen::Build(const Loop loop, llvm::LLVMContext& llct
     return std::move(llgen._llmod);
 }
 
-StructPaddingInfo LLVMGen::getStructPadding(const DataType& dtype)
+StructPaddingInfo LLVMGen::GetStructPadding(const DataType& dtype)
 {
-    llvm::LLVMContext llctx;
+    llvm::LLVMContext& llctx = ExecEngine::Get()->GetCtx();
     LLVMGen llgen(&llctx);
+    return llgen.build_struct_padding(dtype);
+}
 
-    llvm::Type* dtllvm = (llvm::StructType*)llgen.lltype(dtype);
-    uint64_t total_bytes = llgen.llmod()->getDataLayout().getTypeAllocSize(dtllvm);
+StructPaddingInfo LLVMGen::build_struct_padding(const DataType& dtype)
+{
+    llvm::Type* dtllvm = lltype(dtype);
+    auto total_bytes = llmod()->getDataLayout().getTypeSizeInBits(dtllvm).getFixedSize();
+    ASSERT(total_bytes % 8 == 0);
+    total_bytes = total_bytes / 8;
 
     if (!dtype.is_struct()) {
-        return {total_bytes, {}};
+        return {total_bytes, {}, {}};
     }
 
-    const llvm::StructLayout* sl = llgen.llmod()->getDataLayout().getStructLayout((llvm::StructType*)dtllvm);
+    const llvm::StructLayout* sl = llmod()->getDataLayout().getStructLayout((llvm::StructType*)dtllvm);
 
     vector<uint64_t> offsets;
+    map<int, StructPaddingInfo> nested_padding;
     for (size_t i = 0; i < dtype.dtypes.size(); ++i) {
         offsets.push_back(sl->getElementOffset(i));
+        if (dtype.dtypes[i].btype == BaseType::STRUCT) {
+            nested_padding[i] = build_struct_padding(dtype.dtypes[i]);
+        }
     }
 
-    return {total_bytes, offsets};
+    return {total_bytes, offsets, nested_padding};
 }
 
 void LLVMGen::register_vinstrs() {

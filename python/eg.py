@@ -133,3 +133,61 @@ join_out_reg = exec.reg(100, ir.DataType(ir.BaseType.f32))
 compiled_join = tilt_eng.compile(join_op, "query_join")
 tilt_eng.execute(compiled_join, 0, 100, join_out_reg, [float_in_reg, right_reg])
 print(join_out_reg)
+
+
+### Example 5 ###
+### Nested structured data type ###
+nest_dt = ir.DataType(
+    ir.BaseType.struct,
+    [
+        ir.DataType(
+            ir.BaseType.struct,
+            [ir.DataType(ir.BaseType.i64), ir.DataType(ir.BaseType.i64)]
+        ),
+        ir.DataType(ir.BaseType.i8),
+        ir.DataType(
+            ir.BaseType.struct,
+            [ir.DataType(ir.BaseType.f32), ir.DataType(ir.BaseType.u16)]
+        )
+    ]
+)
+nest_reg = exec.reg(10, nest_dt)
+for i in range(10):
+    nest_reg.commit_data(i + 1)
+    nest_reg.write_data([[i, -i], i - 1, [i + 0.5, i + 1]],
+                        i + 1, nest_reg.get_end_idx())
+print(nest_reg)
+
+nest_stream = ir.sym("nest_in", ir.Type(nest_dt, ir.Iter(0, -1)))
+nest_e = ir.elem(nest_stream, ir.point(0))
+nest_e_sym = ir.sym("nest_e", nest_e)
+nest_res = ir.new([ir.new(
+                    [ir.const(ir.BaseType.i64, 15),
+                     ir.binary_expr(
+                        ir.DataType(ir.BaseType.i64),
+                        ir.MathOp.mul,
+                        ir.get(ir.get(nest_e_sym, 0), 1),
+                        ir.const(ir.BaseType.i64, -2)
+                     )]),
+                   ir.binary_expr(
+                        ir.DataType(ir.BaseType.i8),
+                        ir.MathOp.sub,
+                        ir.get(nest_e_sym, 1),
+                        ir.const(ir.BaseType.i8, 2)
+                    ),
+                   ir.get(nest_e_sym, 2)
+                  ])
+nest_res_sym = ir.sym("nest_res", nest_res)
+nest_op = ir.op(
+    ir.Iter(0, 1),
+    [nest_stream],
+    {nest_e_sym : nest_e, nest_res_sym : nest_res},
+    ir.exists(nest_e_sym),
+    nest_res_sym
+)
+
+utils.print_IR(nest_op)
+nest_out_reg = exec.reg(10, nest_dt)
+compiled_nest = tilt_eng.compile(nest_op, "query_nest")
+tilt_eng.execute(compiled_nest, 0, 10, nest_out_reg, [nest_reg])
+print(nest_out_reg)
