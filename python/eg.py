@@ -11,7 +11,7 @@ in_stream = ir.sym("in",
 e = ir.elem(in_stream, ir.point(0))
 e_sym = ir.sym("e", e)
 res = ir.binary_expr(ir.DataType(ir.BaseType.f32),
-                     ir.MathOp.add,
+                     ir.MathOp._add,
                      e_sym,
                      ir.const(ir.BaseType.f32, 3))
 res_sym = ir.sym("res", res)
@@ -38,7 +38,7 @@ print(select_out_reg)
 ### Example 2 ###
 ### Sum Query ###
 acc_lambda = lambda s, st, et, d : ir.binary_expr(ir.DataType(ir.BaseType.f32),
-                                                  ir.MathOp.add,
+                                                  ir.MathOp._add,
                                                   s, d)
 win = ir.sublstream(in_stream, ir.window(-10, 0))
 win_sym = ir.sym("win", win)
@@ -73,7 +73,7 @@ struct_e_sym = ir.sym("struct_e", struct_e)
 struct_res = ir.new([ir.get(struct_e_sym, 0),
                      ir.binary_expr(
                          ir.DataType(ir.BaseType.f32),
-                         ir.MathOp.mul,
+                         ir.MathOp._mul,
                          ir.get(struct_e_sym, 1),
                          ir.const(ir.BaseType.f32, 3)
                      )])
@@ -112,7 +112,7 @@ right_stream = ir.sym("right",
 e_right = ir.elem(right_stream, ir.point(0))
 e_right_sym = ir.sym("e_right", e_right)
 join_res = ir.binary_expr(ir.DataType(ir.BaseType.f32),
-                          ir.MathOp.add,
+                          ir.MathOp._add,
                           e_sym,
                           e_right_sym)
 join_res_sym = ir.sym("join_res", join_res)
@@ -161,13 +161,13 @@ nest_res = ir.new([ir.new(
                     [ir.const(ir.BaseType.i64, 15),
                      ir.binary_expr(
                         ir.DataType(ir.BaseType.i64),
-                        ir.MathOp.mul,
+                        ir.MathOp._mul,
                         ir.get(ir.get(nest_e_sym, 0), 1),
                         ir.const(ir.BaseType.i64, -2)
                      )]),
                    ir.binary_expr(
                         ir.DataType(ir.BaseType.i8),
-                        ir.MathOp.sub,
+                        ir.MathOp._sub,
                         ir.get(nest_e_sym, 1),
                         ir.const(ir.BaseType.i8, 2)
                     ),

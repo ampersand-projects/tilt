@@ -20,7 +20,7 @@ namespace py = pybind11;
 PyReg::PyReg(idx_t size, DataType schema) :
     max_size(get_buf_size(size)),
     schema(schema),
-    schema_padding(LLVMGen::GetStructPadding(schema))
+    schema_padding(LLVMGen::GetPadding(schema))
 {
     this->reg = make_unique<region_t>();
     ival_t* tl = new ival_t[max_size];
@@ -39,36 +39,16 @@ region_t* PyReg::get_reg(void)
     return this->reg.get();
 }
 
-string PyReg::str(void)
+template<typename T>
+void append_btype_data_to_sstream(ostringstream &os,
+                                  char* fetch)
 {
-    ostringstream os;
-
-    os << "TiLT region object" << endl;
-
-    os << "Metadata:" << endl;
-    os << "st: " << reg->st << endl;
-    os << "et: " << reg->et << endl;
-    os << "head: " << reg->head << endl;
-    os << "count: " << reg->count << endl;
-
-    os << "Timestamps and Data:" << endl;
-    os << "[";
-    uint32_t payload_bytes = schema_padding.total_bytes;
-    for (int i = 0; i < reg->count; i++) {
-        ival_t tl_i = reg->tl[i];
-        os << "[";
-        os << "[" << tl_i.t << "," << tl_i.d << "]" << ",";
-        append_data_to_sstream(os, schema, schema_padding,
-                               fetch(reg.get(), tl_i.t + tl_i.d, i, payload_bytes));
-        os << "]";
-    }
-    os << "]" << endl;
-
-    return os.str();
+    T payload = *reinterpret_cast<T*>(fetch);
+    os << to_string(payload);
 }
 
-void PyReg::append_data_to_sstream(ostringstream &os, const DataType& dt,
-                                   const StructPaddingInfo& padding_info, char* fetch)
+void append_data_to_sstream(ostringstream &os, const DataType& dt,
+                            const PaddingInfo& padding_info, char* fetch)
 {
     switch (dt.btype) {
         case BaseType::INT8:
@@ -129,25 +109,43 @@ void PyReg::append_data_to_sstream(ostringstream &os, const DataType& dt,
     }
 }
 
+string PyReg::str(void)
+{
+    ostringstream os;
+
+    os << "TiLT region object" << endl;
+
+    os << "Metadata:" << endl;
+    os << "st: " << reg->st << endl;
+    os << "et: " << reg->et << endl;
+    os << "head: " << reg->head << endl;
+    os << "count: " << reg->count << endl;
+
+    os << "Timestamps and Data:" << endl;
+    os << "[";
+    uint32_t payload_bytes = schema_padding.total_bytes;
+    for (int i = 0; i < reg->count; i++) {
+        ival_t tl_i = reg->tl[i];
+        os << "[";
+        os << "[" << tl_i.t << "," << tl_i.d << "]" << ",";
+        append_data_to_sstream(os, schema, schema_padding,
+                               fetch(reg.get(), tl_i.t + tl_i.d, i, payload_bytes));
+        os << "]";
+    }
+    os << "]" << endl;
+
+    return os.str();
+}
+
 template<typename T>
-void PyReg::append_btype_data_to_sstream(ostringstream &os,
-                                         char* fetch)
+void write_btype_data_to_ptr(py::object payload, char* raw_data_ptr)
 {
-    T payload = *reinterpret_cast<T*>(fetch);
-    os << to_string(payload);
+    T* data_ptr = reinterpret_cast<T*>(raw_data_ptr);
+    *data_ptr = payload.cast<T>();
 }
 
-void PyReg::write_data(py::object payload, ts_t t, idx_t i)
-{
-    write_data_to_ptr(payload,
-                      schema,
-                      schema_padding,
-                      fetch(reg.get(), t, i,
-                            schema_padding.total_bytes));
-}
-
-void PyReg::write_data_to_ptr(py::object payload, const DataType& dt,
-                              const StructPaddingInfo& padding_info, char* raw_data_ptr)
+void write_data_to_ptr(py::object payload, const DataType& dt,
+                       const PaddingInfo& padding_info, char* raw_data_ptr)
 {
     switch (dt.btype) {
         case BaseType::INT8:
@@ -204,9 +202,11 @@ void PyReg::write_data_to_ptr(py::object payload, const DataType& dt,
     }
 }
 
-template<typename T>
-void PyReg::write_btype_data_to_ptr(py::object payload, char* raw_data_ptr)
+void PyReg::write_data(py::object payload, ts_t t, idx_t i)
 {
-    T* data_ptr = reinterpret_cast<T*>(raw_data_ptr);
-    *data_ptr = payload.cast<T>();
+    write_data_to_ptr(payload,
+                      schema,
+                      schema_padding,
+                      fetch(reg.get(), t, i,
+                            schema_padding.total_bytes));
 }
