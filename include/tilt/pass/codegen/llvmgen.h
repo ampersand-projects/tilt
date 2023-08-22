@@ -25,10 +25,18 @@ extern const char* vinstr_str;
 
 namespace tilt {
 
+struct PaddingInfo {
+    uint64_t total_bytes;
+    vector<uint64_t> offsets;
+    map<int, PaddingInfo> nested_padding;
+};
+
 class LLVMGenCtx : public IRGenCtx<Expr, llvm::Value*> {
 public:
     LLVMGenCtx(const LoopNode* loop, llvm::LLVMContext* llctx) :
-        IRGenCtx(nullptr, &loop->syms, new map<Sym, llvm::Value*>()),
+        IRGenCtx(nullptr,
+                 loop ? &loop->syms : nullptr,
+                 loop ? new map<Sym, llvm::Value*>() : nullptr),
         loop(loop), llctx(llctx), map_backup(unique_ptr<map<Sym, llvm::Value*>>(out_sym_tbl))
     {}
 
@@ -43,13 +51,14 @@ class LLVMGen : public IRGen<LLVMGenCtx, Expr, llvm::Value*> {
 public:
     explicit LLVMGen(LLVMGenCtx llgenctx) :
         _ctx(std::move(llgenctx)), _llctx(*ctx().llctx),
-        _llmod(make_unique<llvm::Module>(ctx().loop->name, _llctx)),
+        _llmod(make_unique<llvm::Module>(ctx().loop ? ctx().loop->name : "temp", _llctx)),
         _builder(make_unique<llvm::IRBuilder<>>(_llctx))
     {
         register_vinstrs();
     }
 
     static unique_ptr<llvm::Module> Build(const Loop, llvm::LLVMContext&);
+    static PaddingInfo GetPadding(const DataType&);
 
 private:
     LLVMGenCtx& ctx() override { return _ctx; }
@@ -97,9 +106,9 @@ private:
     llvm::Value* llcall(const string, llvm::Type*, vector<llvm::Value*>);
     llvm::Value* llcall(const string, llvm::Type*, vector<Expr>);
 
-    llvm::Value* llsizeof(llvm::Type*);
+    uint32_t llsizeof(llvm::Type*);
 
-    llvm::Type* lltype(const DataType&);
+    llvm::Type* lltype(const DataType& dtype);
     llvm::Type* lltype(const Type&);
     llvm::Type* lltype(const ExprNode& expr) { return lltype(expr.type); }
     llvm::Type* lltype(const Expr& expr) { return lltype(expr->type); }
@@ -110,6 +119,8 @@ private:
     llvm::Module* llmod() { return _llmod.get(); }
     llvm::LLVMContext& llctx() { return _llctx; }
     llvm::IRBuilder<>* builder() { return _builder.get(); }
+
+    PaddingInfo build_padding(const DataType&);
 
     LLVMGenCtx _ctx;
     llvm::LLVMContext& _llctx;

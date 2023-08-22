@@ -1,4 +1,5 @@
 #include "tilt/base/type.h"
+#include "tilt/engine/engine.h"
 #include "tilt/pass/codegen/llvmgen.h"
 
 #include "llvm/IR/Function.h"
@@ -36,11 +37,11 @@ Value* LLVMGen::llcall(const string name, llvm::Type* ret_type, vector<Expr> arg
     return llcall(name, ret_type, arg_vals);
 }
 
-Value* LLVMGen::llsizeof(llvm::Type* type)
+uint32_t LLVMGen::llsizeof(llvm::Type* type)
 {
     auto size = llmod()->getDataLayout().getTypeSizeInBits(type).getFixedSize();
     ASSERT(size % 8 == 0);
-    return ConstantInt::get(lltype(types::UINT32), size/8);
+    return size / 8;
 }
 
 llvm::Type* LLVMGen::lltype(const DataType& dtype)
@@ -344,7 +345,7 @@ Value* LLVMGen::visit(const Fetch& fetch)
     auto reg_val = eval(fetch.reg);
     auto time_val = eval(fetch.time);
     auto idx_val = eval(fetch.idx);
-    auto size_val = llsizeof(lltype(dtype));
+    auto size_val = ConstantInt::get(lltype(types::UINT32), llsizeof(lltype(dtype)));
     auto ret_type = lltype(types::CHAR_PTR);
     auto addr = llcall("fetch", ret_type, { reg_val, time_val, idx_val, size_val });
 
@@ -532,6 +533,37 @@ unique_ptr<llvm::Module> LLVMGen::Build(const Loop loop, llvm::LLVMContext& llct
     LLVMGen llgen(std::move(ctx));
     loop->Accept(llgen);
     return std::move(llgen._llmod);
+}
+
+PaddingInfo LLVMGen::GetPadding(const DataType& dtype)
+{
+    llvm::LLVMContext& llctx = ExecEngine::Get()->GetCtx();
+    LLVMGenCtx ctx(nullptr, &llctx);
+    LLVMGen llgen(std::move(ctx));
+    return llgen.build_padding(dtype);
+}
+
+PaddingInfo LLVMGen::build_padding(const DataType& dtype)
+{
+    llvm::Type* dtllvm = lltype(dtype);
+    auto total_bytes = llsizeof(dtllvm);
+
+    if (!dtype.is_struct()) {
+        return {total_bytes, {}, {}};
+    }
+
+    const llvm::StructLayout* sl = llmod()->getDataLayout().getStructLayout((llvm::StructType*)dtllvm);
+
+    vector<uint64_t> offsets;
+    map<int, PaddingInfo> nested_padding;
+    for (size_t i = 0; i < dtype.dtypes.size(); ++i) {
+        offsets.push_back(sl->getElementOffset(i));
+        if (dtype.dtypes[i].btype == BaseType::STRUCT) {
+            nested_padding[i] = build_padding(dtype.dtypes[i]);
+        }
+    }
+
+    return {total_bytes, offsets, nested_padding};
 }
 
 void LLVMGen::register_vinstrs() {

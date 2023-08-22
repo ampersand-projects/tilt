@@ -23,18 +23,6 @@ using namespace tilt::tilder;
 
 namespace py = pybind11;
 
-void print_IR(Op query_op)
-{
-    cout << "TiLT IR:" << endl;
-    cout << IRPrinter::Build(query_op) << endl;
-
-    auto query_op_sym = _sym("query", query_op);
-    auto loop = LoopGen::Build(query_op_sym, query_op.get());
-
-    cout << "Loop IR:" << endl;
-    cout << IRPrinter::Build(loop);
-}
-
 #define REGISTER_CLASS(CLASS, PARENT, MODULE, NAME, ...) \
     py::class_<CLASS, shared_ptr<CLASS>, PARENT>(MODULE, NAME) \
         .def(py::init<__VA_ARGS__>());
@@ -59,7 +47,7 @@ PYBIND11_MODULE(ir, m) {
         .value("idx", BaseType::INDEX)
         .value("ival", BaseType::IVAL);
 
-    py::class_<DataType>(m, "DataType")
+    py::class_<DataType, shared_ptr<DataType>>(m, "DataType")
         .def(py::init<BaseType, vector<DataType>, size_t>(),
               py::arg("btype"),
               py::arg("dtypes") = vector<DataType>{},
@@ -73,12 +61,14 @@ PYBIND11_MODULE(ir, m) {
         .def("str", &Iter::str);
 
     py::class_<Type>(m, "Type")
-        .def(py::init<DataType, Iter>());
+        .def(py::init<DataType, Iter>())
+        .def_readonly("dtype", &Type::dtype);
 
     /* ExprNode and Derived Structures Declarations
         Note: ExprNode and ValNode are both pure virtual classes
     */
-    py::class_<ExprNode, Expr>(m, "expr");
+    py::class_<ExprNode, Expr>(m, "expr")
+        .def_readonly("type", &ExprNode::type);
     py::class_<ValNode, Val, ExprNode>(m, "val");
 
     /* Symbol Definition */
@@ -100,27 +90,27 @@ PYBIND11_MODULE(ir, m) {
 
     /* Math Operators for Nary Expressions */
     py::enum_<MathOp>(m, "MathOp")
-        .value("add", MathOp::ADD)
-        .value("sub", MathOp::SUB)
-        .value("mul", MathOp::MUL)
-        .value("div", MathOp::DIV)
-        .value("max", MathOp::MAX)
-        .value("min", MathOp::MIN)
-        .value("mod", MathOp::MOD)
-        .value("sqrt", MathOp::SQRT)
-        .value("pow", MathOp::POW)
-        .value("abs", MathOp::ABS)
-        .value("neg", MathOp::NEG)
-        .value("ceil", MathOp::CEIL)
-        .value("floor", MathOp::FLOOR)
-        .value("lt", MathOp::LT)
-        .value("lte", MathOp::LTE)
-        .value("gt", MathOp::GT)
-        .value("gte", MathOp::GTE)
-        .value("eq", MathOp::EQ)
-        .value("not", MathOp::NOT)
-        .value("and", MathOp::AND)
-        .value("or", MathOp::OR);
+        .value("_add", MathOp::ADD)
+        .value("_sub", MathOp::SUB)
+        .value("_mul", MathOp::MUL)
+        .value("_div", MathOp::DIV)
+        .value("_max", MathOp::MAX)
+        .value("_min", MathOp::MIN)
+        .value("_mod", MathOp::MOD)
+        .value("_sqrt", MathOp::SQRT)
+        .value("_pow", MathOp::POW)
+        .value("_abs", MathOp::ABS)
+        .value("_neg", MathOp::NEG)
+        .value("_ceil", MathOp::CEIL)
+        .value("_floor", MathOp::FLOOR)
+        .value("_lt", MathOp::LT)
+        .value("_lte", MathOp::LTE)
+        .value("_gt", MathOp::GT)
+        .value("_gte", MathOp::GTE)
+        .value("_eq", MathOp::EQ)
+        .value("_not", MathOp::NOT)
+        .value("_and", MathOp::AND)
+        .value("_or", MathOp::OR);
 
     /* Nary Expressions */
     REGISTER_CLASS(NaryExpr, ValNode, m, "nary_expr", DataType, MathOp, vector<Expr>)
@@ -148,7 +138,4 @@ PYBIND11_MODULE(ir, m) {
               py::arg("pred"),
               py::arg("output"),
               py::arg("aux") = map<Sym, Sym>{});
-
-    /* Temp */
-    m.def("print_IR", &print_IR);
 }
