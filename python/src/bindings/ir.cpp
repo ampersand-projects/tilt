@@ -58,7 +58,9 @@ PYBIND11_MODULE(ir, m) {
         .def(py::init<int64_t, int64_t>(),
               py::arg("offset") = 0,
               py::arg("period") = 0)
-        .def("str", &Iter::str);
+        .def("str", &Iter::str)
+        .def_readonly("offset", &Iter::offset)
+        .def_readonly("period", &Iter::period);
 
     py::class_<Type>(m, "Type")
         .def(py::init<DataType, Iter>())
@@ -74,7 +76,8 @@ PYBIND11_MODULE(ir, m) {
     /* Symbol Definition */
     py::class_<Symbol, Sym, ExprNode>(m, "sym")
         .def(py::init<string, Type>())
-        .def(py::init<string, Expr>());
+        .def(py::init<string, Expr>())
+        .def_readonly("name", &Symbol::name);
 
     /* Element/Substream/Windowing and Related Type Bindings */
     py::class_<Point, shared_ptr<Point>>(m, "point")
@@ -130,7 +133,7 @@ PYBIND11_MODULE(ir, m) {
     REGISTER_CLASS(Reduce, ValNode, m, "reduce", Sym, Val, AccTy)
 
     /* Operator Definition */
-    py::class_<OpNode, Op>(m, "op")
+    py::class_<OpNode, Op, LStream>(m, "op")
         .def(py::init<Iter, Params, SymTable, Expr, Sym, Aux>(),
               py::arg("iter"),
               py::arg("inputs"),

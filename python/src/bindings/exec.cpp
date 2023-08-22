@@ -63,6 +63,8 @@ PYBIND11_MODULE(exec, m) {
             });
     reg.def("write_data", &PyReg::write_data);
 
+    reg.def("get_max_size", &PyReg::get_max_size);
+
     /* engine bindings for compilation and execution */
     py::class_<PyEng> engine(m, "engine");
     engine.def(py::init<>());
