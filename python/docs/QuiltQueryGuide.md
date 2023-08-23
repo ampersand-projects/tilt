@@ -105,8 +105,9 @@ out_stream = in_stream.window(10, 10) \
                 .reduce(tilt.const(tilt.BaseType.f32, 0), sum_fn)
 ```
 
-### TJoin
-`tjoin(right, join_fn)` temporally joins the current stream with the `right` stream, with the join operation determined by the user defined `join_fn`.
+### TInnerJoin
+`tijoin(right, join_fn)` performs a temporal inner join between the current stream and the `right` stream, with the join operation determined by the user defined `join_fn`.
+In particular, the `join_fn` is applied to overlapping events in both streams.
 
 A query which adds together overlapping elements of two streams can be written as follows:
 
@@ -117,6 +118,14 @@ def join_fn(left_sym, right_sym) :
 
 out_stream = left_stream.tjoin(right_stream, join_fn)
 ```
+
+### TLeftOuterJoin
+`tlojoin(right, join_fn, r_default)` performs a temporal left outer join between the current stream and the `right` stream, with the join operation determined by the user defined `join_fn`.
+In particular, the `join_fn` is applied to overlapping event sin both streams, and `r_default` is used in place when there are no corresponding events in the `right` stream.
+
+### TOuterJoin
+`tojoin(right, join_fn, l_default, r_default)` performs a temporal full outer join between the current stream dn the `right` stream, with the join operation determined by the user defined `join_fn`.
+In particular, the `join_fn` is applied to overlapping event sin both streams, and `l_default`, `r_default` are used in place when there are no corresponding events in the `left` or `right` streams respectively.
 
 ## Improving Execution
 

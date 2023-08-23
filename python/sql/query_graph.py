@@ -51,19 +51,41 @@ class QueryGraphNode :
         self.next.append(QueryGraphNode(self.env, reduce_node, prev = [self]))
         return self.next[-1]
 
-    def tjoin(self, right, join_fn) :
+    def tijoin(self, right, join_fn) :
         if self.op.is_window() or right.op.is_window():
-            raise RuntimeError("Map operator cannot be defined after a Window operator.")
-        join_name = "join_" + str(self.env.add_node())
-        join_node = QuiltTJoin(join_name, join_fn)
+            raise RuntimeError("Join operator cannot be defined after a Window operator.")
+        join_name = "inner_join_" + str(self.env.add_node())
+        join_node = QuiltTInnerJoin(join_name, join_fn)
         self.next.append(QueryGraphNode(self.env, join_node, prev = [self, right]))
         return self.next[-1]
+
+    def tlojoin(self, right, join_fn, r_default) :
+        if self.op.is_window() or right.op.is_window():
+            raise RuntimeError("Join operator cannot be defined after a Window operator.")
+        join_name = "left_outer_join_" + str(self.env.add_node())
+        join_node = QuiltTLeftOuterJoin(join_name, join_fn, r_default)
+        self.next.append(QueryGraphNode(self.env, join_node, prev = [self, right]))
+        return self.next[-1]
+
+    def tojoin(self, right, join_fn, l_default, r_default) :
+        if self.op.is_window() or right.op.is_window():
+            raise RuntimeError("Join operator cannot be defined after a Window operator.")
+        join_name = "outer_join_" + str(self.env.add_node())
+        join_node = QuiltTOuterJoin(join_name, join_fn, l_default, r_default)
+        self.next.append(QueryGraphNode(self.env, join_node, prev = [self, right]))
+        return self.next[-1]
+
 
     ### Data-Writing Methods ###
     def commit_data(self, t) :
         if (self.data is None) :
             raise RuntimeError("Cannot commit data to a non-source node.")
         self.data.commit_data(t)
+
+    def commit_null(self, t) :
+        if (self.data is None) :
+            raise RuntimeError("Cannot commit data to a non-source node.")
+        self.data.commit_null(t)
 
     def write_data(self, payload, t, i) :
         if (self.data is None) :

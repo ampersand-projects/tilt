@@ -233,35 +233,13 @@ class QuiltReduce(QuiltOp) :
 
         return op_builder
 
-
 class QuiltTJoin(QuiltOp) :
     def __init__(self, name, join_fn) :
         super().__init__(name)
         self.join_fn = join_fn
 
     def loop_fn(self, left_sym, right_sym) :
-        e_left = tilt.elem(left_sym, tilt.point(0))
-        e_left_sym = tilt.sym("e_" + left_sym.name, e_left)
-
-        e_right = tilt.elem(right_sym, tilt.point(0))
-        e_right_sym = tilt.sym("e_" + right_sym.name, e_right)
-
-        pred = tilt.binary_expr(tilt.DataType(tilt.BaseType.bool),
-                                tilt.MathOp._and,
-                                tilt.exists(e_left_sym),
-                                tilt.exists(e_right_sym))
-
-        res = self.join_fn(e_left_sym, e_right_sym)
-        res_sym = tilt.sym("join_" + e_left_sym.name + "_" + e_right_sym.name, res)
-
-        join_op = tilt.op(
-            tilt.Iter(0, 1),
-            [left_sym, right_sym],
-            {e_left_sym : e_left, e_right_sym : e_right, res_sym : res},
-            pred,
-            res_sym
-        )
-        return join_op
+        raise NotImplementedError
 
     def modify_op_builders(self, op_builders : list[TiltOpBuilder]) :
         assert(len(op_builders) == 2)
@@ -296,3 +274,103 @@ class QuiltTJoin(QuiltOp) :
                 left_op_builder.aux[sym] = right_op_builder.aux[sym]
 
         return left_op_builder
+
+
+class QuiltTInnerJoin(QuiltTJoin) :
+    def __init__(self, name, join_fn) :
+        super().__init__(name, join_fn)
+
+    def loop_fn(self, left_sym, right_sym) :
+        e_left = tilt.elem(left_sym, tilt.point(0))
+        e_left_sym = tilt.sym("e_left_" + left_sym.name, e_left)
+
+        e_right = tilt.elem(right_sym, tilt.point(0))
+        e_right_sym = tilt.sym("e_right_" + right_sym.name, e_right)
+
+        pred = tilt.binary_expr(tilt.DataType(tilt.BaseType.bool),
+                                tilt.MathOp._and,
+                                tilt.exists(e_left_sym),
+                                tilt.exists(e_right_sym))
+
+        res = self.join_fn(e_left_sym, e_right_sym)
+        res_sym = tilt.sym("join_" + e_left_sym.name + "_" + e_right_sym.name, res)
+
+        join_op = tilt.op(
+            tilt.Iter(0, 1),
+            [left_sym, right_sym],
+            {e_left_sym : e_left, e_right_sym : e_right, res_sym : res},
+            pred,
+            res_sym
+        )
+        return join_op
+
+class QuiltTLeftOuterJoin(QuiltTJoin) :
+    def __init__(self, name, join_fn, r_default) :
+        super().__init__(name, join_fn)
+        self.r_default = r_default
+
+    def loop_fn(self, left_sym, right_sym) :
+        e_left = tilt.elem(left_sym, tilt.point(0))
+        e_left_sym = tilt.sym("e_left_" + left_sym.name, e_left)
+
+        e_right = tilt.elem(right_sym, tilt.point(0))
+        e_right_sym = tilt.sym("e_right_" + right_sym.name, e_right)
+        e_right_val = tilt.ifelse(tilt.exists(e_right_sym),
+                                  e_right_sym,
+                                  self.r_default)
+        e_right_val_sym = tilt.sym("e_right_" + right_sym.name + "_val", e_right_val)
+
+        pred = tilt.exists(e_left_sym)
+
+        res = self.join_fn(e_left_sym, e_right_val_sym)
+        res_sym = tilt.sym("join_" + e_left_sym.name + "_" + e_right_val_sym.name, res)
+
+        join_op = tilt.op(
+            tilt.Iter(0, 1),
+            [left_sym, right_sym],
+            {e_left_sym : e_left, e_right_sym : e_right,
+             e_right_val_sym : e_right_val, res_sym : res},
+            pred,
+            res_sym
+        )
+        return join_op
+
+class QuiltTOuterJoin(QuiltTJoin) :
+    def __init__(self, name, join_fn, l_default, r_default) :
+        super().__init__(name, join_fn)
+        self.l_default = l_default
+        self.r_default = r_default
+
+    def loop_fn(self, left_sym, right_sym) :
+        e_left = tilt.elem(left_sym, tilt.point(0))
+        e_left_sym = tilt.sym("e_left_" + left_sym.name, e_left)
+        e_left_val = tilt.ifelse(tilt.exists(e_left_sym),
+                                 e_left_sym,
+                                 self.l_default)
+        e_left_val_sym = tilt.sym("e_left_" + left_sym.name + "_val", e_left_val)
+
+        e_right = tilt.elem(right_sym, tilt.point(0))
+        e_right_sym = tilt.sym("e_right_" + right_sym.name, e_right)
+        e_right_val = tilt.ifelse(tilt.exists(e_right_sym),
+                                  e_right_sym,
+                                  self.r_default)
+        e_right_val_sym = tilt.sym("e_right_" + right_sym.name + "_val", e_right_val)
+
+        pred = tilt.binary_expr(tilt.DataType(tilt.BaseType.bool),
+                                tilt.MathOp._or,
+                                tilt.exists(e_left_sym),
+                                tilt.exists(e_right_sym))
+
+        res = self.join_fn(e_left_val_sym, e_right_val_sym)
+        res_sym = tilt.sym("join_" + e_left_val_sym.name + "_" + e_right_val_sym.name, res)
+
+        join_op = tilt.op(
+            tilt.Iter(0, 1),
+            [left_sym, right_sym],
+            {e_left_sym : e_left, e_right_sym : e_right,
+             e_left_val_sym : e_left_val, e_right_val_sym : e_right_val,
+             res_sym : res},
+            pred,
+            res_sym
+        )
+        return join_op
