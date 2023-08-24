@@ -32,6 +32,9 @@ def mul_fn(s, st, et, d) :
 
 # out_stream = in_stream.map(map_fn)
 # out_stream = in_stream.window(10, 10).reduce(tilt.const(tilt.BaseType.f32, 0), sum_fn)
+out_stream = in_stream.shift(5) \
+                .window(10, 10) \
+                .reduce(tilt.const(tilt.BaseType.f32, 0), sum_fn)
 
 """
 out_stream = in_stream.window(10, 10) \
@@ -39,9 +42,11 @@ out_stream = in_stream.window(10, 10) \
                 .map(map_fn)
 """
 
+"""
 out_stream = in_stream.map(map_fn) \
                 .window(10, 10) \
                 .reduce(tilt.const(tilt.BaseType.f32, 0), sum_fn)
+"""
 
 """
 out_stream = in_stream.window(10, 10) \

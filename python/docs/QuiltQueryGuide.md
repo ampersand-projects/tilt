@@ -105,6 +105,18 @@ out_stream = in_stream.window(10, 10) \
                 .reduce(tilt.const(tilt.BaseType.f32, 0), sum_fn)
 ```
 
+### Shift
+
+`shift(shift_amt)` shifts each event in the current stream forward by `shift_amt` time periods.
+In particular, the value of the output stream at time `t` is given by the value of the current stream at time `t - shift_amt`.
+
+A query which shifts the stream forward by 5 timestamps can be written as follows:
+
+```python
+out_stream = in_stream.shift(5)
+```
+
+
 ### TInnerJoin
 `tijoin(right, join_fn)` performs a temporal inner join between the current stream and the `right` stream, with the join operation determined by the user defined `join_fn`.
 In particular, the `join_fn` is applied to overlapping events in both streams.

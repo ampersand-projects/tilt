@@ -51,6 +51,14 @@ class QueryGraphNode :
         self.next.append(QueryGraphNode(self.env, reduce_node, prev = [self]))
         return self.next[-1]
 
+    def shift(self, shift) :
+        if self.op.is_window() :
+            raise RuntimeError("Shift operator cannot be defined after a Window operator.")
+        shift_name = "shift_" + str(self.env.add_node())
+        shift_node = QuiltShift(shift_name, shift)
+        self.next.append(QueryGraphNode(self.env, shift_node, prev = [self]))
+        return self.next[-1]
+
     def tijoin(self, right, join_fn) :
         if self.op.is_window() or right.op.is_window():
             raise RuntimeError("Join operator cannot be defined after a Window operator.")

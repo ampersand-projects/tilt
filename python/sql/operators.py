@@ -88,6 +88,7 @@ class QuiltSource(QuiltOp) :
     * Where
     * Window
     * Reduce
+    * Shift
 """
 
 class QuiltUnaryOp(QuiltOp) :
@@ -129,7 +130,7 @@ class QuiltMap(QuiltUnaryOp) :
         res_op = tilt.op(
             tilt.Iter(0, 1),
             [in_sym],
-            {e_sym: e, res_sym : res},
+            {e_sym : e, res_sym : res},
             tilt.exists(e_sym),
             res_sym
         )
@@ -154,7 +155,7 @@ class QuiltWhere(QuiltUnaryOp) :
         res_op = tilt.op(
             tilt.Iter(0, 1),
             [in_sym],
-            {e_sym: e},
+            {e_sym : e},
             cond,
             e_sym
         )
@@ -203,12 +204,32 @@ class QuiltReduce(QuiltUnaryOp) :
         red_op = tilt.op(
             tilt.Iter(0, self.stride),
             [in_sym],
-            {win_sym: win, red_sym : red},
+            {win_sym : win, red_sym : red},
             tilt.const(tilt.BaseType.bool, True),
             red_sym
         )
         return red_op
 
+
+class QuiltShift(QuiltUnaryOp) :
+    def __init__(self, name, shift) :
+        super().__init__(name)
+        self.shift = shift
+
+    def loop_fn(self, in_sym) :
+        e = tilt.elem(in_sym, tilt.point(-self.shift))
+        e_sym = tilt.sym("e", e)
+
+        pred = tilt.exists(e_sym)
+
+        res_op = tilt.op(
+            tilt.Iter(0, 1),
+            [in_sym],
+            {e_sym : e},
+            pred,
+            e_sym
+        )
+        return res_op
 
 """ Temporal Join Operator Definitions
     * Inner Join
