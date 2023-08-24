@@ -51,6 +51,9 @@ setup(
     name = "tilt",
     version = "0.1",
     ext_modules = [CMakeExtension("tilt.")],
+    packages = ['tilt', 'tilt.sql'],
+    package_dir = {'tilt' : 'python/tilt',
+                   'tilt.sql' : 'python/sql'},
     cmdclass={
         'build_ext': CMakeBuildExtension
     },

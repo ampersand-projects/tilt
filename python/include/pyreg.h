@@ -21,6 +21,7 @@ public:
     PyReg(const PyReg&) = delete;
 
     region_t* get_reg(void);
+    uint32_t get_max_size(void) { return max_size; }
     std::string str(void);
     void write_data(py::object payload, ts_t t, idx_t i);
 
