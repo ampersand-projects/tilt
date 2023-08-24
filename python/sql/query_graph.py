@@ -75,7 +75,6 @@ class QueryGraphNode :
         self.next.append(QueryGraphNode(self.env, join_node, prev = [self, right]))
         return self.next[-1]
 
-
     ### Data-Writing Methods ###
     def commit_data(self, t) :
         if (self.data is None) :

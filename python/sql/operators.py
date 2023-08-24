@@ -47,13 +47,7 @@ class QuiltOp :
         raise NotImplementedError
 
 
-""" Concrete Operator Definitions
-    * Source
-    * Map
-    * Where
-    * Window
-    * Reduce
-"""
+""" Concrete Operator Definitions """
 
 class QuiltSource(QuiltOp) :
     def __init__(self, name : str, type : tilt.Type, batch_time : int) :
@@ -89,8 +83,38 @@ class QuiltSource(QuiltOp) :
 
         return op_builder
 
+""" Unary Operator Definitions
+    * Map
+    * Where
+    * Window
+    * Reduce
+"""
 
-class QuiltMap(QuiltOp) :
+class QuiltUnaryOp(QuiltOp) :
+    def __init__(self, name) :
+        super().__init__(name)
+
+    def loop_fn(self, in_sym) :
+        raise NotImplementedError
+
+    def modify_op_builders(self, op_builders : list[TiltOpBuilder]) :
+        assert(len(op_builders) == 1)
+        op_builder = op_builders[0]
+
+        # check that op_builder.output is a pre-existing symbol
+        if (op_builder.output is None) :
+            raise RuntimeError("Unary operator defined without a valid input.")
+
+        loop = self.loop_fn(op_builder.output)
+        loop_sym = tilt.sym(self.name, loop)
+
+        op_builder.output = loop_sym
+        op_builder.syms[loop_sym] = loop
+
+        return op_builder
+
+
+class QuiltMap(QuiltUnaryOp) :
     def __init__(self, name, map_fn) :
         super().__init__(name)
         self.map_fn = map_fn
@@ -111,24 +135,8 @@ class QuiltMap(QuiltOp) :
         )
         return res_op
 
-    def modify_op_builders(self, op_builders : list[TiltOpBuilder]) :
-        assert(len(op_builders) == 1)
-        op_builder = op_builders[0]
 
-        # check that op_builder.output is a pre-existing symbol
-        if (op_builder.output is None) :
-            raise RuntimeError("Map operator defined without a valid input.")
-
-        map_loop = self.loop_fn(op_builder.output)
-        map_loop_sym = tilt.sym(self.name, map_loop)
-
-        op_builder.output = map_loop_sym
-        op_builder.syms[map_loop_sym] = map_loop
-
-        return op_builder
-
-
-class QuiltWhere(QuiltOp) :
+class QuiltWhere(QuiltUnaryOp) :
     def __init__(self, name, where_fn) :
         super().__init__(name)
         self.where_fn = where_fn
@@ -152,24 +160,8 @@ class QuiltWhere(QuiltOp) :
         )
         return res_op
 
-    def modify_op_builders(self, op_builders : list[TiltOpBuilder]) :
-        assert(len(op_builders) == 1)
-        op_builder = op_builders[0]
 
-        # check that op_builder.output is a pre-existing symbol
-        if (op_builder.output is None) :
-            raise RuntimeError("Where operator defined without a valid input.")
-
-        where_loop = self.loop_fn(op_builder.output)
-        where_loop_sym = tilt.sym(self.name, where_loop)
-
-        op_builder.output = where_loop_sym
-        op_builder.syms[where_loop_sym] = where_loop
-
-        return op_builder
-
-
-class QuiltWindow(QuiltOp) :
+class QuiltWindow(QuiltUnaryOp) :
     def __init__(self, name, size, stride) :
         super().__init__(name)
         assert size == stride # temporary
@@ -190,7 +182,7 @@ class QuiltWindow(QuiltOp) :
         return op_builders[0]
 
 
-class QuiltReduce(QuiltOp) :
+class QuiltReduce(QuiltUnaryOp) :
     def __init__(self, name, init, acc_fn, size, stride) :
         super().__init__(name)
         self.init = init
@@ -217,21 +209,12 @@ class QuiltReduce(QuiltOp) :
         )
         return red_op
 
-    def modify_op_builders(self, op_builders : list[TiltOpBuilder]) :
-        assert(len(op_builders) == 1)
-        op_builder = op_builders[0]
 
-        # check that op_builder.output is a pre-existing symbol
-        if (op_builder.output is None) :
-            raise RuntimeError("Map operator defined without a valid input.")
-
-        red_loop = self.loop_fn(op_builder.output)
-        red_loop_sym = tilt.sym(self.name, red_loop)
-
-        op_builder.output = red_loop_sym
-        op_builder.syms[red_loop_sym] = red_loop
-
-        return op_builder
+""" Temporal Join Operator Definitions
+    * Inner Join
+    * Left Outer Join
+    * (Full) Outer Join
+"""
 
 class QuiltTJoin(QuiltOp) :
     def __init__(self, name, join_fn) :
