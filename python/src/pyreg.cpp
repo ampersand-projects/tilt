@@ -210,3 +210,54 @@ void PyReg::write_data(py::object payload, ts_t t, idx_t i)
                       fetch(reg.get(), t, i,
                             schema_padding.total_bytes));
 }
+
+py::object get_payload_from_ptr(char* data_ptr, const DataType& dt,
+                                const PaddingInfo& padding_info)
+{
+    switch (dt.btype) {
+        case BaseType::INT8:
+            return py::int_(*reinterpret_cast<int8_t*>(data_ptr));
+        case BaseType::INT16:
+            return py::int_(*reinterpret_cast<int16_t*>(data_ptr));
+        case BaseType::INT32:
+            return py::int_(*reinterpret_cast<int32_t*>(data_ptr));
+        case BaseType::INT64:
+            return py::int_(*reinterpret_cast<int64_t*>(data_ptr));
+        case BaseType::UINT8:
+            return py::int_(*reinterpret_cast<uint8_t*>(data_ptr));
+        case BaseType::UINT16:
+            return py::int_(*reinterpret_cast<uint16_t*>(data_ptr));
+        case BaseType::UINT32:
+            return py::int_(*reinterpret_cast<uint32_t*>(data_ptr));
+        case BaseType::UINT64:
+            return py::int_(*reinterpret_cast<uint64_t*>(data_ptr));
+        case BaseType::FLOAT32:
+            return py::float_(*reinterpret_cast<float*>(data_ptr));
+        case BaseType::FLOAT64:
+            return py::float_(*reinterpret_cast<double*>(data_ptr));
+        case BaseType::STRUCT: {
+            py::list ret;
+            uint64_t offset;
+            for (int i = 0; i < dt.dtypes.size(); i++) {
+                offset = padding_info.offsets[i];
+                if (dt.dtypes[i].btype == BaseType::STRUCT) {
+                    ret.append(get_payload_from_ptr(data_ptr + offset,
+                                                    dt.dtypes[i],
+                                                    padding_info.nested_padding.at(i)));
+                } else {
+                    ret.append(get_payload_from_ptr(data_ptr + offset,
+                                                    dt.dtypes[i],
+                                                    padding_info));
+                }
+            }
+            return ret;
+        }
+        default: throw runtime_error("Invalid type. " + dt.str());
+    }
+}
+
+py::object PyReg::get_payload(idx_t i)
+{
+    char* data_ptr = reg->data + (i * schema_padding.total_bytes);
+    return get_payload_from_ptr(data_ptr, schema, schema_padding);
+}

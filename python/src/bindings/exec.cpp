@@ -53,6 +53,7 @@ PYBIND11_MODULE(exec, m) {
                 return advance(pyreg.get_reg(), i, t);
             });
 
+    /* bindings related to writing data to region_t */
     reg.def("commit_data",
             [] (PyReg &pyreg, ts_t t) {
                 commit_data(pyreg.get_reg(), t);
@@ -62,6 +63,17 @@ PYBIND11_MODULE(exec, m) {
                 commit_null(pyreg.get_reg(), t);
             });
     reg.def("write_data", &PyReg::write_data);
+
+    /* bindings related to reading data from region_t */
+    reg.def("get_ts",
+            [] (PyReg &pyreg, idx_t i) {
+                return pyreg.get_reg()->tl[i].t;
+            });
+    reg.def("get_dur",
+            [] (PyReg &pyreg, idx_t i) {
+                return pyreg.get_reg()->tl[i].d;
+            });
+    reg.def("get_payload", &PyReg::get_payload);
 
     /* engine bindings for compilation and execution */
     py::class_<PyEng> engine(m, "engine");

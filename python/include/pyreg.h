@@ -23,6 +23,7 @@ public:
     region_t* get_reg(void);
     std::string str(void);
     void write_data(py::object payload, ts_t t, idx_t i);
+    py::object get_payload(idx_t i);
 
 private:
     std::unique_ptr<region_t> reg;
