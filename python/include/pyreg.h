@@ -15,8 +15,7 @@ namespace py = pybind11;
 
 class PyReg {
 public:
-    PyReg(idx_t size,
-          tilt::DataType schema);
+    PyReg(idx_t size, tilt::DataType schema, ts_t t);
     ~PyReg();
     PyReg(const PyReg&) = delete;
 

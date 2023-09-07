@@ -17,7 +17,7 @@ using namespace tilt;
 
 namespace py = pybind11;
 
-PyReg::PyReg(idx_t size, DataType schema) :
+PyReg::PyReg(idx_t size, DataType schema, ts_t t = 0) :
     max_size(get_buf_size(size)),
     schema(schema),
     schema_padding(LLVMGen::GetPadding(schema))
@@ -25,7 +25,7 @@ PyReg::PyReg(idx_t size, DataType schema) :
     this->reg = make_unique<region_t>();
     ival_t* tl = new ival_t[max_size];
     char* data = new char[max_size * schema_padding.total_bytes];
-    init_region(this->reg.get(), 0, this->max_size, tl, data);
+    init_region(this->reg.get(), t, this->max_size, tl, data);
 }
 
 PyReg::~PyReg(void)
