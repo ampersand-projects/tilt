@@ -76,6 +76,10 @@ PYBIND11_MODULE(ir, m) {
         .def(py::init<string, Type>())
         .def(py::init<string, Expr>());
 
+    /* Out and Beat definitions */
+    REGISTER_CLASS(Out, Symbol, m, "out", DataType)
+    REGISTER_CLASS(Beat, Symbol, m, "beat", Iter)
+
     /* Element/Substream/Windowing and Related Type Bindings */
     py::class_<Point, shared_ptr<Point>>(m, "point")
         .def(py::init<int64_t>());
@@ -130,7 +134,7 @@ PYBIND11_MODULE(ir, m) {
     REGISTER_CLASS(Reduce, ValNode, m, "reduce", Sym, Val, AccTy)
 
     /* Operator Definition */
-    py::class_<OpNode, Op>(m, "op")
+    py::class_<OpNode, Op, LStream>(m, "op")
         .def(py::init<Iter, Params, SymTable, Expr, Sym, Aux>(),
               py::arg("iter"),
               py::arg("inputs"),
