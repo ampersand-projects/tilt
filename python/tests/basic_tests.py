@@ -217,5 +217,211 @@ class MathOpTests(QueryTestBase) :
                                                   s),
                          lambda s: abs(s))
 
+
+class QueryTests(QueryTestBase) :
+    def _MovingSum(self, in_sym, dur, w) :
+        e = ir.elem(in_sym, ir.point(0))
+        e_sym = ir.sym("e", e)
+        p = ir.elem(in_sym, ir.point(-w))
+        p_sym = ir.sym("p", p)
+        out = ir.out(ir.DataType(ir.BaseType.i32))
+        o = ir.elem(out, ir.point(-dur))
+        o_sym = ir.sym("o", o)
+        p_val = ir.ifelse(ir.exists(p_sym), p_sym, ir.const(ir.BaseType.i32, 0))
+        p_val_sym = ir.sym("p_val", p_val)
+        o_val = ir.ifelse(ir.exists(o_sym), o_sym, ir.const(ir.BaseType.i32, 0))
+        o_val_sym = ir.sym("o_val", o_val)
+        res = ir.binary_expr(ir.DataType(ir.BaseType.i32),
+                             ir.MathOp._sub,
+                             ir.binary_expr(
+                                 ir.DataType(ir.BaseType.i32),
+                                 ir.MathOp._add,
+                                 e_sym,
+                                 o_val_sym
+                             ),
+                             p_val_sym)
+        res_sym = ir.sym("res", res)
+        sum_op = ir.op(
+            ir.Iter(0, dur),
+            [in_sym],
+            {e_sym : e, p_sym : p, o_sym : o, p_val_sym : p_val,
+             o_val_sym : o_val, res_sym : res},
+            ir.exists(e_sym),
+            res_sym
+        )
+        return sum_op
+
+    def test_moving_sum(self) :
+        length = 30
+        dur = 1
+        w = 10
+
+        in_sym = ir.sym("in", ir.Type(ir.DataType(ir.BaseType.i32), ir.Iter(0, -1)))
+        mov_op = self._MovingSum(in_sym, dur, w)
+
+        def mov_query_fn(input_st, input_et, input_payload) :
+            true_out_st = [None] * len(input_payload)
+            true_out_et = [None] * len(input_payload)
+            true_out = [None] * len(input_payload)
+            for i in range(len(input_payload)) :
+                out_i = i - 1
+                tail_i = i - w
+                payload = input_payload[i]
+                if (tail_i >= 0) :
+                    payload -= input_payload[tail_i]
+                if (out_i >= 0) :
+                    payload += true_out[out_i]
+                true_out_st[i] = input_st[i]
+                true_out_et[i] = input_et[i]
+                true_out[i] = payload
+            return true_out_st, true_out_et, true_out
+
+        self.unary_op_test(ir.DataType(ir.BaseType.i32), ir.DataType(ir.BaseType.i32),
+                           "moving_sym", mov_op, 0, length * dur, mov_query_fn, length, dur)
+
+    def _Average(self, win_sym) :
+        def acc(s, st, et, d) :
+            sum = ir.get(s, 0)
+            count = ir.get(s, 1)
+            return ir.new([ir.binary_expr(ir.DataType(ir.BaseType.f32),
+                                          ir.MathOp._add,
+                                          sum, d),
+                           ir.binary_expr(ir.DataType(ir.BaseType.f32),
+                                          ir.MathOp._add,
+                                          count,
+                                          ir.const(ir.BaseType.f32, 1))])
+        return ir.reduce(win_sym,
+                         ir.new([ir.const(ir.BaseType.f32, 0),
+                                 ir.const(ir.BaseType.f32, 0)]),
+                         acc)
+
+    def _StdDev(self, win_sym) :
+        def acc(s, st, et, d) :
+            sum = ir.get(s, 0)
+            count = ir.get(s, 1)
+            return ir.new([ir.binary_expr(ir.DataType(ir.BaseType.f32),
+                                          ir.MathOp._add,
+                                          sum,
+                                          ir.binary_expr(ir.DataType(ir.BaseType.f32),
+                                                         ir.MathOp._mul,
+                                                         d, d)),
+                           ir.binary_expr(ir.DataType(ir.BaseType.f32),
+                                          ir.MathOp._add,
+                                          count,
+                                          ir.const(ir.BaseType.f32, 1))])
+        return ir.reduce(win_sym,
+                         ir.new([ir.const(ir.BaseType.f32, 0),
+                                 ir.const(ir.BaseType.f32, 0)]),
+                         acc)
+
+    def _SelectSub(self, in_sym, avg_sym) :
+        e = ir.elem(in_sym, ir.point(0))
+        e_sym = ir.sym("e", e)
+        res = ir.binary_expr(ir.DataType(ir.BaseType.f32),
+                             ir.MathOp._sub,
+                             e_sym,
+                             avg_sym)
+        res_sym = ir.sym("res", res)
+        sel_op = ir.op(
+            ir.Iter(0, 1),
+            [in_sym, avg_sym],
+            {e_sym : e, res_sym : res},
+            ir.exists(e_sym),
+            res_sym
+        )
+        return sel_op
+
+    def _SelectDiv(self, in_sym, avg_sym) :
+        e = ir.elem(in_sym, ir.point(0))
+        e_sym = ir.sym("e", e)
+        res = ir.binary_expr(ir.DataType(ir.BaseType.f32),
+                             ir.MathOp._div,
+                             e_sym,
+                             avg_sym)
+        res_sym = ir.sym("res", res)
+        sel_op = ir.op(
+            ir.Iter(0, 1),
+            [in_sym, avg_sym],
+            {e_sym : e, res_sym : res},
+            ir.exists(e_sym),
+            res_sym
+        )
+        return sel_op
+
+    def _Norm(self, query_name, in_sym, length) :
+        inwin = ir.sublstream(in_sym, ir.window(-length, 0))
+        inwin_sym = ir.sym("inwin", inwin)
+
+        avg_state = self._Average(inwin_sym)
+        avg_state_sym = ir.sym(query_name + "_avg_state", avg_state)
+        avg = ir.binary_expr(ir.DataType(ir.BaseType.f32),
+                             ir.MathOp._div,
+                             ir.get(avg_state_sym, 0),
+                             ir.get(avg_state_sym, 1))
+        avg_sym = ir.sym("avg", avg)
+
+        avg_op = self._SelectSub(inwin_sym, avg_sym)
+        avg_op_sym = ir.sym(query_name + "_avg_op", avg_op)
+
+        std_state = self._StdDev(avg_op_sym)
+        std_state_sym = ir.sym(query_name + "_stddev_state", std_state)
+        std = ir.unary_expr(ir.DataType(ir.BaseType.f32),
+                            ir.MathOp._sqrt,
+                            ir.binary_expr(ir.DataType(ir.BaseType.f32),
+                                           ir.MathOp._div,
+                                           ir.get(std_state_sym, 0),
+                                           ir.get(std_state_sym, 1)))
+        std_sym = ir.sym("std", std)
+
+        std_op = self._SelectDiv(avg_op_sym, std_sym)
+        std_op_sym = ir.sym(query_name + "_stdop", std_op)
+
+        query_op = ir.op(
+            ir.Iter(0, length),
+            [in_sym],
+            {inwin_sym : inwin, avg_state_sym : avg_state, avg_sym : avg,
+             avg_op_sym : avg_op, std_state_sym : std_state,
+             std_sym : std, std_op_sym : std_op},
+            ir.const(ir.BaseType.bool, True),
+            std_op_sym
+        )
+        return query_op
+    
+    def test_norm(self) :
+        length = 10
+        dur = 1
+        w = 10
+
+        in_sym = ir.sym("in", ir.Type(ir.DataType(ir.BaseType.f32), ir.Iter(0, -1)))
+        norm_op = self._Norm("norm", in_sym, w)
+
+        def norm_query_fn(input_st, input_et, input_payload) :
+            true_out_st = [None] * len(input_payload)
+            true_out_et = [None] * len(input_payload)
+            true_out = [None] * len(input_payload)
+            num_windows = len(input_payload) // w
+
+            for i in range(num_windows) :
+                sum, mean, variance, std_dev = 0.0, 0.0, 0.0, 0.0
+                for j in range(w) :
+                    sum += input_payload[i * w + j]
+                mean = sum / w
+                for j in range(w) :
+                    variance += (input_payload[i * w + j] - mean) ** 2
+                std_dev = math.sqrt(variance / w)
+                for j in range(w) :
+                    idx = i * w + j
+                    z_score = (input_payload[idx] - mean) / std_dev
+                    true_out_st[idx] = input_st[idx]
+                    true_out_et[idx] = input_et[idx]
+                    true_out[idx] = z_score
+
+            return true_out_st, true_out_et, true_out
+
+        self.unary_op_test(ir.DataType(ir.BaseType.f32), ir.DataType(ir.BaseType.f32),
+                           "norm", norm_op, 0, length * dur, norm_query_fn, length, dur,
+                           precision = 5)
+
+
 if __name__ == '__main__':
     unittest.main()
