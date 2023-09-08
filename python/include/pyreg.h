@@ -15,14 +15,14 @@ namespace py = pybind11;
 
 class PyReg {
 public:
-    PyReg(idx_t size,
-          tilt::DataType schema);
+    PyReg(idx_t size, tilt::DataType schema, ts_t t);
     ~PyReg();
     PyReg(const PyReg&) = delete;
 
     region_t* get_reg(void);
     std::string str(void);
     void write_data(py::object payload, ts_t t, idx_t i);
+    py::object get_payload(idx_t i);
 
 private:
     std::unique_ptr<region_t> reg;
